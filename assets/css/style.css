@@ -308,10 +308,11 @@ ul,ol{margin:0;padding:0;list-style:none}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
 @keyframes zoomin{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
 @keyframes kb{0%{transform:scale(1.06)}100%{transform:scale(1.17) translate3d(-1.6%,-1.6%,0)}}
-@keyframes dashflow{to{stroke-dashoffset:-24}}
+/* Čárkování trasy: perioda vzoru je 2 + 8.5 = 10.5, posun proto musí být
+   jejím celým násobkem (42 = 4 × 10.5). Jinak se smyčka na konci cyklu
+   viditelně přesmykne. Rychlost 42 / 2.8 s = 15 jednotek za sekundu. */
+@keyframes dashflow{from{stroke-dashoffset:0}to{stroke-dashoffset:-42}}
 @keyframes pulse{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:.9;transform:scale(1.25)}}
-@keyframes drawline{from{stroke-dashoffset:2200}to{stroke-dashoffset:0}}
-@keyframes shimmer{from{background-position:-160% 0}to{background-position:260% 0}}
 
 [data-rv]{opacity:0}
 [data-rv].in{animation:fadeup .78s var(--e-spring) both;animation-delay:var(--rv-d,0ms)}
@@ -701,7 +702,7 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 
 .map__track{fill:none;stroke:var(--map-track);stroke-width:2.4;stroke-linecap:round}
 .map__flow{fill:none;stroke:var(--ac-l);stroke-width:2.4;stroke-linecap:round;stroke-dasharray:2 8.5;
-  animation:dashflow 1.6s linear infinite;filter:drop-shadow(0 0 4px rgba(229,84,74,.65))}
+  animation:dashflow 2.8s linear infinite;filter:drop-shadow(0 0 4px rgba(229,84,74,.65))}
 .map__halo{fill:var(--ac-glow);transform-box:fill-box;transform-origin:50% 50%;animation:pulse 3.4s var(--e) infinite}
 .map__dot{fill:var(--ac-l);stroke:var(--map-dot-ring);stroke-width:1.3}
 
