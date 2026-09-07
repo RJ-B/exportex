@@ -561,7 +561,7 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
   .grid--products{grid-template-columns:1fr}
   .about__fig img{aspect-ratio:4/3}
 }
-@media (max-width:400px){
+@media (max-width:339px){
   .stats{grid-template-columns:1fr}
   .logo__mark{height:19px}
 }
