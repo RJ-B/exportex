@@ -157,6 +157,24 @@ se navenek tváří jako úspěšné odeslání, aby robot nepoznal, že ho web 
 Doplňkově: `maxlength` na všech polích a validace včetně minimální délky zprávy.
 Prahy jsou pohromadě v objektu `BOT` v `main.js`.
 
+## Údaje o firmě
+
+Identifikace v patičce a v zásadách ochrany údajů je ověřená proti **ARES**
+(rejstřík ekonomických subjektů), ne opsaná odhadem:
+
+| | |
+|---|---|
+| název | exportex s.r.o. |
+| IČO | 17671833 |
+| sídlo | Na Poříčí 1070/19, Nové Město, 110 00 Praha 1 |
+| rejstřík | Městský soud v Praze, oddíl C, vložka 374806 |
+| vznik | 24. 10. 2022 |
+
+Uvedení názvu, sídla a IČO na webu ukládá § 435 občanského zákoníku, proto to
+není jen doplněk. **DIČ na webu není** — firma v ARES nemá evidovanou registraci
+k DPH. Až plátcem bude, patří DIČ do `.ftr__legal` v `index.html`, do
+`soukromi.html` a do `vatID` ve strukturovaných datech.
+
 ## SEO
 
 - title, description, kanonická adresa, Open Graph i Twitter karty

@@ -494,7 +494,7 @@
       ? '<textarea' + attrs + ' placeholder="' + esc(ph) + '" rows="4">' + esc(v) + '</textarea>'
       : '<input type="' + type + '"' + attrs + ' value="' + esc(v) + '" placeholder="' + esc(ph) + '">';
     return '<label class="field' + (err ? ' has-err' : '') + '" data-f="' + id + '">' +
-             '<span class="field__top"><span>' + esc(label) + (required ? '' : ' <em>&mdash;</em>') + '</span>' +
+             '<span class="field__top"><span>' + esc(label) + '</span>' +
              '<span class="field__err" id="err-' + id + '">' + esc(err) + '</span></span>' + ctrl +
            '</label>';
   }

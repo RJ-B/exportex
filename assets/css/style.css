@@ -553,6 +553,19 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
     linear-gradient(118deg,rgba(7,11,22,.88) 0%,rgba(7,11,22,.34) 54%,rgba(7,11,22,.80) 100%),
     linear-gradient(180deg,rgba(7,11,22,.60) 0%,rgba(7,11,22,.06) 32%,rgba(7,11,22,.84) 100%);
 }
+/* Šikmý gradient výše počítá se širokou obrazovkou. Na užších displejích
+   padne text doprostřed jeho světlého pruhu, proto se tam přepíná na svislý. */
+@media (max-width:1023px){
+  .hero__veil{
+    background:linear-gradient(180deg,
+      rgba(7,11,22,.82) 0%,
+      rgba(7,11,22,.56) 18%,
+      rgba(7,11,22,.70) 44%,
+      rgba(7,11,22,.88) 80%,
+      rgba(7,11,22,.95) 100%);
+  }
+}
+
 .hero__grid{
   position:absolute;inset:0;z-index:1;mix-blend-mode:overlay;
   background:repeating-linear-gradient(90deg,var(--scanlines) 0 1px,transparent 1px 4px);
@@ -737,13 +750,19 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 .fact__k{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--tx-6);margin-bottom:8px}
 .fact__v{font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--tx-1)}
 
-/* Na telefonu je mapa jen ~170 px vysoká. Popisky proto zvětšíme a necháme
-   pouze názvy — podtitulek i štítek s clem by byly nečitelné a clo stejně
-   hlásí řádek faktů hned pod mapou. */
+/* Písmo v mapě je v jednotkách viewBoxu, takže se zmenšuje spolu s ní.
+   Na užších displejích se proto stupňovitě zvětšuje, aby zůstalo čitelné. */
+@media (max-width:1199px){
+  .map__sub{font-size:7px}
+}
+@media (max-width:1023px){
+  .map__sub{font-size:9px}
+  .map__chip{display:none}   /* šířku rámečku počítá JS pro jedno písmo; clo hlásí řádek faktů pod mapou */
+}
+/* Na telefonu je mapa jen ~170 px vysoká — zůstanou jen názvy. */
 @media (max-width:719px){
   .map__city{font-size:24px}
   .map__sub{display:none}
-  .map__chip{display:none}
 }
 
 /* ---------- 15. O nás ---------- */
@@ -783,7 +802,6 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
   font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
   color:var(--tx-4);margin-bottom:8px;
 }
-.field__top em{font-style:normal;color:var(--tx-7);letter-spacing:0}
 .field__err{
   color:var(--err);text-transform:none;letter-spacing:0;font-family:var(--f-sans);
   font-size:11.5px;white-space:nowrap;opacity:0;transform:translateY(-3px);
@@ -869,7 +887,13 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 .ftr__col a{font-size:14px;color:var(--tx-4)}
 .ftr__col a:hover{color:var(--ac-l)}
 .ftr__name{font-size:14px;font-weight:600;color:var(--tx-2)}
-.ftr__note{font-size:13px;color:var(--tx-6)}
+
+.ftr__legal{
+  display:flex;flex-wrap:wrap;gap:6px 18px;font-style:normal;
+  font-size:12.5px;line-height:1.6;color:var(--tx-6);
+  padding-bottom:20px;
+}
+.ftr__legal strong{color:var(--tx-3);font-weight:600}
 
 .ftr__bar{
   display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
@@ -886,7 +910,14 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 }
 @media (max-width:520px){
   .ftr__cols{grid-template-columns:1fr;gap:28px}
-  .ftr__bar{flex-direction:column;align-items:flex-start;gap:10px}
+  .ftr__legal{
+  display:flex;flex-wrap:wrap;gap:6px 18px;font-style:normal;
+  font-size:12.5px;line-height:1.6;color:var(--tx-6);
+  padding-bottom:20px;
+}
+.ftr__legal strong{color:var(--tx-3);font-weight:600}
+
+.ftr__bar{flex-direction:column;align-items:flex-start;gap:10px}
 }
 
 /* ---------- 17b. Podstránky (cookies, soukromí) ---------- */
