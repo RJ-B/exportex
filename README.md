@@ -105,7 +105,7 @@ Všechny fotky jsou WebP, tonálně sjednocené (odbarvené, jemně přetažené
 | soubor | rozměr | kde se používá |
 |---|---|---|
 | `hero.webp` | 2400×1350 | úvodní obrazovka |
-| `about.webp` | 800×1000 | sekce 05 O nás |
+| `about.webp` | 1200×800 | sekce 05 O nás |
 | `product-frotte.webp` | 1200×900 | karta Frotté |
 | `product-lozni.webp` | 1200×900 | karta Ložní prádlo |
 | `product-uplety.webp` | 1200×900 | karta Pletené úplety |
@@ -117,6 +117,11 @@ Všechny fotky jsou WebP, tonálně sjednocené (odbarvené, jemně přetažené
 
 Výměna fotky = nahradit soubor stejným jménem (stejný poměr stran), nebo změnit
 cestu u `img` v `assets/js/data.js`, případně v `index.html` u hero a O nás.
+
+Pozor na atributy `width` a `height` u `<img>`: prohlížeč je bere jako CSS
+nápovědu, takže když pravidlo nastaví jen šířku, výška zůstane viset na hodnotě
+z atributu a `aspect-ratio` se vůbec neuplatní. Proto mají obrázky se zadaným
+poměrem stran v CSS vždy i `height:auto`.
 
 Karty mají v CSS ještě jemný odbarvovací filtr (`grayscale(.85)`), který se při najetí
 myší rozpouští — sjednocuje fotky z různých provozů. Vypíná se v `style.css` u `.pcard__media img`.

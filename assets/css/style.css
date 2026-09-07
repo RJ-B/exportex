@@ -752,7 +752,7 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 .about p:first-of-type{color:var(--tx-3)}
 .about p:last-of-type{color:var(--tx-4);margin-bottom:0}
 .about__fig{position:relative;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line)}
-.about__fig img{width:100%;display:block;aspect-ratio:4/3;object-fit:cover;filter:grayscale(.5) contrast(1.03);transition:transform .9s var(--e-spring),filter var(--d-slow) var(--e)}
+.about__fig img{width:100%;height:auto;display:block;aspect-ratio:3/2;object-fit:cover;filter:grayscale(.5) contrast(1.03);transition:transform .9s var(--e-spring),filter var(--d-slow) var(--e)}
 .about__fig:hover img{transform:scale(1.04);filter:grayscale(.1)}
 .about__fig::after{
   content:"";position:absolute;inset:0;pointer-events:none;

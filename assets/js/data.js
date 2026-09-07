@@ -3,7 +3,7 @@
    Vše, co se opakuje nebo se přepíná jazykem, je tady na jednom místě.
 
    OBRÁZKY: reálné fotky z provozů, zpracované do WebP (assets/img/).
-   Karty 1200×900 (4:3), sekce O nás 800×1000 (4:5), hero 2400×1350 (16:9).
+   Karty 1200×900 (4:3), sekce O nás 1200×800 (3:2), hero 2400×1350 (16:9).
    Výměna fotky = nahradit soubor stejného jména nebo změnit hodnotu "img".
 
    MAPA: jeden oblouk Uzbekistán → Evropa, bez zastávek a bez přepínání.
