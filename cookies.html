@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<!-- ==========================================================================
+     PŘI PŘECHODU NA VLASTNÍ DOMÉNU (exportex.cz) přepsat adresu na těchto
+     místech: canonical, hreflang, og:url, JSON-LD (@id a url), robots.txt
+     a sitemap.xml. Teď míří na živou adresu na GitHub Pages, protože
+     exportex.cz zatím ukazuje na parkovací stránku registrátora — canonical
+     na ni by web z výsledků vyhodil.
+     ========================================================================== -->
+
+<title>Cookies a místní úložiště — Exportex</title>
+<meta name="description" content="Tento web nepoužívá cookies. V prohlížeči si ukládá pouze zvolený jazyk a světlý či tmavý režim.">
+<meta name="robots" content="noindex, follow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="theme-color" content="#070B16">
+<meta name="color-scheme" content="dark light">
+<meta name="format-detection" content="telephone=no">
+
+
+<!-- Obsahová bezpečnostní politika. GitHub Pages neumí vlastní HTTP hlavičky,
+     takže se posílá v <meta>. Pozor: frame-ancestors se v meta ignoruje —
+     ochranu proti vložení do rámu bude potřeba doplnit hlavičkou, až web
+     poběží na vlastním hostingu (viz README, sekce Bezpečnost).
+     Po přesunu písem na vlastní web už web nenačítá vůbec nic z cizích domén.
+     Styly potřebují 'unsafe-inline' kvůli inline atributům style v rozvržení. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; upgrade-insecure-requests">
+
+<!-- Open Graph / Twitter -->
+
+<!-- Ikony — "e" vyříznuté z firemního loga -->
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+
+<!-- Písma jsou hostovaná přímo tady, ne u Google Fonts — návštěvníkova
+     IP adresa se tak neposílá třetí straně a odpadá externí spojení. -->
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/outfit-400-latin-ext.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/outfit-700-latin-ext.woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/fonts.css">
+
+<link rel="stylesheet" href="assets/css/style.css">
+
+<script src="assets/js/theme-init.js"></script>
+
+<!-- Strukturovaná data pro vyhledávače -->
+</head>
+<body>
+
+<a href="#obsah" class="skip" data-cs="Přeskočit na obsah" data-en="Skip to content">Přeskočit na obsah</a>
+
+<header class="hdr" id="hdr">
+  <div class="hdr__in">
+    <a href="#top" class="logo" aria-label="Exportex — úvod">
+      <img class="logo__mark" src="assets/img/logo.webp" width="532" height="120" alt="Exportex">
+    </a>
+
+    <nav class="nav" aria-label="Hlavní navigace">
+      <a class="nav__link" href="#sortiment" data-cs="Sortiment"     data-en="Products">Sortiment</a>
+      <a class="nav__link" href="#jak"       data-cs="Jak to funguje" data-en="How it works">Jak to funguje</a>
+      <a class="nav__link" href="#trasa"     data-cs="Trasa"          data-en="Route">Trasa</a>
+      <a class="nav__link" href="#doklady"   data-cs="Doklady a clo"  data-en="Compliance">Doklady a clo</a>
+      <a class="nav__link" href="#onas"      data-cs="O nás"          data-en="About">O nás</a>
+
+      <div class="lang" role="group" aria-label="Jazyk / Language">
+        <button type="button" class="lang__btn is-on" data-lang="cs" aria-pressed="true" lang="cs">CZ</button>
+        <span class="lang__sep">/</span>
+        <button type="button" class="lang__btn" data-lang="en" aria-pressed="false" lang="en">EN</button>
+      </div>
+
+      <button type="button" class="themebtn" id="themeBtn" aria-pressed="false"
+              data-cs-label="Přepnout na světlý režim" data-en-label="Switch to light mode"
+              aria-label="Přepnout na světlý režim" title="Přepnout na světlý režim">
+        <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2 12h2.4M19.6 12H22M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg>
+      </button>
+
+      <a href="#kontakt" class="btn btn--primary btn--sm btn--nav" data-cs="Poptávka" data-en="Enquiry">Poptávka</a>
+
+      <button type="button" class="burger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="drawer">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<div class="drawer" id="drawer" aria-hidden="true">
+  <nav class="drawer__list" aria-label="Mobilní navigace">
+    <a class="drawer__link" href="#sortiment"><span class="n">01</span><span data-cs="Sortiment"      data-en="Products">Sortiment</span></a>
+    <a class="drawer__link" href="#jak"><span class="n">02</span><span       data-cs="Jak to funguje"  data-en="How it works">Jak to funguje</span></a>
+    <a class="drawer__link" href="#trasa"><span class="n">03</span><span     data-cs="Trasa"           data-en="Route">Trasa</span></a>
+    <a class="drawer__link" href="#doklady"><span class="n">04</span><span   data-cs="Doklady a clo"   data-en="Compliance">Doklady a clo</span></a>
+    <a class="drawer__link" href="#onas"><span class="n">05</span><span      data-cs="O nás"           data-en="About">O nás</span></a>
+    <a class="drawer__link" href="#reference"><span class="n">06</span><span data-cs="Reference"       data-en="Examples">Reference</span></a>
+    <a class="drawer__link" href="#kontakt"><span class="n">07</span><span   data-cs="Kontakt"         data-en="Contact">Kontakt</span></a>
+  </nav>
+  <div class="drawer__foot">
+    <a href="#kontakt" class="btn btn--primary btn--md" data-cs="Poslat poptávku" data-en="Send an enquiry">Poslat poptávku</a>
+    <a href="tel:+420734479684" class="btn btn--glass btn--md">+420 734 479 684</a>
+  </div>
+</div>
+
+<main id="obsah" class="section section--base">
+  <div class="wrap doc">
+    <div class="eyebrow"><span class="num">§</span><span class="lbl">Cookies</span></div>
+    <h1 class="h2">Cookies a místní úložiště</h1>
+    <p class="doc__meta">Naposledy upraveno 7. 9. 2026</p>
+
+    <p data-cs="Tento web <strong>nepoužívá žádné cookies</strong> — ani vlastní, ani od třetích stran. Neběží tu měření návštěvnosti, reklamní ani sledovací skripty."
+       data-en="This website <strong>uses no cookies</strong> — neither its own nor third-party ones. There is no analytics, advertising or tracking script running here.">Tento web <strong>nepoužívá žádné cookies</strong> — ani vlastní, ani od třetích stran. Neběží tu měření návštěvnosti, reklamní ani sledovací skripty.</p>
+
+    <h2 data-cs="Co se ukládá v prohlížeči" data-en="What is stored in your browser">Co se ukládá v prohlížeči</h2>
+    <p data-cs="Web si do místního úložiště (localStorage) vašeho prohlížeče ukládá dvě drobnosti, aby si zapamatoval vaše nastavení:"
+       data-en="The site keeps two small items in your browser's local storage so it can remember your preferences:">Web si do místního úložiště (localStorage) vašeho prohlížeče ukládá dvě drobnosti, aby si zapamatoval vaše nastavení:</p>
+    <ul>
+      <li data-cs="<strong>exportex-lang</strong> — zvolený jazyk (čeština nebo angličtina)." data-en="<strong>exportex-lang</strong> — the language you picked (Czech or English)."><strong>exportex-lang</strong> — zvolený jazyk (čeština nebo angličtina).</li>
+      <li data-cs="<strong>exportex-theme</strong> — zvolený světlý nebo tmavý režim." data-en="<strong>exportex-theme</strong> — the light or dark mode you picked."><strong>exportex-theme</strong> — zvolený světlý nebo tmavý režim.</li>
+    </ul>
+    <p data-cs="Obojí zůstává jen ve vašem prohlížeči, nikam se neodesílá a nedá se z toho nic vyčíst o vaší osobě. Ukládá se to až v okamžiku, kdy si nastavení sami přepnete. Smažete je vymazáním dat webu v prohlížeči."
+       data-en="Both stay in your browser only, are never transmitted anywhere and reveal nothing about you personally. They are written only once you switch a setting yourself. Clearing site data in your browser removes them.">Obojí zůstává jen ve vašem prohlížeči, nikam se neodesílá a nedá se z toho nic vyčíst o vaší osobě. Ukládá se to až v okamžiku, kdy si nastavení sami přepnete. Smažete je vymazáním dat webu v prohlížeči.</p>
+
+    <h2 data-cs="Proč tu není cookie lišta" data-en="Why there is no cookie banner">Proč tu není cookie lišta</h2>
+    <p data-cs="Souhlas se podle zákona vyžaduje pro ukládání, které není nezbytné pro fungování služby — typicky pro měření a reklamu. Nic takového tu neběží a uložení jazyka či motivu je přímým důsledkem vaší vlastní volby. Lištu by tu tedy nebylo za co odklikávat."
+       data-en="Consent is required by law for storage that is not strictly necessary — typically analytics and advertising. None of that runs here, and storing your language or theme is the direct result of your own action. There would be nothing for a banner to ask about.">Souhlas se podle zákona vyžaduje pro ukládání, které není nezbytné pro fungování služby — typicky pro měření a reklamu. Nic takového tu neběží a uložení jazyka či motivu je přímým důsledkem vaší vlastní volby. Lištu by tu tedy nebylo za co odklikávat.</p>
+
+    <h2 data-cs="Externí obsah" data-en="External content">Externí obsah</h2>
+    <p data-cs="Web načítá veškerý obsah včetně písem z vlastní adresy. Nenavazuje spojení na cizí servery, takže se vaše IP adresa nikam dál nepředává. Odkazy na WhatsApp a Telegram vedou ven, ale otevřou se až po vašem kliknutí."
+       data-en="The site loads everything, fonts included, from its own address. It opens no connections to third-party servers, so your IP address is not passed on. The WhatsApp and Telegram links do lead outside, but only open when you click them.">Web načítá veškerý obsah včetně písem z vlastní adresy. Nenavazuje spojení na cizí servery, takže se vaše IP adresa nikam dál nepředává. Odkazy na WhatsApp a Telegram vedou ven, ale otevřou se až po vašem kliknutí.</p>
+
+  </div>
+</main>
+
+<!-- ===== Footer ===== -->
+<footer class="ftr">
+  <div class="wrap">
+    <div class="ftr__cols">
+
+      <div class="ftr__brand">
+        <img class="ftr__mark" src="assets/img/logo.webp" width="532" height="120" alt="Exportex">
+        <p data-cs="Český sourcingový a importní partner pro textil z Uzbekistánu a Střední Asie. Výběr výroby, kontrola kvality, doklady o původu, clo i doprava."
+           data-en="Czech sourcing and import partner for textiles from Uzbekistan and Central Asia. Mill selection, quality control, origin documents, duty and freight.">Český sourcingový a importní partner pro textil z Uzbekistánu a Střední Asie. Výběr výroby, kontrola kvality, doklady o původu, clo i doprava.</p>
+      </div>
+
+      <nav class="ftr__col" aria-labelledby="ftr-nav">
+        <h2 class="ftr__h" id="ftr-nav" data-cs="Rychlé odkazy" data-en="Quick links">Rychlé odkazy</h2>
+        <ul>
+          <li><a href="#sortiment" data-cs="Sortiment"      data-en="Products">Sortiment</a></li>
+          <li><a href="#jak"       data-cs="Jak to funguje"  data-en="How it works">Jak to funguje</a></li>
+          <li><a href="#trasa"     data-cs="Trasa"           data-en="Route">Trasa</a></li>
+          <li><a href="#doklady"   data-cs="Doklady a clo"   data-en="Compliance">Doklady a clo</a></li>
+          <li><a href="#onas"      data-cs="O nás"           data-en="About">O nás</a></li>
+          <li><a href="#reference" data-cs="Reference"       data-en="Examples">Reference</a></li>
+          <li><a href="#kontakt"   data-cs="Kontakt"         data-en="Contact">Kontakt</a></li>
+        </ul>
+      </nav>
+
+      <div class="ftr__col">
+        <h2 class="ftr__h" data-cs="Kontakt" data-en="Contact">Kontakt</h2>
+        <ul>
+          <li><span class="ftr__name">Tomáš Mikyska</span></li>
+          <li><a href="mailto:mikyska@exportex.cz">mikyska@exportex.cz</a></li>
+          <li><a href="tel:+420734479684">+420 734 479 684</a></li>
+          <li><a href="https://wa.me/420734479684" target="_blank" rel="noopener noreferrer">WhatsApp</a></li>
+          <li><a href="https://t.me/exportex" target="_blank" rel="noopener noreferrer">Telegram</a></li>
+        </ul>
+      </div>
+
+      <div class="ftr__col">
+        <h2 class="ftr__h" data-cs="Informace" data-en="Information">Informace</h2>
+        <ul>
+          <li><a href="cookies.html"   data-cs="Cookies a úložiště"      data-en="Cookies and storage">Cookies a úložiště</a></li>
+          <li><a href="soukromi.html"  data-cs="Ochrana osobních údajů"  data-en="Privacy notice">Ochrana osobních údajů</a></li>
+          <li><span class="ftr__note" data-cs="Sídlo: Praha, Česká republika" data-en="Registered in Prague, Czech Republic">Sídlo: Praha, Česká republika</span></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="ftr__bar">
+      <span class="ftr__cr" data-cs="© 2026 Exportex s.r.o. — Textil z Uzbekistánu a Střední Asie do EU."
+            data-en="© 2026 Exportex s.r.o. — Textiles from Uzbekistan &amp; Central Asia to the EU.">© 2026 Exportex s.r.o. — Textil z Uzbekistánu a Střední Asie do EU.</span>
+      <span class="ftr__by">
+        <span data-cs="Web:" data-en="Website by:">Web:</span>
+        <a href="https://codeing.cz" target="_blank" rel="noopener noreferrer">codeing.cz</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>

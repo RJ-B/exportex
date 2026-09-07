@@ -13,21 +13,21 @@
 window.EXPORTEX_DATA = {
 
   cs: {
-    filters: ['Vše', 'Frotté a domácí textil', 'Pletené úplety', 'Konfekce', 'Tkaniny a příze'],
+    filters: ['Vše', 'Froté a domácí textil', 'Pletené úplety', 'Konfekce', 'Tkaniny a příze'],
     detail: 'Detail',
     cta: 'Poptat tento sortiment',
     close: 'Zavřít',
 
     products: [
       {
-        tag: 'Frotté', cat: 'Frotté a domácí textil', img: 'assets/img/product-frotte.webp',
-        title: 'Frotté — ručníky, župany',
+        tag: 'Froté', cat: 'Froté a domácí textil', img: 'assets/img/product-frotte.webp',
+        title: 'Froté — ručníky, župany',
         desc: 'Ručníky, osušky a župany z uzbecké bavlny. Gramáž 400–650 g/m², bordura nebo žakár.',
         long: '100% bavlna. Ručníky 400–600 g/m² (standardní hotel 500–550, 5*/spa 600–650, ekonomy a bazén 400–450), župany 320–450 g/m². Provedení: bordura, žakár, velur, proužek, výšivka a logo. Barvy dle PANTONE. OEKO-TEX® Standard 100; froté pro veřejný sektor dle ČSN EN 14697 na vyžádání.',
-        specs: [{k:'Gramáž',v:'400–650 g/m²'},{k:'Materiál',v:'100 % bavlna'},{k:'Barvy',v:'Dle PANTONE'},{k:'Standard',v:'OEKO-TEX 100'}]
+        specs: [{k:'Gramáž',v:'400–650 g/m²'},{k:'Materiál',v:'100% bavlna'},{k:'Barvy',v:'Dle PANTONE'},{k:'Standard',v:'OEKO-TEX 100'}]
       },
       {
-        tag: 'Ložní', cat: 'Frotté a domácí textil', img: 'assets/img/product-lozni.webp',
+        tag: 'Ložní', cat: 'Froté a domácí textil', img: 'assets/img/product-lozni.webp',
         title: 'Ložní prádlo a povlečení',
         desc: 'Povlečení, prostěradla a přehozy. Popelín, saténové tkaniny, hotelové sady.',
         long: 'Bavlněný popelín (110–145 g/m²) a bavlněný satén, případně bavlna/polyester v easy-care úpravě. Povlečení, prostěradla klasická i napínací, přehozy a ochranné potahy. Evropské rozměry i hotelové na míru; zapínání hotelovým přesahem, zipem nebo knoflíky. OEKO-TEX® Standard 100.',
@@ -86,7 +86,7 @@ window.EXPORTEX_DATA = {
     route: {
       bow: 78,
       facts: [
-        {k:'Režim',   v:'Kamion i kontejner'},
+        {k:'Režim',   v:'Kamion i vlak'},
         {k:'Doklady', v:'Původ GSP+ / A.TR'},
         {k:'Clo',     v:'0 %'}
       ]
@@ -94,13 +94,13 @@ window.EXPORTEX_DATA = {
 
     compliance: [
       {k:'GSP+',     t:'Nulové clo z Uzbekistánu', d:'Uzbekistán je zařazen do režimu GSP+. Při správně vystaveném dokladu o původu je dovozní clo na textil 0 %.'},
-      {k:'EU–TR',    t:'Celní unie s Türkiye',      d:'Zboží dokončené v Turecku vstupuje do EU v rámci celní unie — bez dovozního cla, s dokladem A.TR.'},
+      {k:'EU–TR',    t:'Celní unie s Tureckem',      d:'Zboží dokončené v Turecku vstupuje do EU v rámci celní unie — bez dovozního cla, s dokladem A.TR.'},
       {k:'OEKO-TEX', t:'Standard 100',              d:'Materiály testované na zdravotně závadné látky. OEKO-TEX® Standard 100 u relevantních materiálů; certifikát dodáváme k dodávce.'},
       {k:'REACH',    t:'Soulad s EU legislativou',  d:'Barviva a úpravy v souladu s REACH. U private label řešíme i etiketaci podle nařízení o textilních názvech.'}
     ],
 
     cases: [
-      {badge:'Retail',        t:'Sezónní frotté kolekce',    d:'Frotté kolekce pro prodejní síť — od techpacku a vzorkování po paletizaci připravenou k distribuci.'},
+      {badge:'Retail',        t:'Sezónní froté kolekce',    d:'Froté kolekce pro prodejní síť — od techpacku a vzorkování po paletizaci připravenou k distribuci.'},
       {badge:'HORECA',        t:'Hotelové sady na míru',     d:'Froté a ložní sady dimenzované na průmyslovou prádelnu, s rámcovou smlouvou a opakovanými dodávkami.'},
       {badge:'Private label', t:'Konfekce na vlastní značku', d:'Heavyweight konfekce šitá na váš techpack a etikety, s kontrolou AQL a fotodokumentací před expedicí.'}
     ],
@@ -187,7 +187,7 @@ window.EXPORTEX_DATA = {
     route: {
       bow: 78,
       facts: [
-        {k:'Mode',      v:'Truck and container'},
+        {k:'Mode',      v:'Truck and rail'},
         {k:'Documents', v:'Origin GSP+ / A.TR'},
         {k:'Duty',      v:'0%'}
       ]
@@ -195,7 +195,7 @@ window.EXPORTEX_DATA = {
 
     compliance: [
       {k:'GSP+',     t:'Zero duty from Uzbekistan',  d:'Uzbekistan is included in the GSP+ scheme. With a correctly issued proof of origin, import duty on textiles is 0%.'},
-      {k:'EU–TR',    t:'Customs union with Türkiye', d:'Goods finished in Türkiye enter the EU under the customs union — no import duty, with an A.TR certificate.'},
+      {k:'EU–TR',    t:'Customs union with Turkey', d:'Goods finished in Turkey enter the EU under the customs union — no import duty, with an A.TR certificate.'},
       {k:'OEKO-TEX', t:'Standard 100',               d:'Materials tested for harmful substances. OEKO-TEX® Standard 100 on the relevant materials; the certificate ships with the goods.'},
       {k:'REACH',    t:'EU legislation compliance',  d:'Dyes and finishes compliant with REACH. For private label we also handle labelling under the textile names regulation.'}
     ],

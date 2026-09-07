@@ -6,12 +6,23 @@ Bez buildu, bez frameworku, bez závislostí — čisté HTML + CSS + vanilla JS
 ## Struktura
 
 ```
-index.html              celá stránka (sekce 01–07 + hlavička, patička, modal)
-assets/css/style.css    kompletní styly, tokeny nahoře v :root
-assets/js/data.js       veškerý obsah CZ/EN — sortiment, kroky, trasy, doklady, reference
-assets/js/main.js       chování: jazyk, filtry, modal, trasa, formulář, animace
-assets/img/             fotky (WebP), logo, favicon
-.nojekyll               vypíná Jekyll na GitHub Pages
+index.html                úvodní stránka (sekce 01–07 + hlavička, patička, modal)
+cookies.html              cookies a místní úložiště
+soukromi.html             ochrana osobních údajů
+404.html                  stránka nenalezena
+
+assets/css/style.css      kompletní styly, tokeny nahoře v :root
+assets/css/fonts.css      vlastní kopie písem (@font-face)
+assets/js/config.js       ⚙ nastavení formuláře — jediné místo k úpravě
+assets/js/theme-init.js   nastaví motiv před vykreslením (proti probliknutí)
+assets/js/data.js         veškerý obsah CZ/EN — sortiment, kroky, trasa, doklady
+assets/js/main.js         chování: motiv, jazyk, filtry, modal, mapa, formulář
+assets/fonts/             Outfit a JetBrains Mono (woff2, latin + latin-ext)
+assets/img/               fotky (WebP), logo, ikony
+
+robots.txt, sitemap.xml, site.webmanifest, favicon.ico
+.nojekyll                 vypíná Jekyll na GitHub Pages
+NASAZENI.md               předávací postup: doména, formulář, spam
 ```
 
 ## Světlý a tmavý režim
@@ -112,16 +123,73 @@ myší rozpouští — sjednocuje fotky z různých provozů. Vypíná se v `sty
 
 ## Formulář
 
-**Formulář zatím nikam neodesílá.** Funguje validace (povinná pole, formát e-mailu,
-minimální délka zprávy, telefon nepovinný) a potvrzovací stav, ale odeslání je záměrně
-neřešené — GitHub Pages je čistě statický hosting a nemá backend.
+Odesílání je připravené a nastavuje se **na jediném místě**: `assets/js/config.js`.
+Přednastavený je FormSubmit s adresou `mikyska@exportex.cz`; aktivuje se jedním
+kliknutím v potvrzovacím e-mailu. Přesný postup i alternativy jsou v
+[NASAZENI.md](NASAZENI.md).
 
-Napojení je v `assets/js/main.js` ve funkci `initForm()`, u komentáře `TODO`.
-Nejjednodušší varianty:
+Web nemá backend a mít ho nebude — prohlížeč sám e-mail odeslat neumí, takže
+odeslání obstarává externí služba. **Žádná hesla proto v kódu nejsou ani být
+nemohou:** statický web nemá `.env` a všechno, co si prohlížeč načte, je veřejné.
+Ke schránce, která jen přijímá, přihlašovací údaje nejsou potřeba.
 
-- **Formspree** — `<form action="https://formspree.io/f/XXXX" method="POST">` a odeslat `fetch`em
-- **Web3Forms** — zdarma, jen `access_key` v POST datech
-- vlastní endpoint (Cloudflare Worker, Netlify Function apod.)
+Dokud je `endpoint` prázdný, formulář jen zvaliduje a zobrazí potvrzení —
+hodí se pro ukázku.
+
+### Ochrana proti robotům
+
+Vrstvená, bez captchy (nezdržuje zákazníka a nevolá cizí server). Všechna síta
+se navenek tváří jako úspěšné odeslání, aby robot nepoznal, že ho web odhalil:
+
+| Síto | Co odhalí |
+|---|---|
+| skryté pole `website` | robot vyplňující všechna pole |
+| nejméně 3 s od zobrazení | okamžité automatické odeslání |
+| stopa po interakci | POST bez kliknutí a psaní ve formuláři |
+| shodná zpráva do 45 s | smyčka nebo dvojklik |
+| 5 a více odkazů ve zprávě | typický spamový vzkaz |
+
+Doplňkově: `maxlength` na všech polích a validace včetně minimální délky zprávy.
+Prahy jsou pohromadě v objektu `BOT` v `main.js`.
+
+## SEO
+
+- title, description, kanonická adresa, Open Graph i Twitter karty
+- `hreflang` pro češtinu a angličtinu; angličtina má vlastní adresu `?lang=en`,
+  takže ji jde indexovat zvlášť
+- strukturovaná data (`Organization`, `WebSite`, `Service` s katalogem sortimentu)
+- `robots.txt`, `sitemap.xml`, vlastní stránka `404.html`
+- ikony odvozené z písmene „e" ve firemním logu — `favicon.ico`, SVG,
+  apple-touch-icon a maskovatelné ikony pro Android včetně `site.webmanifest`
+
+Adresy míří na GitHub Pages, dokud web nepoběží na vlastní doméně —
+seznam míst k přepsání je v [NASAZENI.md](NASAZENI.md).
+
+## Bezpečnost a soukromí
+
+- **Přísná CSP** v `<meta>`: `default-src 'none'`, skripty jen z vlastního
+  původu, žádné `'unsafe-inline'` pro skripty. Styly `'unsafe-inline'` potřebují
+  kvůli inline atributům `style` v rozvržení.
+- **Písma jsou hostovaná na webu**, ne u Google Fonts — návštěvníkova IP adresa
+  se tak neposílá třetí straně a odpadá externí spojení.
+- Jediné povolené odchozí spojení je odeslání formuláře (`connect-src`).
+- `referrer-policy` přes `<meta>`, odchozí odkazy mají `rel="noopener noreferrer"`.
+- Web nepoužívá žádné cookies; v `localStorage` drží jen jazyk a motiv.
+
+Co na GitHub Pages nejde a doplní se až na vlastním hostingu: HTTP hlavičky
+`X-Content-Type-Options`, `X-Frame-Options` a `frame-ancestors` (v `<meta>`
+se ignoruje).
+
+## Přístupnost
+
+- kontrast textu splňuje **WCAG AA v obou režimech** (ověřeno měřením
+  vykreslené stránky, ne odhadem)
+- odkaz „Přeskočit na obsah", který se objeví při zaměření klávesnicí
+- modal i mobilní menu drží focus uvnitř, zavírají se Escapem a vracejí focus
+- pole formuláře mají `autocomplete`, `aria-required`, `aria-invalid`
+  a navázané chybové hlášky; potvrzení odeslání se ohlásí přes `aria-live`
+- `prefers-reduced-motion` vypne animace
+- dotykové cíle v hlavičce mají alespoň 34 px
 
 ## Nasazení
 
@@ -145,10 +213,3 @@ python3 -m http.server 4321
 
 Otevřít <http://localhost:4321>. Otevírat `index.html` přímo přes `file://` nefunguje
 (fetch fontů a relativní cesty).
-
-## Přístupnost a výkon
-
-- respektuje `prefers-reduced-motion` — animace se vypnou
-- kontrast textu na pozadí splňuje WCAG AA (akcentní `#E5544A` má na `#070B16` 5,4:1)
-- mobilní menu je ovladatelné klávesnicí, modal se zavírá Escapem a vrací focus
-- fotky mají `width`/`height` proti poskakování layoutu a `loading="lazy"` mimo hero

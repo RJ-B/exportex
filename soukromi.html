@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<!-- ==========================================================================
+     PŘI PŘECHODU NA VLASTNÍ DOMÉNU (exportex.cz) přepsat adresu na těchto
+     místech: canonical, hreflang, og:url, JSON-LD (@id a url), robots.txt
+     a sitemap.xml. Teď míří na živou adresu na GitHub Pages, protože
+     exportex.cz zatím ukazuje na parkovací stránku registrátora — canonical
+     na ni by web z výsledků vyhodil.
+     ========================================================================== -->
+
+<title>Ochrana osobních údajů — Exportex</title>
+<meta name="description" content="Jak Exportex s.r.o. nakládá s osobními údaji z poptávkového formuláře a další komunikace.">
+<meta name="robots" content="noindex, follow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="theme-color" content="#070B16">
+<meta name="color-scheme" content="dark light">
+<meta name="format-detection" content="telephone=no">
+
+
+<!-- Obsahová bezpečnostní politika. GitHub Pages neumí vlastní HTTP hlavičky,
+     takže se posílá v <meta>. Pozor: frame-ancestors se v meta ignoruje —
+     ochranu proti vložení do rámu bude potřeba doplnit hlavičkou, až web
+     poběží na vlastním hostingu (viz README, sekce Bezpečnost).
+     Po přesunu písem na vlastní web už web nenačítá vůbec nic z cizích domén.
+     Styly potřebují 'unsafe-inline' kvůli inline atributům style v rozvržení. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; object-src 'none'; upgrade-insecure-requests">
+
+<!-- Open Graph / Twitter -->
+
+<!-- Ikony — "e" vyříznuté z firemního loga -->
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+
+<!-- Písma jsou hostovaná přímo tady, ne u Google Fonts — návštěvníkova
+     IP adresa se tak neposílá třetí straně a odpadá externí spojení. -->
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/outfit-400-latin-ext.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/outfit-700-latin-ext.woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/fonts.css">
+
+<link rel="stylesheet" href="assets/css/style.css">
+
+<script src="assets/js/theme-init.js"></script>
+
+<!-- Strukturovaná data pro vyhledávače -->
+</head>
+<body>
+
+<a href="#obsah" class="skip" data-cs="Přeskočit na obsah" data-en="Skip to content">Přeskočit na obsah</a>
+
+<header class="hdr" id="hdr">
+  <div class="hdr__in">
+    <a href="#top" class="logo" aria-label="Exportex — úvod">
+      <img class="logo__mark" src="assets/img/logo.webp" width="532" height="120" alt="Exportex">
+    </a>
+
+    <nav class="nav" aria-label="Hlavní navigace">
+      <a class="nav__link" href="#sortiment" data-cs="Sortiment"     data-en="Products">Sortiment</a>
+      <a class="nav__link" href="#jak"       data-cs="Jak to funguje" data-en="How it works">Jak to funguje</a>
+      <a class="nav__link" href="#trasa"     data-cs="Trasa"          data-en="Route">Trasa</a>
+      <a class="nav__link" href="#doklady"   data-cs="Doklady a clo"  data-en="Compliance">Doklady a clo</a>
+      <a class="nav__link" href="#onas"      data-cs="O nás"          data-en="About">O nás</a>
+
+      <div class="lang" role="group" aria-label="Jazyk / Language">
+        <button type="button" class="lang__btn is-on" data-lang="cs" aria-pressed="true" lang="cs">CZ</button>
+        <span class="lang__sep">/</span>
+        <button type="button" class="lang__btn" data-lang="en" aria-pressed="false" lang="en">EN</button>
+      </div>
+
+      <button type="button" class="themebtn" id="themeBtn" aria-pressed="false"
+              data-cs-label="Přepnout na světlý režim" data-en-label="Switch to light mode"
+              aria-label="Přepnout na světlý režim" title="Přepnout na světlý režim">
+        <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2 12h2.4M19.6 12H22M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg>
+      </button>
+
+      <a href="#kontakt" class="btn btn--primary btn--sm btn--nav" data-cs="Poptávka" data-en="Enquiry">Poptávka</a>
+
+      <button type="button" class="burger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="drawer">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<div class="drawer" id="drawer" aria-hidden="true">
+  <nav class="drawer__list" aria-label="Mobilní navigace">
+    <a class="drawer__link" href="#sortiment"><span class="n">01</span><span data-cs="Sortiment"      data-en="Products">Sortiment</span></a>
+    <a class="drawer__link" href="#jak"><span class="n">02</span><span       data-cs="Jak to funguje"  data-en="How it works">Jak to funguje</span></a>
+    <a class="drawer__link" href="#trasa"><span class="n">03</span><span     data-cs="Trasa"           data-en="Route">Trasa</span></a>
+    <a class="drawer__link" href="#doklady"><span class="n">04</span><span   data-cs="Doklady a clo"   data-en="Compliance">Doklady a clo</span></a>
+    <a class="drawer__link" href="#onas"><span class="n">05</span><span      data-cs="O nás"           data-en="About">O nás</span></a>
+    <a class="drawer__link" href="#reference"><span class="n">06</span><span data-cs="Reference"       data-en="Examples">Reference</span></a>
+    <a class="drawer__link" href="#kontakt"><span class="n">07</span><span   data-cs="Kontakt"         data-en="Contact">Kontakt</span></a>
+  </nav>
+  <div class="drawer__foot">
+    <a href="#kontakt" class="btn btn--primary btn--md" data-cs="Poslat poptávku" data-en="Send an enquiry">Poslat poptávku</a>
+    <a href="tel:+420734479684" class="btn btn--glass btn--md">+420 734 479 684</a>
+  </div>
+</div>
+
+<main id="obsah" class="section section--base">
+  <div class="wrap doc">
+    <div class="eyebrow"><span class="num">§</span><span class="lbl">Soukromí</span></div>
+    <h1 class="h2">Ochrana osobních údajů</h1>
+    <p class="doc__meta">Naposledy upraveno 7. 9. 2026</p>
+
+    <p data-cs="Správcem osobních údajů je <strong>Exportex s.r.o.</strong>, se sídlem v Praze. Kontakt ve věcech ochrany údajů: <a href=&quot;mailto:mikyska@exportex.cz&quot;>mikyska@exportex.cz</a>, +420 734 479 684."
+       data-en="The data controller is <strong>Exportex s.r.o.</strong>, based in Prague. For data protection matters contact <a href=&quot;mailto:mikyska@exportex.cz&quot;>mikyska@exportex.cz</a>, +420 734 479 684.">Správcem osobních údajů je <strong>Exportex s.r.o.</strong>, se sídlem v Praze. Kontakt ve věcech ochrany údajů: <a href="mailto:mikyska@exportex.cz">mikyska@exportex.cz</a>, +420 734 479 684.</p>
+
+    <h2 data-cs="Jaké údaje zpracováváme" data-en="What data we process">Jaké údaje zpracováváme</h2>
+    <p data-cs="Pokud nám napíšete přes poptávkový formulář, e-mailem, telefonem nebo přes WhatsApp či Telegram, zpracujeme údaje, které nám sami sdělíte — obvykle jméno, firmu, e-mail, telefon a obsah poptávky."
+       data-en="If you contact us through the enquiry form, by e-mail, phone, WhatsApp or Telegram, we process the data you give us — typically your name, company, e-mail, phone number and the content of your enquiry.">Pokud nám napíšete přes poptávkový formulář, e-mailem, telefonem nebo přes WhatsApp či Telegram, zpracujeme údaje, které nám sami sdělíte — obvykle jméno, firmu, e-mail, telefon a obsah poptávky.</p>
+    <p data-cs="Web sám o sobě nesbírá nic dalšího: neběží tu měření návštěvnosti ani sledovací skripty a nepoužívá cookies."
+       data-en="The website itself collects nothing further: there is no analytics or tracking script and it uses no cookies.">Web sám o sobě nesbírá nic dalšího: neběží tu měření návštěvnosti ani sledovací skripty a nepoužívá cookies.</p>
+
+    <h2 data-cs="Proč a na jakém základě" data-en="Why and on what basis">Proč a na jakém základě</h2>
+    <ul>
+      <li data-cs="Vyřízení vaší poptávky a jednání o obchodu — právním základem je provedení opatření před uzavřením smlouvy." data-en="Handling your enquiry and pre-contract negotiation — the legal basis is steps taken at your request before entering into a contract.">Vyřízení vaší poptávky a jednání o obchodu — právním základem je provedení opatření před uzavřením smlouvy.</li>
+      <li data-cs="Navazující obchodní komunikace — oprávněný zájem na vedení obchodního vztahu." data-en="Follow-up business communication — our legitimate interest in maintaining the business relationship.">Navazující obchodní komunikace — oprávněný zájem na vedení obchodního vztahu.</li>
+      <li data-cs="Plnění zákonných povinností, například účetních a daňových, pokud dojde k obchodu." data-en="Meeting legal obligations, such as accounting and tax duties, if a transaction takes place.">Plnění zákonných povinností, například účetních a daňových, pokud dojde k obchodu.</li>
+    </ul>
+
+    <h2 data-cs="Jak dlouho a komu" data-en="How long and to whom">Jak dlouho a komu</h2>
+    <p data-cs="Poptávky uchováváme po dobu jednání a následně nejdéle tři roky, doklady související s uzavřeným obchodem po dobu danou zákonem. Údaje nepředáváme třetím stranám k jejich vlastním účelům a neprodáváme je. Přístup k nim mohou mít poskytovatelé e-mailu a účetní služby v roli zpracovatelů."
+       data-en="We keep enquiries for the duration of the negotiation and for at most three years afterwards; documents relating to a concluded transaction for the period required by law. We do not pass data to third parties for their own purposes and we do not sell it. E-mail and accounting providers may access it as processors.">Poptávky uchováváme po dobu jednání a následně nejdéle tři roky, doklady související s uzavřeným obchodem po dobu danou zákonem. Údaje nepředáváme třetím stranám k jejich vlastním účelům a neprodáváme je. Přístup k nim mohou mít poskytovatelé e-mailu a účetní služby v roli zpracovatelů.</p>
+
+    <h2 data-cs="Vaše práva" data-en="Your rights">Vaše práva</h2>
+    <p data-cs="Máte právo na přístup ke svým údajům, na jejich opravu nebo výmaz, na omezení zpracování, na přenositelnost a právo vznést námitku proti zpracování z oprávněného zájmu. Stačí napsat na uvedený e-mail. Pokud budete mít pocit, že s údaji nezacházíme správně, můžete se obrátit na Úřad pro ochranu osobních údajů."
+       data-en="You have the right to access your data, to have it corrected or erased, to restrict processing, to data portability, and to object to processing based on legitimate interest. Just write to the e-mail above. If you believe we are not handling your data properly, you may contact the Czech Data Protection Authority.">Máte právo na přístup ke svým údajům, na jejich opravu nebo výmaz, na omezení zpracování, na přenositelnost a právo vznést námitku proti zpracování z oprávněného zájmu. Stačí napsat na uvedený e-mail. Pokud budete mít pocit, že s údaji nezacházíme správně, můžete se obrátit na Úřad pro ochranu osobních údajů.</p>
+
+  </div>
+</main>
+
+<!-- ===== Footer ===== -->
+<footer class="ftr">
+  <div class="wrap">
+    <div class="ftr__cols">
+
+      <div class="ftr__brand">
+        <img class="ftr__mark" src="assets/img/logo.webp" width="532" height="120" alt="Exportex">
+        <p data-cs="Český sourcingový a importní partner pro textil z Uzbekistánu a Střední Asie. Výběr výroby, kontrola kvality, doklady o původu, clo i doprava."
+           data-en="Czech sourcing and import partner for textiles from Uzbekistan and Central Asia. Mill selection, quality control, origin documents, duty and freight.">Český sourcingový a importní partner pro textil z Uzbekistánu a Střední Asie. Výběr výroby, kontrola kvality, doklady o původu, clo i doprava.</p>
+      </div>
+
+      <nav class="ftr__col" aria-labelledby="ftr-nav">
+        <h2 class="ftr__h" id="ftr-nav" data-cs="Rychlé odkazy" data-en="Quick links">Rychlé odkazy</h2>
+        <ul>
+          <li><a href="#sortiment" data-cs="Sortiment"      data-en="Products">Sortiment</a></li>
+          <li><a href="#jak"       data-cs="Jak to funguje"  data-en="How it works">Jak to funguje</a></li>
+          <li><a href="#trasa"     data-cs="Trasa"           data-en="Route">Trasa</a></li>
+          <li><a href="#doklady"   data-cs="Doklady a clo"   data-en="Compliance">Doklady a clo</a></li>
+          <li><a href="#onas"      data-cs="O nás"           data-en="About">O nás</a></li>
+          <li><a href="#reference" data-cs="Reference"       data-en="Examples">Reference</a></li>
+          <li><a href="#kontakt"   data-cs="Kontakt"         data-en="Contact">Kontakt</a></li>
+        </ul>
+      </nav>
+
+      <div class="ftr__col">
+        <h2 class="ftr__h" data-cs="Kontakt" data-en="Contact">Kontakt</h2>
+        <ul>
+          <li><span class="ftr__name">Tomáš Mikyska</span></li>
+          <li><a href="mailto:mikyska@exportex.cz">mikyska@exportex.cz</a></li>
+          <li><a href="tel:+420734479684">+420 734 479 684</a></li>
+          <li><a href="https://wa.me/420734479684" target="_blank" rel="noopener noreferrer">WhatsApp</a></li>
+          <li><a href="https://t.me/exportex" target="_blank" rel="noopener noreferrer">Telegram</a></li>
+        </ul>
+      </div>
+
+      <div class="ftr__col">
+        <h2 class="ftr__h" data-cs="Informace" data-en="Information">Informace</h2>
+        <ul>
+          <li><a href="cookies.html"   data-cs="Cookies a úložiště"      data-en="Cookies and storage">Cookies a úložiště</a></li>
+          <li><a href="soukromi.html"  data-cs="Ochrana osobních údajů"  data-en="Privacy notice">Ochrana osobních údajů</a></li>
+          <li><span class="ftr__note" data-cs="Sídlo: Praha, Česká republika" data-en="Registered in Prague, Czech Republic">Sídlo: Praha, Česká republika</span></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="ftr__bar">
+      <span class="ftr__cr" data-cs="© 2026 Exportex s.r.o. — Textil z Uzbekistánu a Střední Asie do EU."
+            data-en="© 2026 Exportex s.r.o. — Textiles from Uzbekistan &amp; Central Asia to the EU.">© 2026 Exportex s.r.o. — Textil z Uzbekistánu a Střední Asie do EU.</span>
+      <span class="ftr__by">
+        <span data-cs="Web:" data-en="Website by:">Web:</span>
+        <a href="https://codeing.cz" target="_blank" rel="noopener noreferrer">codeing.cz</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>

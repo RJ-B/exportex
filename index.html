@@ -3,38 +3,228 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Exportex — textil z Uzbekistánu a Střední Asie do EU</title>
-<meta name="description" content="Český sourcingový a importní partner. Vybereme prověřenou výrobu, ohlídáme kvalitu přímo v hale a zajistíme původ, clo i dopravu — od specifikace po vykládku ve vašem skladu.">
-<meta name="theme-color" content="#070B16">
-<link rel="canonical" href="https://exportex.cz/">
 
-<!-- Open Graph -->
+<!-- ==========================================================================
+     PŘI PŘECHODU NA VLASTNÍ DOMÉNU (exportex.cz) přepsat adresu na těchto
+     místech: canonical, hreflang, og:url, JSON-LD (@id a url), robots.txt
+     a sitemap.xml. Teď míří na živou adresu na GitHub Pages, protože
+     exportex.cz zatím ukazuje na parkovací stránku registrátora — canonical
+     na ni by web z výsledků vyhodil.
+     ========================================================================== -->
+
+<title>Exportex — textil z Uzbekistánu a Střední Asie do EU</title>
+<meta name="description" content="Český sourcingový a importní partner. Vybereme prověřenou výrobu, ohlídáme kvalitu přímo v hale a zajistíme původ, clo i dopravu — frotté, ložní prádlo, úplety, konfekce, tkaniny a bavlněná příze s nulovým dovozním clem.">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="theme-color" content="#070B16">
+<meta name="color-scheme" content="dark light">
+<meta name="format-detection" content="telephone=no">
+
+<link rel="canonical" href="https://rj-b.github.io/exportex/">
+<link rel="alternate" hreflang="cs" href="https://rj-b.github.io/exportex/">
+<link rel="alternate" hreflang="en" href="https://rj-b.github.io/exportex/?lang=en">
+<link rel="alternate" hreflang="x-default" href="https://rj-b.github.io/exportex/">
+
+<!-- Obsahová bezpečnostní politika. GitHub Pages neumí vlastní HTTP hlavičky,
+     takže se posílá v <meta>. Pozor: frame-ancestors se v meta ignoruje —
+     ochranu proti vložení do rámu bude potřeba doplnit hlavičkou, až web
+     poběží na vlastním hostingu (viz README, sekce Bezpečnost).
+     Po přesunu písem na vlastní web se z cizích domén nenačítá nic; jediné
+     povolené odchozí spojení je odeslání formuláře (viz connect-src —
+     nepoužité služby je možné ze seznamu vyhodit).
+     Styly potřebují 'unsafe-inline' kvůli inline atributům style v rozvržení. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://formsubmit.co https://api.web3forms.com https://formspree.io; manifest-src 'self'; object-src 'none'; upgrade-insecure-requests">
+
+<!-- Open Graph / Twitter -->
 <meta property="og:type" content="website">
 <meta property="og:locale" content="cs_CZ">
+<meta property="og:locale:alternate" content="en_GB">
 <meta property="og:site_name" content="Exportex">
-<meta property="og:title" content="Exportex — textil z Uzbekistánu od výroby až do vašeho skladu">
-<meta property="og:description" content="Sourcing, kontrola kvality, původ, clo a doprava. Jeden odpovědný partner v Praze.">
-<meta property="og:image" content="assets/img/og.webp">
+<meta property="og:url" content="https://rj-b.github.io/exportex/">
+<meta property="og:title" content="Exportex — textil z Uzbekistánu a Střední Asie do EU">
+<meta property="og:description" content="Sourcing, kontrola kvality, doklady o původu, nulové clo a doprava. Jeden odpovědný partner v Praze — od specifikace po vykládku.">
+<meta property="og:image" content="https://rj-b.github.io/exportex/assets/img/og.webp">
+<meta property="og:image:type" content="image/webp">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Přádelna partnerského provozu ve Střední Asii">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Exportex — textil z Uzbekistánu a Střední Asie do EU">
+<meta name="twitter:description" content="Sourcing, kontrola kvality, doklady o původu, nulové clo a doprava. Jeden odpovědný partner v Praze.">
+<meta name="twitter:image" content="https://rj-b.github.io/exportex/assets/img/og.webp">
 
-<!-- Favicon -->
+<!-- Ikony — "e" vyříznuté z firemního loga -->
+<link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
 
-<!-- Fonty -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<!-- Písma jsou hostovaná přímo tady, ne u Google Fonts — návštěvníkova
+     IP adresa se tak neposílá třetí straně a odpadá externí spojení. -->
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/outfit-400-latin-ext.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/outfit-700-latin-ext.woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/fonts.css">
 
 <link rel="stylesheet" href="assets/css/style.css">
+<link rel="preload" as="image" href="assets/img/hero.webp" fetchpriority="high">
 
-<!-- Motiv se nastaví ještě před vykreslením, jinak by světlý režim po načtení probliknul tmavě. -->
-<script>try{if(localStorage.getItem('exportex-theme')==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}</script>
+<script src="assets/js/theme-init.js"></script>
+
+<!-- Strukturovaná data pro vyhledávače -->
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "Organization",
+   "@id": "https://rj-b.github.io/exportex/#organizace",
+   "name": "Exportex s.r.o.",
+   "url": "https://rj-b.github.io/exportex/",
+   "logo": {
+    "@type": "ImageObject",
+    "url": "https://rj-b.github.io/exportex/assets/img/logo.png",
+    "width": 532,
+    "height": 120
+   },
+   "image": "https://rj-b.github.io/exportex/assets/img/og.webp",
+   "description": "Český sourcingový a importní partner pro textil z Uzbekistánu a Střední Asie. Výběr a prověření výroby, kontrola kvality, doklady o původu, celní odbavení a doprava do EU.",
+   "areaServed": [
+    {
+     "@type": "Place",
+     "name": "Evropská unie"
+    },
+    {
+     "@type": "Place",
+     "name": "Evropa"
+    }
+   ],
+   "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Praha",
+    "addressCountry": "CZ"
+   },
+   "contactPoint": [
+    {
+     "@type": "ContactPoint",
+     "contactType": "sales",
+     "name": "Tomáš Mikyska",
+     "email": "mikyska@exportex.cz",
+     "telephone": "+420734479684",
+     "availableLanguage": [
+      "cs",
+      "en"
+     ],
+     "areaServed": "EU"
+    }
+   ],
+   "knowsAbout": [
+    "textil",
+    "frotté",
+    "ložní prádlo",
+    "pletené úplety",
+    "konfekce",
+    "tkaniny",
+    "bavlněná příze",
+    "dovoz z Uzbekistánu",
+    "GSP+",
+    "OEKO-TEX Standard 100"
+   ]
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://rj-b.github.io/exportex/#web",
+   "url": "https://rj-b.github.io/exportex/",
+   "name": "Exportex",
+   "inLanguage": [
+    "cs",
+    "en"
+   ],
+   "publisher": {
+    "@id": "https://rj-b.github.io/exportex/#organizace"
+   }
+  },
+  {
+   "@type": "Service",
+   "@id": "https://rj-b.github.io/exportex/#sluzba",
+   "name": "Sourcing a dovoz textilu ze Střední Asie",
+   "serviceType": "Sourcing, kontrola kvality a dovoz textilu",
+   "provider": {
+    "@id": "https://rj-b.github.io/exportex/#organizace"
+   },
+   "areaServed": {
+    "@type": "Place",
+    "name": "Evropská unie"
+   },
+   "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Sortiment",
+    "itemListElement": [
+     {
+      "@type": "Offer",
+      "itemOffered": {
+       "@type": "Product",
+       "name": "Frotté — ručníky a župany",
+       "description": "Ručníky, osušky a župany z uzbecké bavlny, gramáž 400–650 g/m²."
+      }
+     },
+     {
+      "@type": "Offer",
+      "itemOffered": {
+       "@type": "Product",
+       "name": "Ložní prádlo a povlečení",
+       "description": "Bavlněný popelín 110–145 g/m² a satén, evropské i hotelové rozměry."
+      }
+     },
+     {
+      "@type": "Offer",
+      "itemOffered": {
+       "@type": "Product",
+       "name": "Pletené úplety v metráži",
+       "description": "Single jersey, interlock, rib, French terry, 120–360 g/m²."
+      }
+     },
+     {
+      "@type": "Offer",
+      "itemOffered": {
+       "@type": "Product",
+       "name": "Konfekce a private label",
+       "description": "Trička, mikiny, tepláky a polo šité na váš techpack, 140–360 g/m²."
+      }
+     },
+     {
+      "@type": "Offer",
+      "itemOffered": {
+       "@type": "Product",
+       "name": "Tkaniny v metráži",
+       "description": "Popelín, keprovina, kanvas a oxford, šíře 150–280 cm."
+      }
+     },
+     {
+      "@type": "Offer",
+      "itemOffered": {
+       "@type": "Product",
+       "name": "Bavlněná příze",
+       "description": "Ring-spun příze z uzbecké bavlny, jemnosti Ne 10–40, česaná i mykaná."
+      }
+     },
+     {
+      "@type": "Offer",
+      "itemOffered": {
+       "@type": "Product",
+       "name": "Hotelový a pracovní textil",
+       "description": "Textil dimenzovaný na průmyslovou prádelnu, praní 60–95 °C."
+      }
+     }
+    ]
+   }
+  }
+ ]
+}
+</script>
 </head>
 <body>
 
-<a href="#sortiment" class="sr-only">Přeskočit na obsah</a>
+<a href="#obsah" class="skip" data-cs="Přeskočit na obsah" data-en="Skip to content">Přeskočit na obsah</a>
 
 <!-- ===== Progress ===== -->
 <div class="progress" id="progress" role="presentation"></div>
@@ -54,9 +244,9 @@
       <a class="nav__link" href="#onas"      data-cs="O nás"          data-en="About">O nás</a>
 
       <div class="lang" role="group" aria-label="Jazyk / Language">
-        <button type="button" class="lang__btn is-on" data-lang="cs">CZ</button>
+        <button type="button" class="lang__btn is-on" data-lang="cs" aria-pressed="true" lang="cs">CZ</button>
         <span class="lang__sep">/</span>
-        <button type="button" class="lang__btn" data-lang="en">EN</button>
+        <button type="button" class="lang__btn" data-lang="en" aria-pressed="false" lang="en">EN</button>
       </div>
 
       <button type="button" class="themebtn" id="themeBtn" aria-pressed="false"
@@ -83,7 +273,7 @@
     <a class="drawer__link" href="#trasa"><span class="n">03</span><span     data-cs="Trasa"           data-en="Route">Trasa</span></a>
     <a class="drawer__link" href="#doklady"><span class="n">04</span><span   data-cs="Doklady a clo"   data-en="Compliance">Doklady a clo</span></a>
     <a class="drawer__link" href="#onas"><span class="n">05</span><span      data-cs="O nás"           data-en="About">O nás</span></a>
-    <a class="drawer__link" href="#reference"><span class="n">06</span><span data-cs="Reference"       data-en="Case studies">Reference</span></a>
+    <a class="drawer__link" href="#reference"><span class="n">06</span><span data-cs="Reference"       data-en="Examples">Reference</span></a>
     <a class="drawer__link" href="#kontakt"><span class="n">07</span><span   data-cs="Kontakt"         data-en="Contact">Kontakt</span></a>
   </nav>
   <div class="drawer__foot">
@@ -92,7 +282,7 @@
   </div>
 </div>
 
-<main>
+<main id="obsah">
 
 <!-- ===== HERO ===== -->
 <section class="hero" id="top">
@@ -130,7 +320,7 @@
       <div class="stat">
         <div class="stat__k" data-cs="Doprava" data-en="Freight">Doprava</div>
         <div class="stat__v" data-cs="Kamion i vlak" data-en="Truck &amp; rail">Kamion i vlak</div>
-        <div class="stat__s" data-cs="dvě trasy do EU" data-en="two corridors to the EU">dvě trasy do EU</div>
+        <div class="stat__s" data-cs="podle objemu a termínu" data-en="by volume and deadline">podle objemu a termínu</div>
       </div>
       <div class="stat">
         <div class="stat__k">Standard</div>
@@ -164,7 +354,7 @@
 
     <div class="chips" id="filters" data-rv style="--rv-d:180ms; display:flex; gap:8px; flex-wrap:wrap; margin-bottom:36px" role="group" aria-label="Filtr sortimentu"></div>
 
-    <div class="grid grid--products" id="products"></div>
+    <div class="grid grid--products" id="products" aria-live="polite"></div>
   </div>
 </section>
 
@@ -191,11 +381,11 @@
       <span class="lbl" data-cs="Trasa" data-en="Route">Trasa</span>
     </div>
     <h2 class="h2" data-rv style="--rv-d:60ms; max-width:22ch"
-        data-cs="Ze Střední Asie do EU, dvěma koridory."
-        data-en="From Central Asia into the EU, two corridors.">Ze Střední Asie do EU, dvěma koridory.</h2>
+        data-cs="Ze Střední Asie do celé Evropy."
+        data-en="From Central Asia to anywhere in Europe.">Ze Střední Asie do celé Evropy.</h2>
     <p class="lead" data-rv style="--rv-d:120ms; margin-bottom:44px"
-       data-cs="Trasu volíme podle objemu a termínu. Kamionem přes Kaspické moře a Turecko, nebo železnicí Středním koridorem — v obou případech s doklady o původu vyřízenými dopředu."
-       data-en="We pick the corridor by volume and deadline. Truck via the Caspian and Türkiye, or rail on the Middle Corridor — in both cases with origin documents cleared up front.">Trasu volíme podle objemu a termínu. Kamionem přes Kaspické moře a Turecko, nebo železnicí Středním koridorem — v obou případech s doklady o původu vyřízenými dopředu.</p>
+       data-cs="Trasu i dopravní režim volíme podle objemu a termínu — kamionem i po železnici. Doklady o původu řešíme dopředu, aby zboží nestálo na hranici, a doručujeme kamkoliv v EU."
+       data-en="We choose the route and the mode by volume and deadline — by truck and by rail. Origin documents are arranged up front so nothing waits at the border, and we deliver anywhere in the EU.">Trasu i dopravní režim volíme podle objemu a termínu — kamionem i po železnici. Doklady o původu řešíme dopředu, aby zboží nestálo na hranici, a doručujeme kamkoliv v EU.</p>
 
 
     <div class="routebox glass" data-rv="zoom" style="--rv-d:240ms">
@@ -259,7 +449,7 @@
     </div>
 
     <figure class="about__fig" data-rv="zoom" style="--rv-d:140ms; margin:0">
-      <img src="assets/img/about.webp" width="800" height="1000" alt="Přejímka vzorků přímo v pletárně" loading="lazy" decoding="async">
+      <img src="assets/img/about.webp" width="1200" height="900" alt="Přejímka vzorků přímo v pletárně" loading="lazy" decoding="async">
       <figcaption class="about__cap">
         <b data-cs="Výběr výroby na místě" data-en="Vetting production on site">Výběr výroby na místě</b>
         <i>TAŠKENT · 2026</i>
@@ -273,7 +463,7 @@
   <div class="wrap">
     <div class="eyebrow" data-rv>
       <span class="num">06</span>
-      <span class="lbl" data-cs="Reference" data-en="Case studies">Reference</span>
+      <span class="lbl" data-cs="Reference" data-en="Examples">Reference</span>
     </div>
     <h2 class="h2" data-rv style="--rv-d:60ms; max-width:22ch"
         data-cs="Příklady toho, co pro vás zvládneme."
@@ -302,7 +492,7 @@
            Zatím bez odesílací logiky — validace a stav "odesláno" běží lokálně.
            Napojení na backend viz README.md → sekce "Formulář". -->
       <form class="form" id="form" novalidate data-rv style="--rv-d:120ms">
-        <div class="form__grid" id="formFields"></div>
+        <div class="form__grid" id="formFields" aria-live="polite"></div>
       </form>
 
       <div data-rv style="--rv-d:200ms">
@@ -323,12 +513,12 @@
 
         <div class="cinfo__k" data-cs="Rychlý kontakt" data-en="Quick contact" style="margin-bottom:10px">Rychlý kontakt</div>
         <div class="quick">
-          <a class="quick__btn" href="https://wa.me/420734479684" target="_blank" rel="noopener">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="#25D366" aria-hidden="true"><path d="M20.5 3.5C18.3 1.2 15.3 0 12.1 0 5.5 0 .2 5.3.2 11.9c0 2.1.6 4.1 1.6 5.9L0 24l6.4-1.7c1.7.9 3.7 1.4 5.7 1.4 6.6 0 11.9-5.3 11.9-11.9 0-3.2-1.2-6.2-3.5-8.3zm-8.4 18.3c-1.8 0-3.5-.5-5-1.4l-.4-.2-3.7 1 1-3.6-.2-.4c-1-1.6-1.5-3.4-1.5-5.3C2.8 6.8 7 2.6 12.1 2.6c2.5 0 4.8 1 6.6 2.7 1.8 1.8 2.7 4.1 2.7 6.6.1 5.1-4.1 9.3-9.3 9.3z"></path><path d="M17.5 14.4c-.3-.2-1.7-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.7 1-.9 1.1-.2.2-.3.2-.6.1-1.6-.8-2.7-1.5-3.7-3.3-.3-.5.3-.5.8-1.5.1-.2 0-.4 0-.5 0-.2-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.5c-.2 0-.5.1-.7.3-.9.9-1.1 2-.7 3.2.5 1.5 1.4 2.9 2.5 4 .3.3 2.3 3.5 5.6 4.7 2 .8 2.8.9 3.8.7.6-.1 1.7-.7 2-1.4.2-.6.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3z"></path></svg>
+          <a class="quick__btn quick__btn--wa" href="https://wa.me/420734479684" target="_blank" rel="noopener noreferrer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0 0 20.465 3.488"/></svg>
             <span>WhatsApp</span>
           </a>
-          <a class="quick__btn" href="https://t.me/exportex" target="_blank" rel="noopener">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="#229ED9" aria-hidden="true"><path d="M23.9 3.6c-.3-.2-.7-.3-1.2-.1L1.4 11.7c-.6.2-.9.6-.9 1.1 0 .5.4.8.9 1l5.2 1.6 2 6.3c.1.4.4.6.8.6.3 0 .5-.1.7-.3l2.8-2.7 5.3 3.9c.2.2.5.3.8.3.5 0 .9-.4 1-1l3.5-18c.1-.6-.1-1-.4-1.2zM9.4 15.2l-.4 4-1.3-4.2 9.9-6.4-8.2 6.6z"></path></svg>
+          <a class="quick__btn quick__btn--tg" href="https://t.me/exportex" target="_blank" rel="noopener noreferrer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
             <span>Telegram</span>
           </a>
         </div>
@@ -341,16 +531,63 @@
 
 <!-- ===== Footer ===== -->
 <footer class="ftr">
-  <div class="wrap ftr__in">
-    <img class="ftr__mark" src="assets/img/logo.webp" width="532" height="120" alt="Exportex">
-    <span class="ftr__cr"
-          data-cs="© 2026 Exportex s.r.o. — Textil z Uzbekistánu a Střední Asie do EU."
-          data-en="© 2026 Exportex s.r.o. — Textiles from Uzbekistan &amp; Central Asia to the EU.">© 2026 Exportex s.r.o. — Textil z Uzbekistánu a Střední Asie do EU.</span>
+  <div class="wrap">
+    <div class="ftr__cols">
+
+      <div class="ftr__brand">
+        <img class="ftr__mark" src="assets/img/logo.webp" width="532" height="120" alt="Exportex">
+        <p data-cs="Český sourcingový a importní partner pro textil z Uzbekistánu a Střední Asie. Výběr výroby, kontrola kvality, doklady o původu, clo i doprava."
+           data-en="Czech sourcing and import partner for textiles from Uzbekistan and Central Asia. Mill selection, quality control, origin documents, duty and freight.">Český sourcingový a importní partner pro textil z Uzbekistánu a Střední Asie. Výběr výroby, kontrola kvality, doklady o původu, clo i doprava.</p>
+      </div>
+
+      <nav class="ftr__col" aria-labelledby="ftr-nav">
+        <h2 class="ftr__h" id="ftr-nav" data-cs="Rychlé odkazy" data-en="Quick links">Rychlé odkazy</h2>
+        <ul>
+          <li><a href="#sortiment" data-cs="Sortiment"      data-en="Products">Sortiment</a></li>
+          <li><a href="#jak"       data-cs="Jak to funguje"  data-en="How it works">Jak to funguje</a></li>
+          <li><a href="#trasa"     data-cs="Trasa"           data-en="Route">Trasa</a></li>
+          <li><a href="#doklady"   data-cs="Doklady a clo"   data-en="Compliance">Doklady a clo</a></li>
+          <li><a href="#onas"      data-cs="O nás"           data-en="About">O nás</a></li>
+          <li><a href="#reference" data-cs="Reference"       data-en="Examples">Reference</a></li>
+          <li><a href="#kontakt"   data-cs="Kontakt"         data-en="Contact">Kontakt</a></li>
+        </ul>
+      </nav>
+
+      <div class="ftr__col">
+        <h2 class="ftr__h" data-cs="Kontakt" data-en="Contact">Kontakt</h2>
+        <ul>
+          <li><span class="ftr__name">Tomáš Mikyska</span></li>
+          <li><a href="mailto:mikyska@exportex.cz">mikyska@exportex.cz</a></li>
+          <li><a href="tel:+420734479684">+420 734 479 684</a></li>
+          <li><a href="https://wa.me/420734479684" target="_blank" rel="noopener noreferrer">WhatsApp</a></li>
+          <li><a href="https://t.me/exportex" target="_blank" rel="noopener noreferrer">Telegram</a></li>
+        </ul>
+      </div>
+
+      <div class="ftr__col">
+        <h2 class="ftr__h" data-cs="Informace" data-en="Information">Informace</h2>
+        <ul>
+          <li><a href="cookies.html"   data-cs="Cookies a úložiště"      data-en="Cookies and storage">Cookies a úložiště</a></li>
+          <li><a href="soukromi.html"  data-cs="Ochrana osobních údajů"  data-en="Privacy notice">Ochrana osobních údajů</a></li>
+          <li><span class="ftr__note" data-cs="Sídlo: Praha, Česká republika" data-en="Registered in Prague, Czech Republic">Sídlo: Praha, Česká republika</span></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="ftr__bar">
+      <span class="ftr__cr" data-cs="© 2026 Exportex s.r.o. — Textil z Uzbekistánu a Střední Asie do EU."
+            data-en="© 2026 Exportex s.r.o. — Textiles from Uzbekistan &amp; Central Asia to the EU.">© 2026 Exportex s.r.o. — Textil z Uzbekistánu a Střední Asie do EU.</span>
+      <span class="ftr__by">
+        <span data-cs="Web:" data-en="Website by:">Web:</span>
+        <a href="https://codeing.cz" target="_blank" rel="noopener noreferrer">codeing.cz</a>
+      </span>
+    </div>
   </div>
 </footer>
 
 <!-- ===== Modal (detail sortimentu) ===== -->
-<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true">
   <div class="modal__bg" data-close></div>
   <div class="modal__box" id="modalBox">
     <div class="modal__head">
@@ -369,6 +606,7 @@
   </div>
 </div>
 
+<script src="assets/js/config.js"></script>
 <script src="assets/js/data.js"></script>
 <script src="assets/js/main.js"></script>
 </body>

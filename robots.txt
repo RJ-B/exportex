@@ -1,0 +1,7 @@
+# Exportex — prezentační web
+# Po přechodu na vlastní doménu přepsat adresu sitemapy.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://rj-b.github.io/exportex/sitemap.xml

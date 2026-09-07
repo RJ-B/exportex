@@ -18,8 +18,17 @@
   /* ---------- helpers ---------- */
   var $  = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  /* Česká typografie: jednopísmenné předložky a spojky nesmí zůstat viset na
+     konci řádku. Váže se pevnou mezerou; v angličtině se nedělá nic. */
+  var CZ_PREP = /(^|[\s(„"–—])([kosuvzaiKOSUVZAI])[ \t]+/g;
+  function czTypo(str) {
+    return String(str).replace(CZ_PREP, '$1$2\u00A0');
+  }
+
   var esc = function (s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
+    s = String(s);
+    if (state.lang === 'cs') s = czTypo(s);
+    return s.replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   };
@@ -73,7 +82,7 @@
 
     $$('[data-cs]').forEach(function (el) {
       var v = el.getAttribute('data-' + state.lang);
-      if (v !== null) el.innerHTML = v;
+      if (v !== null) el.innerHTML = (state.lang === 'cs') ? czTypo(v) : v;
     });
 
     $$('.lang__btn').forEach(function (b) {
@@ -85,20 +94,38 @@
       if (label) { b.setAttribute('aria-label', label); b.setAttribute('title', label); }
     });
 
+    $$('.lang__btn').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.lang === state.lang));
+    });
+
     renderAll();
     try { localStorage.setItem('exportex-lang', state.lang); } catch (e) {}
+  }
+
+  /* Angličtina má vlastní adresu (?lang=en), aby na ni mohl mířit hreflang
+     a vyhledávače ji indexovaly zvlášť. Čeština je výchozí, tedy bez parametru. */
+  function syncLangUrl() {
+    if (!history.replaceState) return;
+    var u = new URL(location.href);
+    if (state.lang === 'en') u.searchParams.set('lang', 'en');
+    else u.searchParams.delete('lang');
+    history.replaceState(null, '', u.pathname + u.search + u.hash);
   }
 
   function initLang() {
     var saved = null;
     try { saved = localStorage.getItem('exportex-lang'); } catch (e) {}
-    // Výchozí jazyk je čeština; angličtina jen když si ji návštěvník zvolí.
-    if (saved === 'en' || saved === 'cs') state.lang = saved;
+    // Pořadí: adresa (kvůli sdíleným odkazům a vyhledávačům) > uložená volba > čeština
+    var fromUrl = null;
+    try { fromUrl = new URL(location.href).searchParams.get('lang'); } catch (e) {}
+    if (fromUrl === 'en' || fromUrl === 'cs') state.lang = fromUrl;
+    else if (saved === 'en' || saved === 'cs') state.lang = saved;
     $$('.lang__btn').forEach(function (b) {
       b.addEventListener('click', function () {
         if (state.lang === b.dataset.lang) return;
         state.lang = b.dataset.lang;
         applyLang();
+        syncLangUrl();
       });
     });
   }
@@ -300,6 +327,7 @@
     }).join('');
 
     $('#modal').classList.add('is-open');
+    $('#modal').removeAttribute('aria-hidden');
     document.body.classList.add('is-locked');
     $('#modalBox').scrollTop = 0;
     setTimeout(function () { $('.modal__close').focus(); }, 60);
@@ -308,18 +336,38 @@
   function closeModal() {
     state.modalIdx = null;
     $('#modal').classList.remove('is-open');
+    $('#modal').setAttribute('aria-hidden', 'true');
     document.body.classList.remove('is-locked');
     if (lastFocus) lastFocus.focus();
   }
 
+  /* Focus zůstává uvnitř otevřené vrstvy — jinak by tabulátor odešel na
+     stránku pod ní, která je pro uživatele v tu chvíli nedostupná. */
+  var FOCUSABLE = 'a[href],button:not([disabled]),input,textarea,select,[tabindex]:not([tabindex="-1"])';
+
+  function trapFocus(e) {
+    if (e.key !== 'Tab') return;
+    var box = ($('#modal') && $('#modal').classList.contains('is-open')) ? $('#modalBox')
+            : ($('#drawer') && $('#drawer').classList.contains('is-open')) ? $('#drawer') : null;
+    if (!box) return;
+    var items = $$(FOCUSABLE, box).filter(function (el) { return el.offsetParent !== null; });
+    if ($('#drawer') && $('#drawer').classList.contains('is-open')) items = items.concat($$('.hdr ' + FOCUSABLE));
+    if (!items.length) return;
+    var first = items[0], last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
   function initModal() {
+    document.addEventListener('keydown', trapFocus);
+    if (!$('#modal')) return;
     $$('#modal [data-close]').forEach(function (el) {
       el.addEventListener('click', closeModal);
     });
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
-        if ($('#modal').classList.contains('is-open')) closeModal();
-        else if ($('#drawer').classList.contains('is-open')) toggleDrawer(false);
+        if ($('#modal') && $('#modal').classList.contains('is-open')) closeModal();
+        else if ($('#drawer') && $('#drawer').classList.contains('is-open')) toggleDrawer(false);
       }
     });
   }
@@ -328,17 +376,46 @@
      6. Formulář — validace a UI stavy.
         Odesílací logika záměrně neřešena (viz README → Formulář).
      ====================================================================== */
-  var form = { values: {}, errors: {}, touched: {}, sent: false };
+  var form = { values: {}, errors: {}, touched: {}, sent: false, sending: false,
+               error: '', hp: false, t0: Date.now(), human: false, lastSent: 0, lastBody: '' };
+
+  /* ----------------------------------------------------------------------
+     Ochrana proti robotům. Vrstvená, protože jedno síto vždycky někdo obejde.
+     Všechna síta „projdou" naoko úspěšně — robot se tak nedozví, že ho web
+     odhalil, a nezkouší to jinak. Zpráva se ale nikam neodešle.
+     Žádné captcha: nezdržuje zákazníka a nevolá se kvůli němu cizí server.
+     ---------------------------------------------------------------------- */
+  var BOT = {
+    MIN_FILL_MS: 3000,   // člověk nevyplní pět polí za tři vteřiny
+    REPEAT_MS:   45000,  // stejná zpráva znovu = smyčka nebo dvojklik
+    MAX_LINKS:   5       // pět a víc odkazů ve zprávě je vzkaz pro roboty
+  };
+
+  function botCheck(bodyKey) {
+    if (form.hp) return 'past';                                   // vyplněné skryté pole
+    if (!form.human) return 'bez interakce';                      // nikdo do formuláře neklikl ani nepsal
+    if (Date.now() - form.t0 < BOT.MIN_FILL_MS) return 'příliš rychle';
+    if (bodyKey === form.lastBody && Date.now() - form.lastSent < BOT.REPEAT_MS) return 'duplicita';
+    var links = (form.values.message || '').match(/https?:\/\/|www\./gi);
+    if (links && links.length >= BOT.MAX_LINKS) return 'odkazy';
+    return null;
+  }
 
   var LBL = {
     cs: { msg: 'Vaše poptávka', msgPh: 'Sortiment, množství, gramáž, termín…', submit: 'Odeslat poptávku',
+          sending: 'Odesílám…',
+          failed: 'Poptávku se nepodařilo odeslat. Zkuste to prosím znovu, nebo napište přímo na mikyska@exportex.cz.',
           note: 'ODPOVÍDÁME DO 1 PRACOVNÍHO DNE', doneT: 'Poptávka odeslána',
           doneB: 'Ozveme se do jednoho pracovního dne. Pokud spěcháte, volejte +420 734 479 684.',
-          again: 'Odeslat další' },
+          again: 'Odeslat další',
+          gdpr: 'Odesláním souhlasíte se zpracováním uvedených údajů pro vyřízení poptávky. Podrobnosti v <a href="soukromi.html">Ochraně osobních údajů</a>.' },
     en: { msg: 'Your enquiry', msgPh: 'Product, quantity, weight, deadline…', submit: 'Send enquiry',
+          sending: 'Sending…',
+          failed: 'The enquiry could not be sent. Please try again, or write directly to mikyska@exportex.cz.',
           note: 'WE REPLY WITHIN ONE WORKING DAY', doneT: 'Enquiry sent',
           doneB: 'We will get back to you within one working day. If it is urgent, call +420 734 479 684.',
-          again: 'Send another' }
+          again: 'Send another',
+          gdpr: 'By sending you agree to your details being processed to handle the enquiry. See the <a href="soukromi.html">privacy notice</a>.' }
   };
 
   function validate(id, v) {
@@ -364,7 +441,7 @@
           '<button type="button" class="btn btn--glass btn--md" id="formReset">' + esc(L.again) + '</button>' +
         '</div>';
       $('#formReset').addEventListener('click', function () {
-        form = { values: {}, errors: {}, touched: {}, sent: false };
+        form = { values: {}, errors: {}, touched: {}, sent: false, sending: false, error: '', hp: false };
         renderForm();
       });
       return;
@@ -376,8 +453,20 @@
 
     box.innerHTML = fields +
       field('message', L.msg, 'textarea', L.msgPh, true) +
-      '<button type="submit" class="btn btn--primary btn--lg btn--block">' + esc(L.submit) + '</button>' +
-      '<p class="form__note">' + esc(L.note) + '</p>';
+      /* Past na roboty: skutečný člověk pole nevidí, a tedy nevyplní. */
+      '<div class="hp" aria-hidden="true">' +
+        '<label>Nechte prázdné<input type="text" name="website" tabindex="-1" autocomplete="off"></label>' +
+      '</div>' +
+      (form.error ? '<p class="form__error" role="alert">' + esc(form.error) + '</p>' : '') +
+      '<button type="submit" class="btn btn--primary btn--lg btn--block"' + (form.sending ? ' disabled' : '') + '>' +
+        esc(form.sending ? L.sending : L.submit) + '</button>' +
+      '<p class="form__note">' + esc(L.note) + '</p>' +
+      '<p class="form__gdpr">' + L.gdpr + '</p>';
+
+    var hp = $('input[name="website"]', box);
+    if (hp) hp.addEventListener('input', function () { form.hp = true; });
+
+    form.t0 = Date.now();
 
     $$('#formFields input, #formFields textarea').forEach(function (el) {
       el.addEventListener('input', function () {
@@ -394,12 +483,19 @@
   function field(id, label, type, ph, isArea) {
     var v = form.values[id] || '';
     var err = form.errors[id] || '';
+    var required = (id !== 'phone');
+    var AC = { name:'name', company:'organization', email:'email', phone:'tel', message:'off' };
+    var MAXLEN = { name: 80, company: 120, email: 160, phone: 40, message: 4000 };
+    var attrs = ' name="' + id + '" autocomplete="' + AC[id] + '" maxlength="' + MAXLEN[id] + '"' +
+                ' aria-describedby="err-' + id + '"' +
+                ' aria-invalid="' + (err ? 'true' : 'false') + '"' +
+                (required ? ' aria-required="true"' : '');
     var ctrl = isArea
-      ? '<textarea name="' + id + '" placeholder="' + esc(ph) + '" rows="4">' + esc(v) + '</textarea>'
-      : '<input type="' + type + '" name="' + id + '" value="' + esc(v) + '" placeholder="' + esc(ph) + '">';
+      ? '<textarea' + attrs + ' placeholder="' + esc(ph) + '" rows="4">' + esc(v) + '</textarea>'
+      : '<input type="' + type + '"' + attrs + ' value="' + esc(v) + '" placeholder="' + esc(ph) + '">';
     return '<label class="field' + (err ? ' has-err' : '') + '" data-f="' + id + '">' +
-             '<span class="field__top"><span>' + esc(label) + '</span>' +
-             '<span class="field__err">' + esc(err) + '</span></span>' + ctrl +
+             '<span class="field__top"><span>' + esc(label) + (required ? '' : ' <em>&mdash;</em>') + '</span>' +
+             '<span class="field__err" id="err-' + id + '">' + esc(err) + '</span></span>' + ctrl +
            '</label>';
   }
 
@@ -409,9 +505,18 @@
     if (!el) return;
     el.classList.toggle('has-err', !!msg);
     $('.field__err', el).textContent = msg;
+    var ctrl = $('input, textarea', el);
+    if (ctrl) ctrl.setAttribute('aria-invalid', msg ? 'true' : 'false');
   }
 
   function initForm() {
+    if (!$('#form')) return;
+
+    /* Skutečný návštěvník do formuláře klikne nebo do něj píše. Roboti, kteří
+       jen odešlou POST, tuhle stopu nezanechají. */
+    ['pointerdown', 'keydown', 'input'].forEach(function (ev) {
+      $('#form').addEventListener(ev, function () { form.human = true; }, { passive: true });
+    });
     $('#form').addEventListener('submit', function (e) {
       e.preventDefault();
       var ids = ['name', 'company', 'email', 'phone', 'message'];
@@ -430,10 +535,67 @@
         return;
       }
 
-      /* TODO — napojení na odesílací službu (Formspree / Web3Forms / vlastní endpoint).
-         Zatím jen zobrazíme potvrzovací stav; nikam se nic neodesílá. */
-      form.sent = true;
-      renderForm();
+      send();
+    });
+  }
+
+  /* Odeslání přes externí službu nastavenou v config.js. Bez vyplněného
+     endpointu se formulář chová jako ukázka — zvaliduje a potvrdí, ale
+     nikam nic nepošle. */
+  function send() {
+    var cfg = (window.EXPORTEX_CONFIG || {}).form || {};
+    var L = LBL[state.lang];
+
+    var bodyKey = [form.values.email, form.values.message].join('|');
+    var caught = botCheck(bodyKey);
+    if (caught) {
+      form.sent = true; renderForm();
+      if (window.console) console.debug('[Exportex] odesílání zastaveno:', caught);
+      return;
+    }
+    form.lastBody = bodyKey; form.lastSent = Date.now();
+
+    if (!cfg.endpoint) {
+      form.sent = true; renderForm();
+      if (window.console) console.warn('[Exportex] Formulář není napojený — doplňte endpoint v assets/js/config.js');
+      return;
+    }
+
+    form.sending = true; form.error = ''; renderForm();
+
+    var body = {
+      name: form.values.name, company: form.values.company,
+      email: form.values.email, phone: form.values.phone || '',
+      message: form.values.message,
+      _lang: state.lang, _page: location.href
+    };
+    if (cfg.provider === 'web3forms') {
+      body.access_key = cfg.accessKey;
+      body.subject = cfg.subject;
+      body.from_name = form.values.company || form.values.name;
+      body.replyto = form.values.email;
+    } else if (cfg.provider === 'formsubmit') {
+      body._subject = cfg.subject;
+      body._replyto = form.values.email;
+      body._template = 'table';
+      body._captcha = 'false';       // ochranu proti robotům řeší past výše
+    } else {                          // formspree
+      body._subject = cfg.subject;
+      body._replyto = form.values.email;
+    }
+
+    fetch(cfg.endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(body)
+    })
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json().catch(function(){return {};}); })
+    .then(function (d) {
+      if (d && (d.success === false || d.success === 'false')) throw new Error(d.message || 'odmítnuto');
+      form.sending = false; form.sent = true; renderForm();
+    })
+    .catch(function () {
+      form.sending = false; form.error = L.failed; renderForm();
     });
   }
 
@@ -483,8 +645,8 @@
       var y = window.scrollY || doc.scrollTop || 0;
       var h = doc.scrollHeight - window.innerHeight;
 
-      $('#hdr').classList.toggle('is-stuck', y > 40);
-      $('#progress').style.width = (h > 0 ? Math.min(1, y / h) * 100 : 0).toFixed(2) + '%';
+      if ($('#hdr')) $('#hdr').classList.toggle('is-stuck', y > 40);
+      if ($('#progress')) $('#progress').style.width = (h > 0 ? Math.min(1, y / h) * 100 : 0).toFixed(2) + '%';
 
       var current = '';
       $$('main section[id]').forEach(function (s) {
@@ -503,6 +665,7 @@
      ====================================================================== */
   function toggleDrawer(open) {
     var dr = $('#drawer'), bg = $('#burger');
+    if (!dr || !bg) return;
     var willOpen = (open === undefined) ? !dr.classList.contains('is-open') : open;
     dr.classList.toggle('is-open', willOpen);
     dr.setAttribute('aria-hidden', String(!willOpen));
@@ -517,10 +680,10 @@
   }
 
   function initNav() {
-    $('#burger').addEventListener('click', function () { toggleDrawer(); });
+    if ($('#burger')) $('#burger').addEventListener('click', function () { toggleDrawer(); });
 
     // klik do prázdna v mobilním menu ho zavře
-    $('#drawer').addEventListener('click', function (e) {
+    if ($('#drawer')) $('#drawer').addEventListener('click', function (e) {
       if (e.target === this || e.target.classList.contains('drawer__list')) toggleDrawer(false);
     });
 
@@ -533,8 +696,8 @@
       if (!target) return;
 
       e.preventDefault();
-      if ($('#drawer').classList.contains('is-open')) toggleDrawer(false);
-      if ($('#modal').classList.contains('is-open')) closeModal();
+      if ($('#drawer') && $('#drawer').classList.contains('is-open')) toggleDrawer(false);
+      if ($('#modal') && $('#modal').classList.contains('is-open')) closeModal();
 
       var top = target.getBoundingClientRect().top + (window.scrollY || 0) - 60;
       window.scrollTo({ top: top, behavior: reduced ? 'auto' : 'smooth' });
@@ -545,7 +708,10 @@
   /* ======================================================================
      10. Bootstrap
      ====================================================================== */
+  /* Podstránky (cookies, soukromí) sdílejí hlavičku, patičku, jazyk i motiv,
+     ale nemají sortiment ani mapu — vykreslování se pro ně přeskočí. */
   function renderAll() {
+    if (!$('#products')) return;
     renderFilters();
     renderProducts();
     renderSteps();
