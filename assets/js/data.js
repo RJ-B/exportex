@@ -6,9 +6,8 @@
    Karty 1200×900 (4:3), sekce O nás 800×1000 (4:5), hero 2400×1350 (16:9).
    Výměna fotky = nahradit soubor stejného jména nebo změnit hodnotu "img".
 
-   MAPA: koridory nemají zastávky — mapa ukazuje jen Uzbekistán → Evropa.
-   "bow" je vyklenutí oblouku k jihu ve vnitřních jednotkách mapy;
-   kamionová trasa přes Turecko se klene níž než železniční Střední koridor.
+   MAPA: jeden oblouk Uzbekistán → Evropa, bez zastávek a bez přepínání.
+   "bow" je vyklenutí oblouku k jihu ve vnitřních jednotkách mapy.
    ========================================================================== */
 
 window.EXPORTEX_DATA = {
@@ -84,11 +83,14 @@ window.EXPORTEX_DATA = {
     mapFrom: { city: 'Uzbekistán', sub: 'STŘEDNÍ ASIE · VÝROBA' },
     mapTo:   { city: 'Evropa',     sub: 'ROZVOZ KAMKOLIV V EU' },
 
-    corridors: ['Kamion přes Turecko', 'Železnice — Střední koridor'],
-    routes: [
-      { bow: 104, facts: [{k:'Režim',v:'Kamion FTL / LTL'},{k:'Doklady',v:'Původ + A.TR'},{k:'Clo',v:'0 % (EU–TR)'}] },
-      { bow:  46, facts: [{k:'Režim',v:'Kontejner FCL'},{k:'Doklady',v:'Původ GSP+'},{k:'Clo',v:'0 % (GSP+)'}] }
-    ],
+    route: {
+      bow: 78,
+      facts: [
+        {k:'Režim',   v:'Kamion i kontejner'},
+        {k:'Doklady', v:'Původ GSP+ / A.TR'},
+        {k:'Clo',     v:'0 %'}
+      ]
+    },
 
     compliance: [
       {k:'GSP+',     t:'Nulové clo z Uzbekistánu', d:'Uzbekistán je zařazen do režimu GSP+. Při správně vystaveném dokladu o původu je dovozní clo na textil 0 %.'},
@@ -182,11 +184,14 @@ window.EXPORTEX_DATA = {
     mapFrom: { city: 'Uzbekistan', sub: 'CENTRAL ASIA · PRODUCTION' },
     mapTo:   { city: 'Europe',     sub: 'DELIVERED ANYWHERE IN THE EU' },
 
-    corridors: ['Truck via Türkiye', 'Rail — Middle Corridor'],
-    routes: [
-      { bow: 104, facts: [{k:'Mode',v:'FTL / LTL truck'},{k:'Documents',v:'Origin + A.TR'},{k:'Duty',v:'0% (EU–TR)'}] },
-      { bow:  46, facts: [{k:'Mode',v:'FCL container'},{k:'Documents',v:'Origin GSP+'},{k:'Duty',v:'0% (GSP+)'}] }
-    ],
+    route: {
+      bow: 78,
+      facts: [
+        {k:'Mode',      v:'Truck and container'},
+        {k:'Documents', v:'Origin GSP+ / A.TR'},
+        {k:'Duty',      v:'0%'}
+      ]
+    },
 
     compliance: [
       {k:'GSP+',     t:'Zero duty from Uzbekistan',  d:'Uzbekistan is included in the GSP+ scheme. With a correctly issued proof of origin, import duty on textiles is 0%.'},

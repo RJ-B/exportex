@@ -10,8 +10,8 @@
 
   var state = {
     lang: 'cs',
+    theme: 'dark',
     filter: 0,
-    corridor: 0,
     modalIdx: null
   };
 
@@ -26,6 +26,46 @@
   var t = function () { return DATA[state.lang]; };
 
   /* ======================================================================
+     0. Světlý / tmavý režim
+
+     Výchozí je tmavý — na něm stojí vzhled webu. Volba se pamatuje;
+     systémové nastavení se nepřebírá, aby první dojem byl vždy stejný.
+     ====================================================================== */
+  var THEME_COLOR = { dark: '#070B16', light: '#F4F6FA' };
+
+  function applyTheme(mode, animate) {
+    state.theme = (mode === 'light') ? 'light' : 'dark';
+    var root = document.documentElement;
+
+    if (animate && !reduced) root.classList.add('theme-ready');
+    if (state.theme === 'light') root.setAttribute('data-theme', 'light');
+    else root.removeAttribute('data-theme');
+
+    var meta = $('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', THEME_COLOR[state.theme]);
+
+    $$('.themebtn').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(state.theme === 'light'));
+      var label = b.getAttribute('data-' + state.lang + '-label');
+      if (label) { b.setAttribute('aria-label', label); b.setAttribute('title', label); }
+    });
+
+    try { localStorage.setItem('exportex-theme', state.theme); } catch (e) {}
+  }
+
+  function initTheme() {
+    var saved = null;
+    try { saved = localStorage.getItem('exportex-theme'); } catch (e) {}
+    applyTheme(saved === 'light' ? 'light' : 'dark', false);
+
+    $$('.themebtn').forEach(function (b) {
+      b.addEventListener('click', function () {
+        applyTheme(state.theme === 'light' ? 'dark' : 'light', true);
+      });
+    });
+  }
+
+  /* ======================================================================
      1. Jazyk
      ====================================================================== */
   function applyLang() {
@@ -38,6 +78,11 @@
 
     $$('.lang__btn').forEach(function (b) {
       b.classList.toggle('is-on', b.dataset.lang === state.lang);
+    });
+
+    $$('.themebtn').forEach(function (b) {
+      var label = b.getAttribute('data-' + state.lang + '-label');
+      if (label) { b.setAttribute('aria-label', label); b.setAttribute('title', label); }
     });
 
     renderAll();
@@ -149,7 +194,6 @@
         y = 800 −     10 · zeměpisná šířka
      Mapa nemá mezizastávky — ukazuje původ (Uzbekistán) a cílovou oblast
      (celá Evropa, šipka míří do České republiky uprostřed kontinentu).
-     Koridory se liší jen vyklenutím oblouku k jihu (viz "bow" v data.js).
      ====================================================================== */
   var MAP = { kx: 7.0711, bx: 100, ky: 10, by: 800 };
   var VB  = { x: 20, y: 138, w: 612, h: 314 };
@@ -172,24 +216,9 @@
            ' ' + b.x.toFixed(1) + ' ' + b.y.toFixed(1);
   }
 
-  function renderCorridors() {
-    var box = $('#corridors');
-    box.innerHTML = t().corridors.map(function (label, i) {
-      return '<button type="button" class="chip' + (i === state.corridor ? ' is-on' : '') +
-             '" data-i="' + i + '" aria-pressed="' + (i === state.corridor) + '">' + esc(label) + '</button>';
-    }).join('');
-    $$('.chip', box).forEach(function (c) {
-      c.addEventListener('click', function () {
-        state.corridor = +c.dataset.i;
-        renderCorridors();
-        renderRoute();
-      });
-    });
-  }
-
   function renderRoute() {
     var d = t();
-    var route = d.routes[state.corridor];
+    var route = d.route;
     var a = project(FROM.lat, FROM.lon);
     var b = project(TO.lat, TO.lon);
     var path = arcPath(a, b, route.bow);
@@ -235,7 +264,7 @@
              '<div class="fact__v">' + esc(f.v) + '</div></div>';
     }).join('');
 
-    /* oblouk se při přepnutí koridoru nakreslí */
+    /* oblouk se při prvním zobrazení nakreslí */
     if (!reduced && track.getTotalLength) {
       var len = track.getTotalLength();
       track.style.transition = 'none';
@@ -520,7 +549,6 @@
     renderFilters();
     renderProducts();
     renderSteps();
-    renderCorridors();
     renderRoute();
     renderCompliance();
     renderCases();
@@ -529,6 +557,7 @@
   }
 
   function init() {
+    initTheme();
     initLang();
     applyLang();      // renderAll() uvnitř
     initObserver();

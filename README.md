@@ -14,6 +14,26 @@ assets/img/             fotky (WebP), logo, favicon
 .nojekyll               vypíná Jekyll na GitHub Pages
 ```
 
+## Světlý a tmavý režim
+
+Přepíná se tlačítkem v hlavičce, volba se pamatuje v `localStorage`
+(`exportex-theme`). **Výchozí je tmavý** — na něm stojí identita webu; systémové
+nastavení se záměrně nepřebírá, aby byl první dojem vždy stejný. Změnit se to dá
+jedním řádkem v `initTheme()` v `main.js`.
+
+Světlý režim je jeden blok proměnných v `:root[data-theme="light"]` — žádné
+pravidlo se nepřepisuje, mění se jen hodnoty. Dvě místa zůstávají tmavá v obou
+režimech, protože leží na fotce: **hero** a **hlavička, dokud není přilepená**.
+Řeší se lokálním přepsáním proměnných na `.hero` a `.hdr:not(.is-stuck)`; když je
+otevřené mobilní menu (`body.is-locked`), přepis se vypne, aby byla hlavička
+čitelná nad světlým menu.
+
+Akcent se ve světlém režimu ztmavuje na `#A31D14`, aby text prošel kontrastem
+(7,0:1 na `#F4F6FA`); `#E5544A` z tmavého režimu by mělo jen 3,3:1.
+
+Aby světlý režim neproblikl tmavě, nastavuje se atribut `data-theme` malým
+inline skriptem v `<head>` ještě před vykreslením.
+
 ## Vzhled
 
 Celý web je postavený na **liquid glass** — průsvitné vrstvy s rozostřeným pozadím
@@ -49,10 +69,9 @@ x = 100 + 7.0711 · zeměpisná délka
 y = 800 −     10 · zeměpisná šířka
 ```
 
-Oba koridory mají stejné body, liší se jen vyklenutím oblouku k jihu
-(`bow` v `data.js`) — kamion přes Turecko se klene níž než železniční
-Střední koridor. Pod 720 px se v mapě skryjí podtitulky a štítek s clem;
-clo hlásí řádek faktů pod mapou.
+Mapa má jediné zobrazení bez přepínání; oblouk se ohýbá o `bow` z `data.js`.
+Pod 720 px se v mapě skryjí podtitulky a štítek s clem — clo hlásí řádek
+faktů hned pod mapou.
 
 ## Obsah
 

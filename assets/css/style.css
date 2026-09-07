@@ -54,6 +54,50 @@
   --g-rim:linear-gradient(152deg,rgba(255,255,255,.46) 0%,rgba(255,255,255,.09) 34%,rgba(255,255,255,0) 58%,rgba(255,255,255,.20) 100%);
   --g-inner:inset 0 1px 0 rgba(255,255,255,.20),inset 0 -1px 0 rgba(255,255,255,.05),inset 0 0 26px rgba(255,255,255,.04);
   --g-drop:0 18px 44px -26px rgba(0,0,0,.92);
+  --g-tile:linear-gradient(152deg,rgba(255,255,255,.085),rgba(255,255,255,.022));
+  --g-tile-strong:linear-gradient(152deg,rgba(255,255,255,.10),rgba(255,255,255,.028));
+  --g-tile-hover:linear-gradient(152deg,rgba(255,255,255,.15),rgba(229,84,74,.05));
+  --g-hover:linear-gradient(152deg,rgba(255,255,255,.18),rgba(255,255,255,.07));
+  --sep:rgba(255,255,255,.12);          /* mezera v mřížce, čte se jako linka */
+  --sheen:rgba(255,255,255,.34);        /* přejezd světla po tlačítku */
+  --sheen-hi:rgba(255,255,255,.5);
+  --card-hover-shadow:0 26px 52px -26px rgba(0,0,0,.95);
+
+  /* plochy nad fotkami zůstávají tmavé v obou režimech */
+  --scrim:rgba(7,11,22,.78);
+  --pcard-tint:linear-gradient(165deg,rgba(176,34,26,.36) 0%,rgba(7,11,22,.16) 46%,rgba(7,11,22,.58) 100%),
+               linear-gradient(180deg,rgba(7,11,22,.08) 0%,rgba(7,11,22,.44) 100%);
+  --about-veil:linear-gradient(180deg,rgba(7,11,22,.1),rgba(7,11,22,.78));
+
+  /* formulářová pole */
+  --field-bg:rgba(7,11,22,.42);
+  --field-bd:rgba(255,255,255,.13);
+  --field-bg-focus:rgba(13,21,38,.6);
+
+  /* hlavička, modal, mobilní menu */
+  --hdr-bg:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.025)),rgba(7,11,22,.62);
+  --hdr-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 12px 30px -24px rgba(0,0,0,.9);
+  --modal-bg:linear-gradient(152deg,rgba(255,255,255,.13),rgba(255,255,255,.05) 40%,rgba(11,18,32,.72));
+  --modal-head:linear-gradient(180deg,rgba(255,255,255,.10),rgba(11,18,32,.66));
+  --modal-veil:rgba(3,6,12,.78);
+  --modal-shadow:0 40px 90px -40px rgba(0,0,0,.95);
+  --drawer-bg:linear-gradient(152deg,rgba(255,255,255,.09),rgba(7,11,22,.86) 45%,rgba(7,11,22,.94));
+  --spec-bg:linear-gradient(152deg,rgba(255,255,255,.07),rgba(7,11,22,.34));
+
+  /* mapa */
+  --map-bg:radial-gradient(76% 130% at 42% 46%,rgba(16,25,45,.6),rgba(4,7,14,.78));
+  --map-land:rgba(202,216,240,.075);
+  --map-land-line:rgba(202,216,240,.13);
+  --map-track:rgba(255,255,255,.17);
+  --map-chip-bg:rgba(7,11,22,.88);
+  --map-dot-ring:rgba(7,11,22,.9);
+
+  /* záře v pozadí sekcí, o které se opírá sklo */
+  --glow-a:rgba(176,34,26,.13);
+  --glow-b:rgba(176,34,26,.09);
+  --glow-c:rgba(90,120,190,.06);
+  --hairline:rgba(255,255,255,.07);
+  --scanlines:rgba(255,255,255,.03);
 
   /* motion */
   --e:cubic-bezier(.4,0,.2,1);
@@ -74,6 +118,110 @@
 }
 
 @media (max-width:720px){ :root{ --gut:20px; --hdr:64px; } }
+
+/* ==========================================================================
+   Světlý režim
+   Přepíná se atributem data-theme na <html>; výchozí je tmavý, protože na něm
+   stojí identita webu. Mění se jen proměnné, žádná pravidla se nepřepisují.
+   ========================================================================== */
+:root[data-theme="light"]{
+  --bg-0:#F4F6FA;
+  --bg-1:#FFFFFF;
+  --bg-2:#E6EAF2;
+
+  --tx-1:#0C1220;
+  --tx-2:#1A2233;
+  --tx-3:#28313F;
+  --tx-4:#4C5768;
+  --tx-5:#5A6577;
+  --tx-6:#697386;
+  --tx-7:#7E8899;
+
+  --line:rgba(15,23,42,.10);
+  --line-2:rgba(15,23,42,.15);
+  --line-3:rgba(15,23,42,.20);
+
+  /* na světlém podkladu potřebuje akcent ztmavit, jinak neprojde kontrastem */
+  --ac:#B0221A;
+  --ac-l:#A31D14;               /* text a odkazy — kontrast 7.0:1 na #F4F6FA */
+  --ac-ll:#7C1610;
+  --ac-d:#96190F;
+  --ac-dd:#7A1409;
+  --ac-soft:rgba(176,34,26,.20);
+  --ac-glow:rgba(176,34,26,.20);
+  --ac-faint:rgba(176,34,26,.10);
+  --ac-line:rgba(176,34,26,.30);
+
+  /* sklo: bílé plochy potřebují vlastní obrys, jinak splynou s pozadím */
+  --g-tint:linear-gradient(152deg,rgba(255,255,255,.92) 0%,rgba(255,255,255,.68) 45%,rgba(255,255,255,.56) 100%);
+  --g-rim:linear-gradient(152deg,rgba(255,255,255,1) 0%,rgba(15,23,42,.14) 40%,rgba(15,23,42,.07) 62%,rgba(255,255,255,.9) 100%);
+  --g-inner:inset 0 1px 0 rgba(255,255,255,.95),inset 0 0 0 1px rgba(15,23,42,.055);
+  --g-drop:0 16px 38px -24px rgba(20,30,60,.30);
+  --g-tile:linear-gradient(152deg,rgba(255,255,255,.95),rgba(255,255,255,.74));
+  --g-tile-strong:linear-gradient(152deg,rgba(255,255,255,.98),rgba(255,255,255,.80));
+  --g-tile-hover:linear-gradient(152deg,#fff,rgba(176,34,26,.07));
+  --g-hover:linear-gradient(152deg,#fff,rgba(255,255,255,.86));
+  --sep:rgba(15,23,42,.12);
+  --sheen:rgba(255,255,255,.55);
+  --sheen-hi:rgba(255,255,255,.82);
+  --card-hover-shadow:0 26px 48px -26px rgba(20,30,60,.34);
+
+  --field-bg:rgba(255,255,255,.92);
+  --field-bd:rgba(15,23,42,.16);
+  --field-bg-focus:#FFFFFF;
+
+  --hdr-bg:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.72));
+  --hdr-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 12px 30px -24px rgba(20,30,60,.35);
+  --modal-bg:linear-gradient(152deg,#fff,rgba(255,255,255,.92) 40%,rgba(245,247,251,.96));
+  --modal-head:linear-gradient(180deg,#fff,rgba(249,250,253,.92));
+  --modal-veil:rgba(18,26,44,.42);
+  --modal-shadow:0 40px 90px -40px rgba(20,30,60,.45);
+  --drawer-bg:linear-gradient(152deg,rgba(255,255,255,.97),rgba(244,246,250,.98));
+  --spec-bg:linear-gradient(152deg,#fff,rgba(245,247,251,.86));
+
+  --map-bg:radial-gradient(76% 130% at 42% 46%,rgba(228,234,245,.95),rgba(203,212,230,.95));
+  --map-land:rgba(15,23,42,.11);
+  --map-land-line:rgba(15,23,42,.18);
+  --map-track:rgba(15,23,42,.18);
+  --map-chip-bg:rgba(255,255,255,.94);
+  --map-dot-ring:rgba(255,255,255,.95);
+
+  --glow-a:rgba(176,34,26,.09);
+  --glow-b:rgba(176,34,26,.06);
+  --glow-c:rgba(90,120,190,.05);
+  --hairline:rgba(15,23,42,.08);
+  --scanlines:rgba(255,255,255,.03);
+}
+
+/* Hero je fotka — zůstává tmavý v obou režimech. Řeší se lokálním
+   přepsáním proměnných, takže dlaždice i text v něm drží tmavou variantu. */
+:root[data-theme="light"] .hero,
+:root[data-theme="light"] body:not(.is-locked) .hdr:not(.is-stuck){
+  --tx-1:#F5F7FA; --tx-2:#DCE3EF; --tx-3:#C8D1E3;
+  --tx-4:#9AA6BF; --tx-5:#8894AD; --tx-6:#7C879E;
+  --ac-l:#E5544A; --ac-ll:#F2867C;
+  --g-tint:linear-gradient(152deg,rgba(255,255,255,.11) 0%,rgba(255,255,255,.045) 42%,rgba(255,255,255,.022) 100%);
+  --g-rim:linear-gradient(152deg,rgba(255,255,255,.46) 0%,rgba(255,255,255,.09) 34%,rgba(255,255,255,0) 58%,rgba(255,255,255,.20) 100%);
+  --g-inner:inset 0 1px 0 rgba(255,255,255,.20),inset 0 -1px 0 rgba(255,255,255,.05),inset 0 0 26px rgba(255,255,255,.04);
+  --g-tile-strong:linear-gradient(152deg,rgba(255,255,255,.10),rgba(255,255,255,.028));
+  --g-hover:linear-gradient(152deg,rgba(255,255,255,.18),rgba(255,255,255,.07));
+  --sep:rgba(255,255,255,.14);
+  --sheen:rgba(255,255,255,.34); --sheen-hi:rgba(255,255,255,.5);
+  --line-3:rgba(255,255,255,.16);
+}
+
+/* přechod při přepnutí — jen plochy, ne rozostření (to by trhalo) */
+:root.theme-ready body,
+:root.theme-ready .section,
+:root.theme-ready .card,
+:root.theme-ready .step,
+:root.theme-ready .fact,
+:root.theme-ready .form,
+:root.theme-ready .routebox,
+:root.theme-ready .map{
+  transition:background-color var(--d-slow) var(--e),background-image var(--d-slow) var(--e),color var(--d-slow) var(--e);
+}
+
 
 /* ---------- 2. Reset ---------- */
 *,*::before,*::after{box-sizing:border-box}
@@ -145,9 +293,9 @@ ul,ol{margin:0;padding:0;list-style:none}
 .section::before{
   content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
   background:
-    radial-gradient(58% 46% at 10% -4%,rgba(176,34,26,.13),transparent 70%),
-    radial-gradient(46% 42% at 94% 104%,rgba(176,34,26,.09),transparent 70%),
-    radial-gradient(38% 34% at 76% 12%,rgba(90,120,190,.06),transparent 72%);
+    radial-gradient(58% 46% at 10% -4%,var(--glow-a),transparent 70%),
+    radial-gradient(46% 42% at 94% 104%,var(--glow-b),transparent 70%),
+    radial-gradient(38% 34% at 76% 12%,var(--glow-c),transparent 72%);
 }
 .section > .wrap{position:relative;z-index:1}
 
@@ -195,9 +343,9 @@ ul,ol{margin:0;padding:0;list-style:none}
   transition:background var(--d-slow) var(--e),border-color var(--d-slow) var(--e),backdrop-filter var(--d-slow) var(--e);
 }
 .hdr.is-stuck{
-  background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.025)),rgba(7,11,22,.62);
+  background:var(--hdr-bg);
   -webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 12px 30px -24px rgba(0,0,0,.9);
+  box-shadow:var(--hdr-shadow);
 }
 .hdr.is-stuck::after{
   content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
@@ -236,6 +384,29 @@ ul,ol{margin:0;padding:0;list-style:none}
 .lang__btn:hover{color:var(--tx-3)}
 .lang__btn.is-on{color:var(--ac-l)}
 
+/* přepínač světlého režimu */
+.themebtn{
+  position:relative;flex:0 0 auto;width:34px;height:34px;border-radius:var(--r-pill);
+  display:flex;align-items:center;justify-content:center;color:var(--tx-4);
+  background:var(--g-tint);box-shadow:var(--g-inner);
+  -webkit-backdrop-filter:var(--g-blur-lite);backdrop-filter:var(--g-blur-lite);
+  transition:color var(--d-fast) var(--e),background var(--d-fast) var(--e),transform var(--d-fast) var(--e);
+}
+.themebtn::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  padding:1px;background:var(--g-rim);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+          mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+}
+.themebtn:hover{color:var(--tx-1);background:var(--g-hover);transform:translateY(-1px)}
+.themebtn svg{width:16px;height:16px;display:block;position:absolute;
+  transition:opacity var(--d-norm) var(--e),transform var(--d-slow) var(--e-spring)}
+.themebtn .i-sun{opacity:0;transform:rotate(-70deg) scale(.6)}
+.themebtn .i-moon{opacity:1;transform:none}
+:root[data-theme="light"] .themebtn .i-sun{opacity:1;transform:none}
+:root[data-theme="light"] .themebtn .i-moon{opacity:0;transform:rotate(70deg) scale(.6)}
+
 /* burger */
 .burger{display:none;width:40px;height:40px;position:relative;flex:0 0 auto;border-radius:var(--r-md)}
 .burger span{
@@ -252,7 +423,7 @@ ul,ol{margin:0;padding:0;list-style:none}
 /* ---------- 7. Mobilní menu ---------- */
 .drawer{
   position:fixed;inset:0;z-index:110;
-  background:linear-gradient(152deg,rgba(255,255,255,.09),rgba(7,11,22,.86) 45%,rgba(7,11,22,.94));
+  background:var(--drawer-bg);
   -webkit-backdrop-filter:blur(30px) saturate(160%);backdrop-filter:blur(30px) saturate(160%);
   display:flex;flex-direction:column;justify-content:center;
   padding:calc(var(--hdr) + 24px) var(--gut) 40px;
@@ -302,14 +473,14 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
           mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;mask-composite:exclude;
 }
-.btn--glass:hover{background:linear-gradient(152deg,rgba(255,255,255,.17),rgba(255,255,255,.07))}
+.btn--glass:hover{background:var(--g-hover)}
 
 /* jemný lesk na primárním CTA */
 /* Světlo přejede tlačítkem při najetí a při odjetí se stejnou cestou vrátí.
    Proto transition na transform, ne keyframes — ty by se nedaly obrátit. */
 .btn--primary::after,.btn--glass::after{
   content:"";position:absolute;top:-20%;bottom:-20%;left:0;width:45%;pointer-events:none;z-index:2;
-  background:linear-gradient(100deg,transparent,rgba(255,255,255,.34) 46%,rgba(255,255,255,.5) 52%,transparent);
+  background:linear-gradient(100deg,transparent,var(--sheen) 46%,var(--sheen-hi) 52%,transparent);
   transform:translateX(-190%) skewX(-14deg);
   transition:transform .72s var(--e);
 }
@@ -333,7 +504,7 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
           mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;mask-composite:exclude;
 }
-.chip:hover{background:linear-gradient(152deg,rgba(255,255,255,.18),rgba(255,255,255,.07));color:var(--tx-1);transform:translateY(-1px)}
+.chip:hover{background:var(--g-hover);color:var(--tx-1);transform:translateY(-1px)}
 .chip.is-on{
   background:linear-gradient(152deg,rgba(229,84,74,.55),rgba(176,34,26,.85));color:#fff;
   box-shadow:var(--g-inner),0 8px 22px -12px var(--ac-glow);
@@ -370,7 +541,7 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 }
 .hero__grid{
   position:absolute;inset:0;z-index:1;mix-blend-mode:overlay;
-  background:repeating-linear-gradient(90deg,rgba(255,255,255,.03) 0 1px,transparent 1px 4px);
+  background:repeating-linear-gradient(90deg,var(--scanlines) 0 1px,transparent 1px 4px);
 }
 .hero__in{position:relative;z-index:2;width:100%;max-width:var(--wrap);margin:0 auto;padding:36px var(--gut) 72px}
 .hero__top{display:flex;justify-content:space-between;align-items:baseline;gap:24px;flex-wrap:wrap;margin-bottom:clamp(32px,6vw,56px)}
@@ -387,7 +558,7 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 .stats{
   display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
   gap:1px;border-radius:var(--r-lg);overflow:hidden;position:relative;
-  background:rgba(255,255,255,.14);
+  background:var(--sep);
   box-shadow:var(--g-inner),var(--g-drop);
 }
 .stats::before{  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
@@ -396,7 +567,7 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
           mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;mask-composite:exclude;z-index:2}
 .stat{
-  background:linear-gradient(152deg,rgba(255,255,255,.10),rgba(255,255,255,.028));
+  background:var(--g-tile-strong);
   -webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);
   padding:18px 20px;transition:background var(--d-norm) var(--e);
 }
@@ -433,8 +604,8 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 .card--link{cursor:pointer;text-align:left;width:100%;display:block}
 .card--link:hover{
   transform:translateY(-6px);
-  background:linear-gradient(152deg,rgba(255,255,255,.15),rgba(229,84,74,.07) 45%,rgba(255,255,255,.03));
-  box-shadow:var(--g-inner),0 26px 52px -26px rgba(0,0,0,.95),0 0 0 1px var(--ac-faint);
+  background:var(--g-tile-hover);
+  box-shadow:var(--g-inner),var(--card-hover-shadow),0 0 0 1px var(--ac-faint);
 }
 
 .grid{display:grid;gap:24px}
@@ -454,15 +625,14 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 .pcard__tint{
   position:absolute;inset:0;pointer-events:none;
   background:
-    linear-gradient(165deg,rgba(176,34,26,.36) 0%,rgba(7,11,22,.16) 46%,rgba(7,11,22,.58) 100%),
-    linear-gradient(180deg,rgba(7,11,22,.08) 0%,rgba(7,11,22,.44) 100%);
+    var(--pcard-tint);
   transition:opacity var(--d-slow) var(--e);
 }
 .card--link:hover .pcard__tint{opacity:.55}
 .pcard__tag{
   position:absolute;left:14px;top:14px;font-family:var(--f-mono);font-size:10px;
-  letter-spacing:.12em;text-transform:uppercase;color:var(--tx-1);
-  background:rgba(7,11,22,.78);padding:5px 9px;border-radius:var(--r-pill);
+  letter-spacing:.12em;text-transform:uppercase;color:#F5F7FA;
+  background:var(--scrim);padding:5px 9px;border-radius:var(--r-pill);
   -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);white-space:nowrap;
 }
 .pcard__body{padding:16px}
@@ -482,13 +652,13 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 .card--compliance,.card--case{transition:transform var(--d-norm) var(--e),border-color var(--d-norm) var(--e)}
 .card--compliance:hover,.card--case:hover{
   transform:translateY(-4px);
-  background:linear-gradient(152deg,rgba(255,255,255,.15),rgba(229,84,74,.06) 50%,rgba(255,255,255,.03));
+  background:var(--g-tile-hover);
 }
 
 /* ---------- 13. Kroky ---------- */
 .steps{
   display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-  gap:1px;background:rgba(255,255,255,.12);border:0;position:relative;
+  gap:1px;background:var(--sep);border:0;position:relative;
   border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--g-inner),var(--g-drop);
 }
 .steps::before{  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
@@ -497,7 +667,7 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
           mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;mask-composite:exclude;z-index:2}
 .step{
-  background:linear-gradient(152deg,rgba(255,255,255,.085),rgba(255,255,255,.022));
+  background:var(--g-tile);
   -webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);
   padding:28px 26px;display:flex;gap:20px;align-items:flex-start;
   position:relative;transition:background var(--d-norm) var(--e);
@@ -506,7 +676,7 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
   content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--ac);
   transform:scaleY(0);transform-origin:top;transition:transform var(--d-slow) var(--e);
 }
-.step:hover{background:linear-gradient(152deg,rgba(255,255,255,.15),rgba(229,84,74,.05))}
+.step:hover{background:var(--g-tile-hover)}
 .step:hover::before{transform:scaleY(1)}
 .step__n{font-family:var(--f-mono);font-size:12px;color:var(--ac-l);padding-top:4px;flex:0 0 auto}
 .step h3{font-size:18px;font-weight:600;letter-spacing:-.01em;margin:0 0 6px;color:var(--tx-1)}
@@ -515,13 +685,13 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 /* ---------- 14. Trasa — mapa Uzbekistán → Evropa ---------- */
 .map{
   position:relative;border-radius:var(--r-lg);overflow:hidden;
-  background:radial-gradient(76% 130% at 42% 46%,rgba(16,25,45,.6),rgba(4,7,14,.78));
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);
+  background:var(--map-bg);
+  box-shadow:inset 0 0 0 1px var(--hairline);
 }
 .map__svg{width:100%;height:auto;display:block}
 
 /* pevnina mimo Evropu — jen tlumený kontext */
-.map__land path{fill:rgba(202,216,240,.075);stroke:rgba(202,216,240,.13);stroke-width:.45;vector-effect:non-scaling-stroke}
+.map__land path{fill:var(--map-land);stroke:var(--map-land-line);stroke-width:.45;vector-effect:non-scaling-stroke}
 /* Evropa = oblast rozvozu */
 .map__eu path{fill:rgba(176,34,26,.24);stroke:rgba(229,84,74,.34);stroke-width:.45;vector-effect:non-scaling-stroke}
 /* ČR — cíl šipky, střed kontinentu */
@@ -529,25 +699,25 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 /* Uzbekistán — původ zboží */
 .map__origin path{fill:rgba(176,34,26,.68);stroke:rgba(242,134,124,.85);stroke-width:.8;vector-effect:non-scaling-stroke}
 
-.map__track{fill:none;stroke:rgba(255,255,255,.17);stroke-width:2.4;stroke-linecap:round}
+.map__track{fill:none;stroke:var(--map-track);stroke-width:2.4;stroke-linecap:round}
 .map__flow{fill:none;stroke:var(--ac-l);stroke-width:2.4;stroke-linecap:round;stroke-dasharray:2 8.5;
   animation:dashflow 1.6s linear infinite;filter:drop-shadow(0 0 4px rgba(229,84,74,.65))}
 .map__halo{fill:var(--ac-glow);transform-box:fill-box;transform-origin:50% 50%;animation:pulse 3.4s var(--e) infinite}
-.map__dot{fill:var(--ac-l);stroke:rgba(7,11,22,.9);stroke-width:1.3}
+.map__dot{fill:var(--ac-l);stroke:var(--map-dot-ring);stroke-width:1.3}
 
 .map__city{fill:var(--tx-1);font-family:var(--f-sans);font-weight:700;font-size:13px;letter-spacing:-.02em}
 .map__sub{fill:var(--ac-ll);font-family:var(--f-mono);font-size:5.6px;letter-spacing:.9px}
 
-.map__chip rect{fill:rgba(7,11,22,.88);stroke:rgba(229,84,74,.55);stroke-width:.8}
+.map__chip rect{fill:var(--map-chip-bg);stroke:rgba(229,84,74,.55);stroke-width:.8}
 .map__chip text{fill:var(--ac-l);font-family:var(--f-mono);font-size:6.4px;letter-spacing:.8px}
 
 .facts{
   display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
-  gap:1px;background:rgba(255,255,255,.12);margin-top:24px;
+  gap:1px;background:var(--sep);margin-top:24px;
   border-radius:var(--r-md);overflow:hidden;box-shadow:var(--g-inner);
 }
 .fact{
-  background:linear-gradient(152deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
+  background:var(--g-tile);
   padding:16px 18px;
 }
 .fact__k{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--tx-6);margin-bottom:8px}
@@ -572,11 +742,11 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 .about__fig:hover img{transform:scale(1.04);filter:grayscale(.1)}
 .about__fig::after{
   content:"";position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(180deg,rgba(7,11,22,.1),rgba(7,11,22,.78)),radial-gradient(70% 60% at 30% 20%,var(--ac-soft),transparent 70%);
+  background:var(--about-veil),radial-gradient(70% 60% at 30% 20%,var(--ac-soft),transparent 70%);
 }
 .about__cap{position:absolute;left:20px;right:20px;bottom:20px;z-index:2}
-.about__cap b{display:block;font-size:15px;font-weight:600;color:var(--tx-1)}
-.about__cap i{display:block;font-style:normal;font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--tx-4);margin-top:4px}
+.about__cap b{display:block;font-size:15px;font-weight:600;color:#F5F7FA}
+.about__cap i{display:block;font-style:normal;font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#A9B4C9;margin-top:4px}
 
 /* ---------- 16. Kontakt ---------- */
 .contact{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:clamp(32px,4vw,48px);align-items:start}
@@ -607,8 +777,8 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 .field.has-err .field__err{opacity:1;transform:none}
 .field input,.field textarea{
   width:100%;box-sizing:border-box;padding:12px 14px;border-radius:var(--r-md);
-  background:rgba(7,11,22,.42);color:var(--tx-1);font-family:var(--f-sans);font-size:15px;font-weight:300;
-  border:1px solid rgba(255,255,255,.13);
+  background:var(--field-bg);color:var(--tx-1);font-family:var(--f-sans);font-size:15px;font-weight:300;
+  border:1px solid var(--field-bd);
   -webkit-backdrop-filter:var(--g-blur-lite);backdrop-filter:var(--g-blur-lite);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.07);
   transition:border-color var(--d-fast) var(--e),box-shadow var(--d-fast) var(--e),background var(--d-fast) var(--e);
@@ -617,7 +787,7 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 .field input:focus,.field textarea:focus{
   outline:none;border-color:rgba(229,84,74,.75);
   box-shadow:0 0 0 3px var(--ac-faint),inset 0 1px 0 rgba(255,255,255,.10);
-  background:rgba(13,21,38,.6);
+  background:var(--field-bg-focus);
 }
 .field.has-err input,.field.has-err textarea{border-color:var(--err);box-shadow:inset 0 0 0 1px var(--err)}
 .field textarea{min-height:120px;resize:vertical;line-height:1.6}
@@ -646,7 +816,7 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
           mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;mask-composite:exclude;}
-.quick__btn:hover{background:linear-gradient(152deg,rgba(255,255,255,.18),rgba(255,255,255,.07));color:var(--tx-1);transform:translateY(-2px)}
+.quick__btn:hover{background:var(--g-hover);color:var(--tx-1);transform:translateY(-2px)}
 
 /* ---------- 17. Footer ---------- */
 .ftr{background:var(--bg-0);border-top:1px solid var(--line);padding:36px 0}
@@ -657,14 +827,14 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 /* ---------- 18. Modal ---------- */
 .modal{position:fixed;inset:0;z-index:130;display:flex;align-items:center;justify-content:center;padding:20px;visibility:hidden}
 .modal.is-open{visibility:visible}
-.modal__bg{position:absolute;inset:0;background:rgba(3,6,12,.78);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;transition:opacity var(--d-slow) var(--e)}
+.modal__bg{position:absolute;inset:0;background:var(--modal-veil);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;transition:opacity var(--d-slow) var(--e)}
 .modal.is-open .modal__bg{opacity:1}
 .modal__box{
   position:relative;width:min(560px,100%);max-height:calc(100svh - 40px);overflow:auto;
   color:var(--tx-1);border:0;border-radius:var(--r-xl);
-  background:linear-gradient(152deg,rgba(255,255,255,.13),rgba(255,255,255,.05) 40%,rgba(11,18,32,.72));
+  background:var(--modal-bg);
   -webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);
-  box-shadow:var(--g-inner),0 40px 90px -40px rgba(0,0,0,.95);
+  box-shadow:var(--g-inner),var(--modal-shadow);
   opacity:0;transform:translateY(18px) scale(.98);
   transition:opacity var(--d-slow) var(--e),transform var(--d-slow) var(--e-spring);
   scrollbar-width:thin;
@@ -672,9 +842,9 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 .modal.is-open .modal__box{opacity:1;transform:none}
 .modal__head{
   position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:16px;
-  padding:16px 20px;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(11,18,32,.66));
+  padding:16px 20px;background:var(--modal-head);
   -webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);
-  box-shadow:inset 0 -1px 0 rgba(255,255,255,.12);
+  box-shadow:inset 0 -1px 0 var(--sep);
 }
 .modal__head h3{font-size:16px;font-weight:600;letter-spacing:-.01em;margin:0}
 .modal__close{
@@ -682,15 +852,15 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
   background:var(--g-tint);box-shadow:var(--g-inner);
   transition:background var(--d-fast) var(--e),color var(--d-fast) var(--e);
 }
-.modal__close:hover{background:linear-gradient(152deg,rgba(255,255,255,.20),rgba(255,255,255,.08));color:var(--tx-1)}
+.modal__close:hover{background:var(--g-hover);color:var(--tx-1)}
 .modal__media{position:relative;aspect-ratio:16/9;overflow:hidden}
 .modal__media img{width:100%;height:100%;object-fit:cover}
 .modal__media::after{content:"";position:absolute;inset:0;background:linear-gradient(160deg,var(--ac-soft),rgba(7,11,22,.35))}
 .modal__body{padding:24px}
 .modal__tag{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ac-l);margin-bottom:10px}
 .modal__body>p{font-size:14.5px;line-height:1.65;color:var(--tx-4);margin:0 0 20px}
-.specs{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(255,255,255,.12);border:0;border-radius:var(--r-md);overflow:hidden;box-shadow:var(--g-inner)}
-.spec{background:linear-gradient(152deg,rgba(255,255,255,.07),rgba(7,11,22,.34));padding:14px 16px}
+.specs{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--sep);border:0;border-radius:var(--r-md);overflow:hidden;box-shadow:var(--g-inner)}
+.spec{background:var(--spec-bg);padding:14px 16px}
 .spec__k{font-family:var(--f-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--tx-7);margin-bottom:5px}
 .spec__v{font-size:14px;font-weight:600;color:var(--tx-1)}
 

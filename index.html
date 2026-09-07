@@ -28,6 +28,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="assets/css/style.css">
+
+<!-- Motiv se nastaví ještě před vykreslením, jinak by světlý režim po načtení probliknul tmavě. -->
+<script>try{if(localStorage.getItem('exportex-theme')==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}</script>
 </head>
 <body>
 
@@ -55,6 +58,13 @@
         <span class="lang__sep">/</span>
         <button type="button" class="lang__btn" data-lang="en">EN</button>
       </div>
+
+      <button type="button" class="themebtn" id="themeBtn" aria-pressed="false"
+              data-cs-label="Přepnout na světlý režim" data-en-label="Switch to light mode"
+              aria-label="Přepnout na světlý režim" title="Přepnout na světlý režim">
+        <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2 12h2.4M19.6 12H22M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg>
+      </button>
 
       <a href="#kontakt" class="btn btn--primary btn--sm btn--nav" data-cs="Poptávka" data-en="Enquiry">Poptávka</a>
 
@@ -187,7 +197,6 @@
        data-cs="Trasu volíme podle objemu a termínu. Kamionem přes Kaspické moře a Turecko, nebo železnicí Středním koridorem — v obou případech s doklady o původu vyřízenými dopředu."
        data-en="We pick the corridor by volume and deadline. Truck via the Caspian and Türkiye, or rail on the Middle Corridor — in both cases with origin documents cleared up front.">Trasu volíme podle objemu a termínu. Kamionem přes Kaspické moře a Turecko, nebo železnicí Středním koridorem — v obou případech s doklady o původu vyřízenými dopředu.</p>
 
-    <div class="chips" id="corridors" data-rv style="--rv-d:180ms; display:flex; gap:8px; flex-wrap:wrap; margin-bottom:28px" role="group" aria-label="Volba koridoru"></div>
 
     <div class="routebox glass" data-rv="zoom" style="--rv-d:240ms">
       <!-- Mapa Uzbekistán -> Evropa. Podklad z Natural Earth, souřadnice:
