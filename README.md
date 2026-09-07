@@ -16,12 +16,38 @@ assets/img/             fotky (WebP), logo, favicon
 
 ## Vzhled
 
+Celý web je postavený na **liquid glass** — průsvitné vrstvy s rozostřeným pozadím
+(`backdrop-filter`) a světelným okrajem, který se kreslí gradientem přes
+`mask-composite: exclude` v `.glass::before`. Aby mělo sklo co rozostřovat, mají
+sekce v pozadí měkké barevné záře (`.section::before`); bez nich by sklo vypadalo
+jako plochý průsvitný obdélník. Prohlížeče bez `backdrop-filter` dostanou plnou
+výplň přes `@supports not`.
+
 Firemní červená je odečtená přímo z loga: **`#B0221A`**. Světlejší odstíny pro text
 (`--ac-l: #E5544A`) jsou doladěné ručně, protože čisté míchání s bílou dává růžovou.
 Všechny barvy, rádiusy, stíny a časování jsou tokeny v `:root` na začátku `style.css` —
 změna vzhledu se dělá tam, ne po jednotlivých pravidlech.
 
 Písma: **Outfit** (text) a **JetBrains Mono** (popisky, čísla) z Google Fonts.
+
+## Mapa trasy
+
+Sekce „Trasa" používá skutečnou zeměpisnou mapu — obrysy států jsou vloženy přímo
+v `index.html` (zjednodušené na ~42 kB, po gzipu ~14 kB). Souřadnicová soustava mapy
+je lineární:
+
+```
+x = 1214.5 + 6.87 · zeměpisná délka
+y = 688.0  − 8.64 · zeměpisná šířka
+```
+
+Ověřeno proti pobřežím (Bospor, Kypr, Sicílie, oba břehy Kaspiku). Díky tomu se
+zastávky zadávají rovnou zeměpisnými souřadnicemi v `data.js` — pátý a šestý prvek
+pole `nodes` je šířka a délka — a `main.js` je jen promítne, proloží plynulou
+křivkou (Catmull-Rom) a rozmístí popisky.
+
+Pod 720 px se popisky uvnitř mapy skryjí (byly by nečitelné) a detaily přebírá
+seznam zastávek pod mapou.
 
 ## Obsah
 

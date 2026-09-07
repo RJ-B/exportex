@@ -69,14 +69,15 @@ window.EXPORTEX_DATA = {
       {n:'06', t:'Doručení',         d:'Zboží doručíme až do vašeho skladu v EU — jeden partner, jedna faktura.'}
     ],
 
+    // Zastávky: [město, popisek, zem. šířka, zem. délka] — poloha v mapě se počítá z nich
     corridors: ['Kamion přes Turecko', 'Železnice — Střední koridor'],
     routes: [
       {
-        nodes: [['Taškent','UZ · ORIGIN'],['Alat','UZ · KONSOLIDACE'],['Aktau','KZ · KASPIK'],['Mersin','TR · CELNÍ UNIE'],['Praha','CZ · SKLAD']],
+        nodes: [['Taškent','UZ · ORIGIN',41.299,69.24],['Alat','UZ · KONSOLIDACE',39.433,63.657],['Aktau','KZ · KASPIK',43.651,51.158],['Mersin','TR · CELNÍ UNIE',36.802,34.632],['Praha','CZ · SKLAD',50.076,14.438]],
         facts: [{k:'Režim',v:'Kamion FTL / LTL'},{k:'Doklady',v:'Původ + A.TR'},{k:'Clo',v:'0 % (EU–TR)'}]
       },
       {
-        nodes: [['Taškent','UZ · ORIGIN'],['Aktau','KZ · TRAJEKT'],['Baku','AZ · PŘEKLAD'],['Poti','GE · ČERNÉ MOŘE'],['Constanța','RO · VSTUP EU']],
+        nodes: [['Taškent','UZ · ORIGIN',41.299,69.24],['Aktau','KZ · TRAJEKT',43.651,51.158],['Baku','AZ · PŘEKLAD',40.409,49.868],['Poti','GE · ČERNÉ MOŘE',42.146,41.673],['Constanța','RO · VSTUP EU',44.175,28.634]],
         facts: [{k:'Režim',v:'Kontejner FCL'},{k:'Doklady',v:'Původ GSP+'},{k:'Clo',v:'0 % (GSP+)'}]
       }
     ],
@@ -166,11 +167,11 @@ window.EXPORTEX_DATA = {
     corridors: ['Truck via Türkiye', 'Rail — Middle Corridor'],
     routes: [
       {
-        nodes: [['Tashkent','UZ · ORIGIN'],['Alat','UZ · CONSOLIDATION'],['Aktau','KZ · CASPIAN'],['Mersin','TR · CUSTOMS UNION'],['Prague','CZ · WAREHOUSE']],
+        nodes: [['Tashkent','UZ · ORIGIN',41.299,69.24],['Alat','UZ · CONSOLIDATION',39.433,63.657],['Aktau','KZ · CASPIAN',43.651,51.158],['Mersin','TR · CUSTOMS UNION',36.802,34.632],['Prague','CZ · WAREHOUSE',50.076,14.438]],
         facts: [{k:'Mode',v:'FTL / LTL truck'},{k:'Documents',v:'Origin + A.TR'},{k:'Duty',v:'0% (EU–TR)'}]
       },
       {
-        nodes: [['Tashkent','UZ · ORIGIN'],['Aktau','KZ · FERRY'],['Baku','AZ · TRANSSHIP'],['Poti','GE · BLACK SEA'],['Constanța','RO · EU ENTRY']],
+        nodes: [['Tashkent','UZ · ORIGIN',41.299,69.24],['Aktau','KZ · FERRY',43.651,51.158],['Baku','AZ · TRANSSHIP',40.409,49.868],['Poti','GE · BLACK SEA',42.146,41.673],['Constanța','RO · EU ENTRY',44.175,28.634]],
         facts: [{k:'Mode',v:'FCL container'},{k:'Documents',v:'Origin GSP+'},{k:'Duty',v:'0% (GSP+)'}]
       }
     ],
