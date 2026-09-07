@@ -32,22 +32,27 @@ Písma: **Outfit** (text) a **JetBrains Mono** (popisky, čísla) z Google Fonts
 
 ## Mapa trasy
 
-Sekce „Trasa" používá skutečnou zeměpisnou mapu — obrysy států jsou vloženy přímo
-v `index.html` (zjednodušené na ~42 kB, po gzipu ~14 kB). Souřadnicová soustava mapy
-je lineární:
+Sekce „Trasa" ukazuje jednoduchý oblouk **Uzbekistán → Evropa** — bez mezizastávek.
+Celá Evropa je zvýrazněná jako oblast rozvozu, šipka míří do České republiky,
+protože leží uprostřed kontinentu. Žádný sklad v Praze není: zboží se rozváží
+přímo tam, kam zákazník potřebuje.
+
+Podklad je vygenerovaný z Natural Earth (world-atlas 50m) skriptem, který
+státy promítne, ořízne na výřez, zjednoduší (Douglas–Peucker) a rozdělí do
+skupin `map__land` / `map__eu` / `map__cz` / `map__origin`. Výsledek je vložený
+přímo v `index.html` (~51 kB, po gzipu ~18 kB).
+
+Projekce je válcová se standardní rovnoběžkou 45° s. š.:
 
 ```
-x = 1214.5 + 6.87 · zeměpisná délka
-y = 688.0  − 8.64 · zeměpisná šířka
+x = 100 + 7.0711 · zeměpisná délka
+y = 800 −     10 · zeměpisná šířka
 ```
 
-Ověřeno proti pobřežím (Bospor, Kypr, Sicílie, oba břehy Kaspiku). Díky tomu se
-zastávky zadávají rovnou zeměpisnými souřadnicemi v `data.js` — pátý a šestý prvek
-pole `nodes` je šířka a délka — a `main.js` je jen promítne, proloží plynulou
-křivkou (Catmull-Rom) a rozmístí popisky.
-
-Pod 720 px se popisky uvnitř mapy skryjí (byly by nečitelné) a detaily přebírá
-seznam zastávek pod mapou.
+Oba koridory mají stejné body, liší se jen vyklenutím oblouku k jihu
+(`bow` v `data.js`) — kamion přes Turecko se klene níž než železniční
+Střední koridor. Pod 720 px se v mapě skryjí podtitulky a štítek s clem;
+clo hlásí řádek faktů pod mapou.
 
 ## Obsah
 

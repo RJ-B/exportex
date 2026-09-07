@@ -142,34 +142,34 @@
   }
 
   /* ======================================================================
-     4. Render — trasa na zeměpisné mapě
+     4. Render — mapa Uzbekistán → Evropa
 
-     Mapa je vykreslená v souřadnicích, kde platí
-        x = 1214.5 + 6.87 · zeměpisná délka
-        y = 688.0  − 8.64 · zeměpisná šířka
-     Ověřeno proti pobřežím (Bospor, Kypr, Sicílie, břehy Kaspiku),
-     takže města stačí zadat zeměpisnými souřadnicemi v data.js.
+     Podklad mapy je vygenerovaný z Natural Earth (world-atlas 50m) v projekci
+        x = 100 + 7.0711 · zeměpisná délka      (válcová, standardní rovnoběžka 45°)
+        y = 800 −     10 · zeměpisná šířka
+     Mapa nemá mezizastávky — ukazuje původ (Uzbekistán) a cílovou oblast
+     (celá Evropa, šipka míří do České republiky uprostřed kontinentu).
+     Koridory se liší jen vyklenutím oblouku k jihu (viz "bow" v data.js).
      ====================================================================== */
-  var MAP = { kx: 6.87, bx: 1214.5, ky: 8.64, by: 688.0 };
-  var VB  = { x: 1274, y: 234, w: 462, h: 150 };
+  var MAP = { kx: 7.0711, bx: 100, ky: 10, by: 800 };
+  var VB  = { x: 20, y: 138, w: 612, h: 314 };
+
+  var FROM = { lat: 41.75, lon: 63.60 };   // Uzbekistán
+  var TO   = { lat: 49.90, lon: 15.30 };   // Česká republika — střed Evropy
 
   function project(lat, lon) {
     return { x: MAP.bx + MAP.kx * lon, y: MAP.by - MAP.ky * lat };
   }
 
-  /* Catmull-Rom → bezier: plynulá křivka procházející přesně všemi zastávkami */
-  function smoothPath(pts) {
-    if (pts.length < 2) return '';
-    var d = 'M' + pts[0].x.toFixed(1) + ' ' + pts[0].y.toFixed(1);
-    for (var i = 0; i < pts.length - 1; i++) {
-      var p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || pts[i + 1];
-      var c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
-      var c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
-      d += 'C' + c1x.toFixed(1) + ' ' + c1y.toFixed(1) + ' ' +
-                 c2x.toFixed(1) + ' ' + c2y.toFixed(1) + ' ' +
-                 p2.x.toFixed(1) + ' ' + p2.y.toFixed(1);
-    }
-    return d;
+  /* Oblouk mezi dvěma body, vyklenutý kolmo k jihu o "bow" jednotek. */
+  function arcPath(a, b, bow) {
+    var dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1;
+    var nx = -dy / L, ny = dx / L;
+    if (ny < 0) { nx = -nx; ny = -ny; }
+    return 'M' + a.x.toFixed(1) + ' ' + a.y.toFixed(1) +
+           'C' + (a.x + dx * 0.28 + nx * bow).toFixed(1) + ' ' + (a.y + dy * 0.28 + ny * bow).toFixed(1) +
+           ' ' + (a.x + dx * 0.72 + nx * bow).toFixed(1) + ' ' + (a.y + dy * 0.72 + ny * bow).toFixed(1) +
+           ' ' + b.x.toFixed(1) + ' ' + b.y.toFixed(1);
   }
 
   function renderCorridors() {
@@ -187,81 +187,55 @@
     });
   }
 
-  var SVGNS = 'http://www.w3.org/2000/svg';
-
   function renderRoute() {
-    var route = t().routes[state.corridor];
-    var nodes = route.nodes;
-    var n = nodes.length;
-    var pts = nodes.map(function (nd) { return project(nd[2], nd[3]); });
-    var d = smoothPath(pts);
+    var d = t();
+    var route = d.routes[state.corridor];
+    var a = project(FROM.lat, FROM.lon);
+    var b = project(TO.lat, TO.lon);
+    var path = arcPath(a, b, route.bow);
 
-    /* trasa */
     $('#routeLayer').innerHTML =
-      '<path class="map__track" id="routeTrack" d="' + d + '"></path>' +
-      '<path class="map__flow" d="' + d + '" marker-end="url(#routeArrow)"></path>';
+      '<path class="map__track" id="routeTrack" d="' + path + '"></path>' +
+      '<path class="map__flow" d="' + path + '" marker-end="url(#routeArrow)"></path>';
 
-    /* uzly */
-    $('#nodeLayer').innerHTML = pts.map(function (p, i) {
-      var end = (i === 0 || i === n - 1);
+    $('#nodeLayer').innerHTML = [a, b].map(function (p, i) {
       return '<circle class="map__halo" cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) +
-             '" r="7" style="animation-delay:' + (i * 240) + 'ms"></circle>' +
-             '<circle class="map__dot ' + (end ? 'map__dot--end' : 'map__dot--mid') +
-             '" cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + (end ? 2.6 : 1.9) + '"></circle>';
+             '" r="13" style="animation-delay:' + (i * 700) + 'ms"></circle>' +
+             '<circle class="map__dot" cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="4.2"></circle>';
     }).join('');
 
-    /* popisky — u okrajů se zarovnají dovnitř, u horní hrany spadnou pod uzel */
-    $('#labelLayer').innerHTML = pts.map(function (p, i) {
-      var anchor = 'middle', dx = 0;
-      if (p.x < VB.x + 58) { anchor = 'start'; dx = 5; }
-      else if (p.x > VB.x + VB.w - 58) { anchor = 'end'; dx = -5; }
-      var below = p.y < VB.y + 21;
-      var y1 = below ? p.y + 10.5 : p.y - 9.5;
-      var y2 = below ? p.y + 15.5 : p.y - 4.5;
-      return '<text class="map__city" x="' + (p.x + dx).toFixed(1) + '" y="' + y1.toFixed(1) +
-             '" text-anchor="' + anchor + '">' + esc(nodes[i][0]) + '</text>' +
-             '<text class="map__sub" x="' + (p.x + dx).toFixed(1) + '" y="' + y2.toFixed(1) +
-             '" text-anchor="' + anchor + '">' + esc(nodes[i][1]) + '</text>';
-    }).join('');
+    /* Popisky: původ pod značkou (nad ní i vlevo vede oblouk), cíl nad ní */
+    $('#labelLayer').innerHTML =
+      '<text class="map__city" x="' + a.x.toFixed(1) + '" y="' + (a.y + 18).toFixed(1) + '" text-anchor="middle">' + esc(d.mapFrom.city) + '</text>' +
+      '<text class="map__sub"  x="' + a.x.toFixed(1) + '" y="' + (a.y + 26).toFixed(1) + '" text-anchor="middle">' + esc(d.mapFrom.sub) + '</text>' +
+      '<text class="map__city" x="' + b.x.toFixed(1) + '" y="' + (b.y - 15).toFixed(1) + '" text-anchor="middle">' + esc(d.mapTo.city) + '</text>' +
+      '<text class="map__sub"  x="' + b.x.toFixed(1) + '" y="' + (b.y - 7).toFixed(1) + '" text-anchor="middle">' + esc(d.mapTo.sub) + '</text>';
 
-    /* Štítek se clem sedí uprostřed nejdelšího úseku a je odsazený kolmo od
-       trasy — tam nikdy nepadne na uzel ani na jeho popisek. */
+    /* Štítek se clem uprostřed oblouku, odsazený kolmo pryč od čáry */
     var duty = route.facts[route.facts.length - 1];
     var track = $('#routeTrack');
-    var seg = 0, best = -1;
-    for (var k = 0; k < n - 1; k++) {
-      var len2 = Math.pow(pts[k + 1].x - pts[k].x, 2) + Math.pow(pts[k + 1].y - pts[k].y, 2);
-      if (len2 > best) { best = len2; seg = k; }
+    var mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 + route.bow * 0.75 - 16 };
+    if (track.getTotalLength) {
+      try {
+        var pt = track.getPointAtLength(track.getTotalLength() * 0.5);
+        mid = { x: pt.x, y: pt.y - 16 };
+      } catch (e) {}
     }
-    var a = pts[seg], b = pts[seg + 1];
-    var vx = b.x - a.x, vy = b.y - a.y, vl = Math.hypot(vx, vy) || 1;
-    var nx = -vy / vl, ny = vx / vl;              // kolmice k úseku
-    if (ny > 0) { nx = -nx; ny = -ny; }           // vždy tou, co míří nahoru
-    var mid = { x: (a.x + b.x) / 2 + nx * 13, y: (a.y + b.y) / 2 + ny * 13 };
-    mid.y = Math.max(VB.y + 9, Math.min(VB.y + VB.h - 9, mid.y));
-
-    var label = duty.k + ' ' + duty.v;
-    var w = Math.max(34, label.length * 2.35 + 9);
+    mid.y = Math.min(VB.y + VB.h - 14, Math.max(VB.y + 14, mid.y));
+    var label = (duty.k + ' ' + duty.v).toUpperCase();
+    var w = Math.max(56, label.length * 3.9 + 16);
     $('#chipLayer').innerHTML =
       '<g transform="translate(' + mid.x.toFixed(1) + ',' + mid.y.toFixed(1) + ')">' +
-        '<rect x="' + (-w / 2).toFixed(1) + '" y="-5.6" width="' + w.toFixed(1) + '" height="11.2" rx="5.6"></rect>' +
-        '<text x="0" y="1.6" text-anchor="middle">' + esc(label.toUpperCase()) + '</text>' +
+        '<rect x="' + (-w / 2).toFixed(1) + '" y="-9" width="' + w.toFixed(1) + '" height="18" rx="9"></rect>' +
+        '<text x="0" y="2.6" text-anchor="middle">' + esc(label) + '</text>' +
       '</g>';
-
-    /* seznam zastávek pod mapou (a jediná verze na mobilu) */
-    $('#routeList').innerHTML = nodes.map(function (nd, i) {
-      var end = (i === 0 || i === n - 1);
-      return '<li><span class="dot' + (end ? ' dot--end' : '') + '"></span>' +
-             '<span class="c">' + esc(nd[0]) + '</span>' +
-             '<span class="s">' + esc(nd[1]) + '</span></li>';
-    }).join('');
 
     $('#routeFacts').innerHTML = route.facts.map(function (f) {
       return '<div class="fact"><div class="fact__k">' + esc(f.k) + '</div>' +
              '<div class="fact__v">' + esc(f.v) + '</div></div>';
     }).join('');
 
-    /* trasa se při přepnutí koridoru „nakreslí" */
+    /* oblouk se při přepnutí koridoru nakreslí */
     if (!reduced && track.getTotalLength) {
       var len = track.getTotalLength();
       track.style.transition = 'none';

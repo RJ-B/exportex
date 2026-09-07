@@ -512,53 +512,34 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 .step h3{font-size:18px;font-weight:600;letter-spacing:-.01em;margin:0 0 6px;color:var(--tx-1)}
 .step p{font-size:13.5px;line-height:1.6;color:var(--tx-4);margin:0}
 
-/* ---------- 14. Trasa — zeměpisná mapa ---------- */
-.map{position:relative;border-radius:var(--r-lg);overflow:hidden;
-  background:radial-gradient(70% 120% at 50% 40%,rgba(14,22,40,.55),rgba(4,7,14,.72));
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+/* ---------- 14. Trasa — mapa Uzbekistán → Evropa ---------- */
+.map{
+  position:relative;border-radius:var(--r-lg);overflow:hidden;
+  background:radial-gradient(76% 130% at 42% 46%,rgba(16,25,45,.6),rgba(4,7,14,.78));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);
+}
 .map__svg{width:100%;height:auto;display:block}
 
-/* pevnina a hranice */
-.map__land path{fill:rgba(202,216,240,.10);stroke:rgba(202,216,240,.17);stroke-width:.32;vector-effect:non-scaling-stroke}
-.map__hi   path{fill:rgba(176,34,26,.34);stroke:rgba(229,84,74,.62);stroke-width:.5;vector-effect:non-scaling-stroke}
+/* pevnina mimo Evropu — jen tlumený kontext */
+.map__land path{fill:rgba(202,216,240,.075);stroke:rgba(202,216,240,.13);stroke-width:.45;vector-effect:non-scaling-stroke}
+/* Evropa = oblast rozvozu */
+.map__eu path{fill:rgba(176,34,26,.24);stroke:rgba(229,84,74,.34);stroke-width:.45;vector-effect:non-scaling-stroke}
+/* ČR — cíl šipky, střed kontinentu */
+.map__cz path{fill:rgba(229,84,74,.60);stroke:rgba(242,134,124,.9);stroke-width:.8;vector-effect:non-scaling-stroke}
+/* Uzbekistán — původ zboží */
+.map__origin path{fill:rgba(176,34,26,.68);stroke:rgba(242,134,124,.85);stroke-width:.8;vector-effect:non-scaling-stroke}
 
-/* trasa */
-.map__track{fill:none;stroke:rgba(255,255,255,.16);stroke-width:1.5;stroke-linecap:round}
-.map__flow{fill:none;stroke:var(--ac-l);stroke-width:1.9;stroke-linecap:round;stroke-dasharray:1.5 7;
-  animation:dashflow 1.5s linear infinite;filter:drop-shadow(0 0 3px rgba(229,84,74,.7))}
-.map__halo{fill:var(--ac-glow);transform-box:fill-box;transform-origin:50% 50%;animation:pulse 3.2s var(--e) infinite}
-.map__dot{stroke:rgba(7,11,22,.85);stroke-width:.7}
-.map__dot--end{fill:var(--ac-l)}
-.map__dot--mid{fill:#C8D1E3}
+.map__track{fill:none;stroke:rgba(255,255,255,.17);stroke-width:2.4;stroke-linecap:round}
+.map__flow{fill:none;stroke:var(--ac-l);stroke-width:2.4;stroke-linecap:round;stroke-dasharray:2 8.5;
+  animation:dashflow 1.6s linear infinite;filter:drop-shadow(0 0 4px rgba(229,84,74,.65))}
+.map__halo{fill:var(--ac-glow);transform-box:fill-box;transform-origin:50% 50%;animation:pulse 3.4s var(--e) infinite}
+.map__dot{fill:var(--ac-l);stroke:rgba(7,11,22,.9);stroke-width:1.3}
 
-/* popisky uvnitř SVG */
-.map__city{fill:var(--tx-1);font-family:var(--f-sans);font-weight:600;font-size:7px;letter-spacing:-.02em}
-.map__sub{fill:var(--tx-5);font-family:var(--f-mono);font-size:3.4px;letter-spacing:.5px}
+.map__city{fill:var(--tx-1);font-family:var(--f-sans);font-weight:700;font-size:13px;letter-spacing:-.02em}
+.map__sub{fill:var(--ac-ll);font-family:var(--f-mono);font-size:5.6px;letter-spacing:.9px}
 
-/* plovoucí štítek s clem */
-.map__chip rect{fill:rgba(7,11,22,.86);stroke:rgba(229,84,74,.55);stroke-width:.5}
-.map__chip text{fill:var(--ac-l);font-family:var(--f-mono);font-size:4.2px;letter-spacing:.6px}
-
-/* vykreslení trasy při přepnutí koridoru */
-.map__track.is-draw{animation:drawline 1.1s var(--e-spring) both}
-
-/* seznam zastávek — na mobilu nahrazuje popisky v mapě */
-.routelist{display:grid;gap:1px;background:rgba(255,255,255,.10);margin-top:18px;border-radius:var(--r-md);overflow:hidden}
-.routelist li{background:linear-gradient(152deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
-  padding:11px 14px;display:flex;align-items:baseline;gap:12px}
-.routelist .dot{width:6px;height:6px;border-radius:var(--r-pill);flex:0 0 auto;background:var(--tx-4)}
-.routelist .dot--end{background:var(--ac-l);box-shadow:0 0 0 3px var(--ac-faint)}
-.routelist .c{font-size:14.5px;font-weight:600;color:var(--tx-1)}
-.routelist .s{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.08em;color:var(--tx-5);margin-left:auto;text-align:right}
-
-/* pod 720 px se popisky v mapě nedají přečíst — mapa zůstává jako obraz trasy,
-   detaily přebírá seznam pod ní */
-@media (max-width:719px){
-  .map__labels,.map__chip{display:none}
-}
-@media (min-width:720px){
-  .routelist{display:none}
-}
+.map__chip rect{fill:rgba(7,11,22,.88);stroke:rgba(229,84,74,.55);stroke-width:.8}
+.map__chip text{fill:var(--ac-l);font-family:var(--f-mono);font-size:6.4px;letter-spacing:.8px}
 
 .facts{
   display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
@@ -571,6 +552,15 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 }
 .fact__k{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--tx-6);margin-bottom:8px}
 .fact__v{font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--tx-1)}
+
+/* Na telefonu je mapa jen ~170 px vysoká. Popisky proto zvětšíme a necháme
+   pouze názvy — podtitulek i štítek s clem by byly nečitelné a clo stejně
+   hlásí řádek faktů hned pod mapou. */
+@media (max-width:719px){
+  .map__city{font-size:24px}
+  .map__sub{display:none}
+  .map__chip{display:none}
+}
 
 /* ---------- 15. O nás ---------- */
 .about{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:clamp(32px,5vw,56px);align-items:center}
