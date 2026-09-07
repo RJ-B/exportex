@@ -37,8 +37,9 @@
   /* ======================================================================
      0. Světlý / tmavý režim
 
-     Výchozí je tmavý — na něm stojí vzhled webu. Volba se pamatuje;
-     systémové nastavení se nepřebírá, aby první dojem byl vždy stejný.
+     Výchozí je světlý; atribut data-theme="light" je rovnou v <html>, takže
+     platí i bez JavaScriptu. Volba se pamatuje; systémové nastavení se
+     nepřebírá, aby první dojem byl vždy stejný.
      ====================================================================== */
   var THEME_COLOR = { dark: '#070B16', light: '#F4F6FA' };
 
@@ -65,7 +66,7 @@
   function initTheme() {
     var saved = null;
     try { saved = localStorage.getItem('exportex-theme'); } catch (e) {}
-    applyTheme(saved === 'light' ? 'light' : 'dark', false);
+    applyTheme(saved === 'dark' ? 'dark' : 'light', false);
 
     $$('.themebtn').forEach(function (b) {
       b.addEventListener('click', function () {

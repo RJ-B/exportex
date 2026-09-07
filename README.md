@@ -28,9 +28,13 @@ NASAZENI.md               předávací postup: doména, formulář, spam
 ## Světlý a tmavý režim
 
 Přepíná se tlačítkem v hlavičce, volba se pamatuje v `localStorage`
-(`exportex-theme`). **Výchozí je tmavý** — na něm stojí identita webu; systémové
-nastavení se záměrně nepřebírá, aby byl první dojem vždy stejný. Změnit se to dá
-jedním řádkem v `initTheme()` v `main.js`.
+(`exportex-theme`). **Výchozí je světlý.** Atribut `data-theme="light"` je rovnou
+v `<html>`, takže platí i bez JavaScriptu a nemusí se na nic čekat; skript
+`theme-init.js` v hlavičce ho jen odebere, pokud si návštěvník dříve zvolil
+tmavý. Systémové nastavení se záměrně nepřebírá, aby byl první dojem vždy stejný.
+
+Prohození výchozího režimu je na dvou místech: atribut v `<html>` (u všech
+čtyř stránek) a podmínka v `initTheme()` v `main.js`.
 
 Světlý režim je jeden blok proměnných v `:root[data-theme="light"]` — žádné
 pravidlo se nepřepisuje, mění se jen hodnoty. Dvě místa zůstávají tmavá v obou
@@ -171,9 +175,12 @@ Identifikace v patičce a v zásadách ochrany údajů je ověřená proti **ARE
 | vznik | 24. 10. 2022 |
 
 Uvedení názvu, sídla a IČO na webu ukládá § 435 občanského zákoníku, proto to
-není jen doplněk. **DIČ na webu není** — firma v ARES nemá evidovanou registraci
-k DPH. Až plátcem bude, patří DIČ do `.ftr__legal` v `index.html`, do
-`soukromi.html` a do `vatID` ve strukturovaných datech.
+není jen doplněk.
+
+**DIČ se neuvádí — firma není plátcem DPH** (potvrzeno klientem, odpovídá i tomu,
+že v ARES nemá evidovanou registraci k DPH). Kdyby se to změnilo, patří DIČ do
+`.ftr__legal` v `index.html`, do identifikace správce v `soukromi.html` a do
+`vatID` ve strukturovaných datech.
 
 ## SEO
 
