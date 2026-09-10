@@ -85,8 +85,11 @@ y = 800 −     10 · zeměpisná šířka
 ```
 
 Mapa má jediné zobrazení bez přepínání; oblouk se ohýbá o `bow` z `data.js`.
-Pod 720 px se v mapě skryjí podtitulky a štítek s clem — clo hlásí řádek
-faktů hned pod mapou.
+Pod 720 px se v mapě skryjí podtitulky.
+
+V mapě není štítek s clem ani řádek faktů pod ní — obojí opakovalo to, co už
+stojí v dlaždicích úvodní obrazovky a v sekci 04 „Doklady a clo". Mapa tak
+říká jednu věc: odkud kam.
 
 ## Obsah
 
@@ -100,6 +103,24 @@ Texty se needitují v HTML na dvou místech:
   do pole `products` v obou jazycích.
 
 Zvolený jazyk se pamatuje v `localStorage` (`exportex-lang`). Výchozí je čeština.
+
+Detail sortimentu je **bodový, ne odstavcový**: `points` je pole krátkých vět,
+`specs` jsou dlaždice s čísly. Body a dlaždice se nesmí opakovat — co je
+v dlaždici (gramáž, materiál, standard), do bodů už nepatří. Bod má nést to,
+co se do dlaždice nevejde: rozpad gramáže podle použití, provedení, doklady.
+
+## Pozice po refreshi
+
+Sekce se vykreslují z JavaScriptu, takže ve chvíli, kdy prohlížeč obnovuje
+vlastní scroll, je dokument ještě krátký a pozici ořízne na tehdejší konec
+stránky — návštěvník skončí jinde, než kde byl. Obnovování se proto přepíná na
+`history.scrollRestoration = 'manual'` a pozici si drží web sám v
+`sessionStorage` (`exportex-scroll`).
+
+Po vykreslení se na uloženou pozici došlapuje v `requestAnimationFrame`, dokud
+nesedne — nejdéle vteřinu, protože písma a fotky dorovnávají výšku ještě chvíli
+po vykreslení. Jakmile návštěvník sám zascrolluje, kolečkem nebo klávesou,
+obnovování ustoupí. Adresa s kotvou má přednost: tam míří návštěvník záměrně.
 
 ## Fotky
 
@@ -204,7 +225,8 @@ seznam míst k přepsání je v [NASAZENI.md](NASAZENI.md).
   se tak neposílá třetí straně a odpadá externí spojení.
 - Jediné povolené odchozí spojení je odeslání formuláře (`connect-src`).
 - `referrer-policy` přes `<meta>`, odchozí odkazy mají `rel="noopener noreferrer"`.
-- Web nepoužívá žádné cookies; v `localStorage` drží jen jazyk a motiv.
+- Web nepoužívá žádné cookies; v `localStorage` drží jen jazyk a motiv,
+  v `sessionStorage` pozici na stránce. Vypsané je to v `cookies.html`.
 
 Co na GitHub Pages nejde a doplní se až na vlastním hostingu: HTTP hlavičky
 `X-Content-Type-Options`, `X-Frame-Options` a `frame-ancestors` (v `<meta>`

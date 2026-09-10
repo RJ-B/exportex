@@ -224,7 +224,6 @@
      (celá Evropa, šipka míří do České republiky uprostřed kontinentu).
      ====================================================================== */
   var MAP = { kx: 7.0711, bx: 100, ky: 10, by: 800 };
-  var VB  = { x: 20, y: 138, w: 612, h: 314 };
 
   var FROM = { lat: 41.75, lon: 63.60 };   // Uzbekistán
   var TO   = { lat: 49.90, lon: 15.30 };   // Česká republika — střed Evropy
@@ -268,31 +267,8 @@
       '<text class="map__city" x="' + b.x.toFixed(1) + '" y="' + (b.y - 15).toFixed(1) + '" text-anchor="middle">' + esc(d.mapTo.city) + '</text>' +
       '<text class="map__sub"  x="' + b.x.toFixed(1) + '" y="' + (b.y - 7).toFixed(1) + '" text-anchor="middle">' + esc(d.mapTo.sub) + '</text>';
 
-    /* Štítek se clem uprostřed oblouku, odsazený kolmo pryč od čáry */
-    var duty = route.facts[route.facts.length - 1];
-    var track = $('#routeTrack');
-    var mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 + route.bow * 0.75 - 16 };
-    if (track.getTotalLength) {
-      try {
-        var pt = track.getPointAtLength(track.getTotalLength() * 0.5);
-        mid = { x: pt.x, y: pt.y - 16 };
-      } catch (e) {}
-    }
-    mid.y = Math.min(VB.y + VB.h - 14, Math.max(VB.y + 14, mid.y));
-    var label = (duty.k + ' ' + duty.v).toUpperCase();
-    var w = Math.max(56, label.length * 3.9 + 16);
-    $('#chipLayer').innerHTML =
-      '<g transform="translate(' + mid.x.toFixed(1) + ',' + mid.y.toFixed(1) + ')">' +
-        '<rect x="' + (-w / 2).toFixed(1) + '" y="-9" width="' + w.toFixed(1) + '" height="18" rx="9"></rect>' +
-        '<text x="0" y="2.6" text-anchor="middle">' + esc(label) + '</text>' +
-      '</g>';
-
-    $('#routeFacts').innerHTML = route.facts.map(function (f) {
-      return '<div class="fact"><div class="fact__k">' + esc(f.k) + '</div>' +
-             '<div class="fact__v">' + esc(f.v) + '</div></div>';
-    }).join('');
-
     /* oblouk se při prvním zobrazení nakreslí */
+    var track = $('#routeTrack');
     if (!reduced && track.getTotalLength) {
       var len = track.getTotalLength();
       track.style.transition = 'none';
@@ -320,7 +296,9 @@
     $('#modalImg').src = p.img;
     $('#modalImg').alt = p.title;
     $('#modalTag').textContent = p.tag;
-    $('#modalLong').textContent = p.long;
+    $('#modalPoints').innerHTML = p.points.map(function (s) {
+      return '<li>' + esc(s) + '</li>';
+    }).join('');
     $('#modalCta').textContent = d.cta;
     $('#modalSpecs').innerHTML = p.specs.map(function (s) {
       return '<div class="spec"><div class="spec__k">' + esc(s.k) + '</div>' +
@@ -723,6 +701,52 @@
     if (state.modalIdx !== null) openModal(state.modalIdx);
   }
 
+  /* Pozice po refreshi.
+
+     Sortiment, kroky i mapa vznikají až z JS, takže ve chvíli, kdy prohlížeč
+     obnovuje vlastní scroll, je dokument ještě krátký a pozici ořízne na
+     tehdejší konec stránky. Držíme si ji proto sami a vracíme až po vykreslení.
+     Adresa s kotvou má přednost — tam návštěvník míří záměrně. */
+  var SCROLL_KEY = 'exportex-scroll';
+
+  function saveScroll() {
+    try { sessionStorage.setItem(SCROLL_KEY, String(Math.round(window.scrollY || 0))); } catch (e) {}
+  }
+
+  function restoreScroll() {
+    var y;
+    try { y = parseInt(sessionStorage.getItem(SCROLL_KEY), 10); } catch (e) { return; }
+    if (!(y > 0)) return;
+
+    /* Písma a fotky dorovnávají výšku ještě chvíli po vykreslení, tak na
+       pozici došlapujeme, dokud nesedne — nejdéle vteřinu. Jakmile návštěvník
+       sám scrolluje, ustoupíme mu. */
+    var stop = false;
+    var deadline = Date.now() + 1000;
+    var events = ['wheel', 'touchstart', 'keydown'];
+    function cancel() { stop = true; }
+    events.forEach(function (ev) { window.addEventListener(ev, cancel, { passive: true }); });
+
+    (function step() {
+      if (!stop) {
+        window.scrollTo(0, y);
+        if (Date.now() < deadline && Math.abs((window.scrollY || 0) - y) > 1) {
+          requestAnimationFrame(step);
+          return;
+        }
+      }
+      events.forEach(function (ev) { window.removeEventListener(ev, cancel); });
+    })();
+  }
+
+  function initScrollMemory() {
+    if (!('sessionStorage' in window)) return;
+    try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (e) {}
+    window.addEventListener('pagehide', saveScroll);
+    window.addEventListener('beforeunload', saveScroll);
+    if (!location.hash) restoreScroll();
+  }
+
   function init() {
     initTheme();
     initLang();
@@ -731,6 +755,7 @@
     initModal();
     initForm();
     initNav();
+    initScrollMemory();
 
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', function () { observe(document); }, { passive: true });

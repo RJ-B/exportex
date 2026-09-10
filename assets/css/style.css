@@ -88,7 +88,6 @@
   --map-land:rgba(202,216,240,.075);
   --map-land-line:rgba(202,216,240,.13);
   --map-track:rgba(255,255,255,.17);
-  --map-chip-bg:rgba(7,11,22,.88);
   --map-dot-ring:rgba(7,11,22,.9);
 
   /* záře v pozadí sekcí, o které se opírá sklo */
@@ -183,7 +182,6 @@
   --map-land:rgba(15,23,42,.11);
   --map-land-line:rgba(15,23,42,.18);
   --map-track:rgba(15,23,42,.18);
-  --map-chip-bg:rgba(255,255,255,.94);
   --map-dot-ring:rgba(255,255,255,.95);
 
   --glow-a:rgba(176,34,26,.09);
@@ -215,7 +213,6 @@
 :root.theme-ready .section,
 :root.theme-ready .card,
 :root.theme-ready .step,
-:root.theme-ready .fact,
 :root.theme-ready .form,
 :root.theme-ready .routebox,
 :root.theme-ready .map{
@@ -372,7 +369,7 @@ section[id]{scroll-margin-top:84px}
 }
 .logo{display:flex;align-items:center;flex:0 0 auto}
 .logo__mark{
-  display:block;width:auto;height:22px;
+  display:block;width:auto;height:31px;
   transition:opacity var(--d-norm) var(--e),transform var(--d-norm) var(--e);
 }
 .logo:hover .logo__mark{opacity:.82;transform:translateX(2px)}
@@ -735,21 +732,6 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 .map__city{fill:var(--tx-1);font-family:var(--f-sans);font-weight:700;font-size:13px;letter-spacing:-.02em}
 .map__sub{fill:var(--ac-ll);font-family:var(--f-mono);font-size:5.6px;letter-spacing:.9px}
 
-.map__chip rect{fill:var(--map-chip-bg);stroke:rgba(229,84,74,.55);stroke-width:.8}
-.map__chip text{fill:var(--ac-l);font-family:var(--f-mono);font-size:6.4px;letter-spacing:.8px}
-
-.facts{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
-  gap:1px;background:var(--sep);margin-top:24px;
-  border-radius:var(--r-md);overflow:hidden;box-shadow:var(--g-inner);
-}
-.fact{
-  background:var(--g-tile);
-  padding:16px 18px;
-}
-.fact__k{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--tx-6);margin-bottom:8px}
-.fact__v{font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--tx-1)}
-
 /* Písmo v mapě je v jednotkách viewBoxu, takže se zmenšuje spolu s ní.
    Na užších displejích se proto stupňovitě zvětšuje, aby zůstalo čitelné. */
 @media (max-width:1199px){
@@ -757,7 +739,6 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 }
 @media (max-width:1023px){
   .map__sub{font-size:9px}
-  .map__chip{display:none}   /* šířku rámečku počítá JS pro jedno písmo; clo hlásí řádek faktů pod mapou */
 }
 /* Na telefonu je mapa jen ~170 px vysoká — zůstanou jen názvy. */
 @media (max-width:719px){
@@ -782,7 +763,11 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 .about__cap i{display:block;font-style:normal;font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#A9B4C9;margin-top:4px}
 
 /* ---------- 16. Kontakt ---------- */
-.contact{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:clamp(32px,4vw,48px);align-items:start}
+/* Formulář je zhruba dvaapůlkrát vyšší než kontaktní blok. Při zarovnání na
+   začátek zůstane vpravo dole velká díra, tak se pravý sloupec vycentruje
+   proti formuláři. Po zalomení do jednoho sloupce je řádek vysoký jako jeho
+   obsah, takže centrování nic nedělá. */
+.contact{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:clamp(32px,4vw,48px);align-items:center}
 .form{
   position:relative;border:0;border-radius:var(--r-xl);padding:clamp(20px,3vw,28px);
   background:var(--g-tint);
@@ -875,7 +860,7 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
   grid-template-columns:minmax(240px,1.6fr) repeat(3,minmax(150px,1fr));
   padding-bottom:36px;
 }
-.ftr__mark{display:block;width:auto;height:20px;margin-bottom:16px}
+.ftr__mark{display:block;width:auto;height:28px;margin-bottom:16px}
 .ftr__brand p{font-size:14px;line-height:1.65;color:var(--tx-4);margin:0;max-width:44ch}
 
 .ftr__h{
@@ -967,6 +952,15 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 .modal__body{padding:24px}
 .modal__tag{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ac-l);margin-bottom:10px}
 .modal__body>p{font-size:14.5px;line-height:1.65;color:var(--tx-4);margin:0 0 20px}
+
+/* Detail sortimentu je bodový: dlaždice .specs nesou čísla, body to, co se do
+   nich nevejde. Odrážka je kreslená, ne z list-style — drží firemní barvu. */
+.points{list-style:none;margin:0 0 20px;padding:0;display:grid;gap:10px}
+.points li{position:relative;padding-left:19px;font-size:14.5px;line-height:1.6;color:var(--tx-4)}
+.points li::before{
+  content:"";position:absolute;left:2px;top:.6em;
+  width:5px;height:5px;border-radius:50%;background:var(--ac-l);
+}
 .specs{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--sep);border:0;border-radius:var(--r-md);overflow:hidden;box-shadow:var(--g-inner)}
 .spec{background:var(--spec-bg);padding:14px 16px}
 .spec__k{font-family:var(--f-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--tx-7);margin-bottom:5px}
@@ -987,10 +981,9 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 }
 @media (max-width:560px){
   .hero__cta .btn{width:100%}
-  .facts{grid-template-columns:1fr}   /* tři fakta na výšku, ať nezůstane sirotek */
   .grid--products{grid-template-columns:1fr}
 }
 @media (max-width:339px){
   .stats{grid-template-columns:1fr}
-  .logo__mark{height:19px}
+  .logo__mark{height:25px}
 }
