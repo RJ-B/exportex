@@ -352,17 +352,33 @@ section[id]{scroll-margin-top:84px}
 .hdr{
   position:fixed;top:0;left:0;right:0;z-index:115;
   background:transparent;border-bottom:1px solid transparent;
-  transition:background var(--d-slow) var(--e),border-color var(--d-slow) var(--e),backdrop-filter var(--d-slow) var(--e);
+  transition:border-color var(--d-slow) var(--e),
+             backdrop-filter var(--d-slow) var(--e),box-shadow var(--d-slow) var(--e);
 }
-.hdr.is-stuck{
+/* Pozadí hlavičky je gradient a background-image je v CSS diskrétní vlastnost —
+   nepřechází se, jen skokem přepne. Leží proto na vlastní vrstvě, u které se
+   přelévá průhlednost; rozostření a stín se přechází přímo na .hdr, ty
+   interpolovat umí. Vrstva je za obsahem (z-index:-1), ale nad rozostřeným
+   pozadím stránky, takže sklo vypadá stejně jako dřív. */
+.hdr::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;
   background:var(--hdr-bg);
+  opacity:0;transition:opacity var(--d-slow) var(--e);
+}
+.hdr.is-stuck::before{opacity:1}
+.hdr.is-stuck{
   -webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);
   box-shadow:var(--hdr-shadow);
 }
-.hdr.is-stuck::after{
-  content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
+/* Světelná linka pod hlavičkou je tu pořád, jen průhledná. Kdyby vznikala až
+   s .is-stuck, naskočila by skokem, zatímco pozadí se teprve prolíná — proto
+   se místo vzniku prvku přelévá jen průhlednost. */
+.hdr::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:1px;pointer-events:none;
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.20) 22%,rgba(229,84,74,.30) 50%,rgba(255,255,255,.20) 78%,transparent);
+  opacity:0;transition:opacity var(--d-slow) var(--e);
 }
+.hdr.is-stuck::after{opacity:1}
 .hdr__in{
   max-width:var(--wrap);margin:0 auto;padding:12px var(--gut);
   min-height:var(--hdr);display:flex;align-items:center;justify-content:space-between;gap:24px;
@@ -443,7 +459,9 @@ section[id]{scroll-margin-top:84px}
   opacity:0;visibility:hidden;transition:opacity var(--d-slow) var(--e),visibility var(--d-slow);
 }
 .drawer.is-open{opacity:1;visibility:visible}
-body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
+body.is-locked .hdr.is-stuck{border-bottom-color:transparent;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+body.is-locked .hdr.is-stuck::before,
+body.is-locked .hdr.is-stuck::after{opacity:0}
 .drawer__list{display:flex;flex-direction:column;gap:4px}
 .drawer__link{
   display:flex;align-items:baseline;gap:14px;
@@ -673,7 +691,10 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 .card--compliance h3,.card--case h3{font-size:18px;font-weight:600;letter-spacing:-.01em;margin:0 0 8px;color:var(--tx-1)}
 .card--compliance p,.card--case p{font-size:13.5px;line-height:1.6;color:var(--tx-4);margin:0}
 .card--compliance .badge,.card--case .badge{margin-bottom:16px}
-.card--compliance,.card--case{transition:transform var(--d-norm) var(--e),border-color var(--d-norm) var(--e)}
+/* Tyhle karty dřív měly vlastní transition s "transform, border-color", který
+   přebil ten z .card — a protože hover mění pozadí, ne rámeček (border:0),
+   pozadí naskakovalo skokem, zatímco karta plynule stoupala. Přechod z .card
+   pokrývá transform, box-shadow i background, takže si vystačí s ním. */
 .card--compliance:hover,.card--case:hover{
   transform:translateY(-4px);
   background:var(--g-tile-hover);
@@ -815,7 +836,7 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 .field textarea{min-height:120px;resize:vertical;line-height:1.6}
 .form__note{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;color:var(--tx-7);margin:0}
 .form__gdpr{font-size:12px;line-height:1.55;color:var(--tx-6);margin:-4px 0 0}
-.form__gdpr a{color:var(--tx-4);border-bottom:1px solid var(--line-2)}
+.form__gdpr a{color:var(--tx-4);border-bottom:1px solid var(--line-2);transition:color var(--d-fast) var(--e),border-color var(--d-fast) var(--e)}
 .form__gdpr a:hover{color:var(--ac-l);border-bottom-color:var(--ac-line)}
 
 /* past na roboty — pro člověka neviditelná, ale ne přes display:none,
