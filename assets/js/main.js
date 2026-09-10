@@ -264,8 +264,8 @@
     $('#labelLayer').innerHTML =
       '<text class="map__city" x="' + a.x.toFixed(1) + '" y="' + (a.y + 18).toFixed(1) + '" text-anchor="middle">' + esc(d.mapFrom.city) + '</text>' +
       '<text class="map__sub"  x="' + a.x.toFixed(1) + '" y="' + (a.y + 26).toFixed(1) + '" text-anchor="middle">' + esc(d.mapFrom.sub) + '</text>' +
-      '<text class="map__city" x="' + b.x.toFixed(1) + '" y="' + (b.y - 15).toFixed(1) + '" text-anchor="middle">' + esc(d.mapTo.city) + '</text>' +
-      '<text class="map__sub"  x="' + b.x.toFixed(1) + '" y="' + (b.y - 7).toFixed(1) + '" text-anchor="middle">' + esc(d.mapTo.sub) + '</text>';
+      '<text class="map__city" x="' + b.x.toFixed(1) + '" y="' + (b.y - 24).toFixed(1) + '" text-anchor="middle">' + esc(d.mapTo.city) + '</text>' +
+      '<text class="map__sub"  x="' + b.x.toFixed(1) + '" y="' + (b.y - 16).toFixed(1) + '" text-anchor="middle">' + esc(d.mapTo.sub) + '</text>';
 
     /* oblouk se při prvním zobrazení nakreslí */
     var track = $('#routeTrack');

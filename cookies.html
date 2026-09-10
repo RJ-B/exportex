@@ -13,7 +13,7 @@
      ========================================================================== -->
 
 <title>Cookies a místní úložiště — Exportex</title>
-<meta name="description" content="Tento web nepoužívá cookies. V prohlížeči si ukládá pouze zvolený jazyk a světlý či tmavý režim.">
+<meta name="description" content="Tento web nepoužívá cookies. V prohlížeči si ukládá jen zvolený jazyk, světlý či tmavý režim a pozici na stránce.">
 <meta name="robots" content="noindex, follow">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#F4F6FA">
@@ -60,11 +60,13 @@
     </a>
 
     <nav class="nav" aria-label="Hlavní navigace">
-      <a class="nav__link" href="#sortiment" data-cs="Sortiment"     data-en="Products">Sortiment</a>
-      <a class="nav__link" href="#jak"       data-cs="Jak to funguje" data-en="How it works">Jak to funguje</a>
-      <a class="nav__link" href="#trasa"     data-cs="Trasa"          data-en="Route">Trasa</a>
-      <a class="nav__link" href="#doklady"   data-cs="Doklady a clo"  data-en="Compliance">Doklady a clo</a>
-      <a class="nav__link" href="#onas"      data-cs="O nás"          data-en="About">O nás</a>
+      <a class="nav__link" href="index.html#sortiment" data-cs="Sortiment"     data-en="Products">Sortiment</a>
+      <a class="nav__link" href="index.html#jak"       data-cs="Jak to funguje" data-en="How it works">Jak to funguje</a>
+      <a class="nav__link" href="index.html#trasa"     data-cs="Trasa"          data-en="Route">Trasa</a>
+      <a class="nav__link" href="index.html#doklady"   data-cs="Doklady a clo"  data-en="Compliance">Doklady a clo</a>
+      <a class="nav__link" href="index.html#onas"      data-cs="O nás"          data-en="About">O nás</a>
+      <a class="nav__link" href="index.html#reference" data-cs="Reference"      data-en="Examples">Reference</a>
+      <a class="nav__link" href="index.html#kontakt"   data-cs="Kontakt"        data-en="Contact">Kontakt</a>
 
       <div class="lang" role="group" aria-label="Jazyk / Language">
         <button type="button" class="lang__btn is-on" data-lang="cs" aria-pressed="true" lang="cs">CZ</button>
@@ -79,7 +81,7 @@
         <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2 12h2.4M19.6 12H22M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg>
       </button>
 
-      <a href="#kontakt" class="btn btn--primary btn--sm btn--nav" data-cs="Poptávka" data-en="Enquiry">Poptávka</a>
+      <a href="index.html#kontakt" class="btn btn--primary btn--sm btn--nav" data-cs="Poptávka" data-en="Enquiry">Poptávka</a>
 
       <button type="button" class="burger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="drawer">
         <span></span><span></span><span></span>
@@ -90,16 +92,16 @@
 
 <div class="drawer" id="drawer" aria-hidden="true">
   <nav class="drawer__list" aria-label="Mobilní navigace">
-    <a class="drawer__link" href="#sortiment"><span class="n">01</span><span data-cs="Sortiment"      data-en="Products">Sortiment</span></a>
-    <a class="drawer__link" href="#jak"><span class="n">02</span><span       data-cs="Jak to funguje"  data-en="How it works">Jak to funguje</span></a>
-    <a class="drawer__link" href="#trasa"><span class="n">03</span><span     data-cs="Trasa"           data-en="Route">Trasa</span></a>
-    <a class="drawer__link" href="#doklady"><span class="n">04</span><span   data-cs="Doklady a clo"   data-en="Compliance">Doklady a clo</span></a>
-    <a class="drawer__link" href="#onas"><span class="n">05</span><span      data-cs="O nás"           data-en="About">O nás</span></a>
-    <a class="drawer__link" href="#reference"><span class="n">06</span><span data-cs="Reference"       data-en="Examples">Reference</span></a>
-    <a class="drawer__link" href="#kontakt"><span class="n">07</span><span   data-cs="Kontakt"         data-en="Contact">Kontakt</span></a>
+    <a class="drawer__link" href="index.html#sortiment"><span class="n">01</span><span data-cs="Sortiment"      data-en="Products">Sortiment</span></a>
+    <a class="drawer__link" href="index.html#jak"><span class="n">02</span><span       data-cs="Jak to funguje"  data-en="How it works">Jak to funguje</span></a>
+    <a class="drawer__link" href="index.html#trasa"><span class="n">03</span><span     data-cs="Trasa"           data-en="Route">Trasa</span></a>
+    <a class="drawer__link" href="index.html#doklady"><span class="n">04</span><span   data-cs="Doklady a clo"   data-en="Compliance">Doklady a clo</span></a>
+    <a class="drawer__link" href="index.html#onas"><span class="n">05</span><span      data-cs="O nás"           data-en="About">O nás</span></a>
+    <a class="drawer__link" href="index.html#reference"><span class="n">06</span><span data-cs="Reference"       data-en="Examples">Reference</span></a>
+    <a class="drawer__link" href="index.html#kontakt"><span class="n">07</span><span   data-cs="Kontakt"         data-en="Contact">Kontakt</span></a>
   </nav>
   <div class="drawer__foot">
-    <a href="#kontakt" class="btn btn--primary btn--md" data-cs="Poslat poptávku" data-en="Send an enquiry">Poslat poptávku</a>
+    <a href="index.html#kontakt" class="btn btn--primary btn--md" data-cs="Poslat poptávku" data-en="Send an enquiry">Poslat poptávku</a>
     <a href="tel:+420734479684" class="btn btn--glass btn--md">+420 734 479 684</a>
   </div>
 </div>
@@ -114,23 +116,23 @@
        data-en="This website <strong>uses no cookies</strong> — neither its own nor third-party ones. There is no analytics, advertising or tracking script running here.">Tento web <strong>nepoužívá žádné cookies</strong> — ani vlastní, ani od třetích stran. Neběží tu měření návštěvnosti, reklamní ani sledovací skripty.</p>
 
     <h2 data-cs="Co se ukládá v prohlížeči" data-en="What is stored in your browser">Co se ukládá v prohlížeči</h2>
-    <p data-cs="Web si do místního úložiště vašeho prohlížeče ukládá tři drobnosti, aby si zapamatoval, jak si web nastavíte:"
-       data-en="The site keeps three small items in your browser's own storage so it can remember how you set it up:">Web si do místního úložiště vašeho prohlížeče ukládá tři drobnosti, aby si zapamatoval, jak si web nastavíte:</p>
+    <p data-cs="Web si do místního úložiště Vašeho prohlížeče ukládá tři drobnosti, aby si zapamatoval, jak si web nastavíte:"
+       data-en="The site keeps three small items in your browser's own storage so it can remember how you set it up:">Web si do místního úložiště Vašeho prohlížeče ukládá tři drobnosti, aby si zapamatoval, jak si web nastavíte:</p>
     <ul>
       <li data-cs="<strong>exportex-lang</strong> — zvolený jazyk (čeština nebo angličtina)." data-en="<strong>exportex-lang</strong> — the language you picked (Czech or English)."><strong>exportex-lang</strong> — zvolený jazyk (čeština nebo angličtina).</li>
       <li data-cs="<strong>exportex-theme</strong> — zvolený světlý nebo tmavý režim." data-en="<strong>exportex-theme</strong> — the light or dark mode you picked."><strong>exportex-theme</strong> — zvolený světlý nebo tmavý režim.</li>
-      <li data-cs="<strong>exportex-scroll</strong> — kam jste se na stránce dostali, aby vás obnovení stránky vrátilo na stejné místo. Na rozdíl od předchozích dvou drží jen do zavření panelu (sessionStorage)." data-en="<strong>exportex-scroll</strong> — how far down the page you were, so a refresh puts you back in the same place. Unlike the other two it only lasts until you close the tab (sessionStorage)."><strong>exportex-scroll</strong> — kam jste se na stránce dostali, aby vás obnovení stránky vrátilo na stejné místo. Na rozdíl od předchozích dvou drží jen do zavření panelu (sessionStorage).</li>
+      <li data-cs="<strong>exportex-scroll</strong> — kam jste se na stránce dostali, aby Vás obnovení stránky vrátilo na stejné místo. Na rozdíl od předchozích dvou drží jen do zavření panelu (sessionStorage)." data-en="<strong>exportex-scroll</strong> — how far down the page you were, so a refresh puts you back in the same place. Unlike the other two it only lasts until you close the tab (sessionStorage)."><strong>exportex-scroll</strong> — kam jste se na stránce dostali, aby Vás obnovení stránky vrátilo na stejné místo. Na rozdíl od předchozích dvou drží jen do zavření panelu (sessionStorage).</li>
     </ul>
-    <p data-cs="Vše zůstává jen ve vašem prohlížeči, nikam se neodesílá a nedá se z toho nic vyčíst o vaší osobě. Smažete je vymazáním dat webu v prohlížeči."
-       data-en="All of it stays in your browser only, is never transmitted anywhere and reveals nothing about you personally. Clearing site data in your browser removes it.">Vše zůstává jen ve vašem prohlížeči, nikam se neodesílá a nedá se z toho nic vyčíst o vaší osobě. Smažete je vymazáním dat webu v prohlížeči.</p>
+    <p data-cs="Vše zůstává jen ve Vašem prohlížeči, nikam se neodesílá a nedá se z toho nic vyčíst o Vaší osobě. Smažete je vymazáním dat webu v prohlížeči."
+       data-en="All of it stays in your browser only, is never transmitted anywhere and reveals nothing about you personally. Clearing site data in your browser removes it.">Vše zůstává jen ve Vašem prohlížeči, nikam se neodesílá a nedá se z toho nic vyčíst o Vaší osobě. Smažete je vymazáním dat webu v prohlížeči.</p>
 
     <h2 data-cs="Proč tu není cookie lišta" data-en="Why there is no cookie banner">Proč tu není cookie lišta</h2>
-    <p data-cs="Souhlas se podle zákona vyžaduje pro ukládání, které není nezbytné pro fungování služby — typicky pro měření a reklamu. Nic takového tu neběží. Jazyk, motiv i pozice na stránce jsou jen technická paměť vašeho vlastního prohlížeče, aby se web choval tak, jak jste si ho nastavili. Lištu by tu tedy nebylo za co odklikávat."
-       data-en="Consent is required by law for storage that is not strictly necessary — typically analytics and advertising. None of that runs here. Language, theme and scroll position are simply your own browser remembering how you left the site. There would be nothing for a banner to ask about.">Souhlas se podle zákona vyžaduje pro ukládání, které není nezbytné pro fungování služby — typicky pro měření a reklamu. Nic takového tu neběží. Jazyk, motiv i pozice na stránce jsou jen technická paměť vašeho vlastního prohlížeče, aby se web choval tak, jak jste si ho nastavili. Lištu by tu tedy nebylo za co odklikávat.</p>
+    <p data-cs="Souhlas se podle zákona vyžaduje pro ukládání, které není nezbytné pro fungování služby — typicky pro měření a reklamu. Nic takového tu neběží. Jazyk, motiv i pozice na stránce jsou jen technická paměť Vašeho vlastního prohlížeče, aby se web choval tak, jak jste si ho nastavili. Lištu by tu tedy nebylo za co odklikávat."
+       data-en="Consent is required by law for storage that is not strictly necessary — typically analytics and advertising. None of that runs here. Language, theme and scroll position are simply your own browser remembering how you left the site. There would be nothing for a banner to ask about.">Souhlas se podle zákona vyžaduje pro ukládání, které není nezbytné pro fungování služby — typicky pro měření a reklamu. Nic takového tu neběží. Jazyk, motiv i pozice na stránce jsou jen technická paměť Vašeho vlastního prohlížeče, aby se web choval tak, jak jste si ho nastavili. Lištu by tu tedy nebylo za co odklikávat.</p>
 
     <h2 data-cs="Externí obsah" data-en="External content">Externí obsah</h2>
-    <p data-cs="Web načítá veškerý obsah včetně písem z vlastní adresy. Nenavazuje spojení na cizí servery, takže se vaše IP adresa nikam dál nepředává. Odkazy na WhatsApp a Telegram vedou ven, ale otevřou se až po vašem kliknutí."
-       data-en="The site loads everything, fonts included, from its own address. It opens no connections to third-party servers, so your IP address is not passed on. The WhatsApp and Telegram links do lead outside, but only open when you click them.">Web načítá veškerý obsah včetně písem z vlastní adresy. Nenavazuje spojení na cizí servery, takže se vaše IP adresa nikam dál nepředává. Odkazy na WhatsApp a Telegram vedou ven, ale otevřou se až po vašem kliknutí.</p>
+    <p data-cs="Web načítá veškerý obsah včetně písem z vlastní adresy. Nenavazuje spojení na cizí servery, takže se Vaše IP adresa nikam dál nepředává. Odkazy na WhatsApp a Telegram vedou ven, ale otevřou se až po Vašem kliknutí."
+       data-en="The site loads everything, fonts included, from its own address. It opens no connections to third-party servers, so your IP address is not passed on. The WhatsApp and Telegram links do lead outside, but only open when you click them.">Web načítá veškerý obsah včetně písem z vlastní adresy. Nenavazuje spojení na cizí servery, takže se Vaše IP adresa nikam dál nepředává. Odkazy na WhatsApp a Telegram vedou ven, ale otevřou se až po Vašem kliknutí.</p>
 
   </div>
 </main>
@@ -149,13 +151,13 @@
       <nav class="ftr__col" aria-labelledby="ftr-nav">
         <h2 class="ftr__h" id="ftr-nav" data-cs="Rychlé odkazy" data-en="Quick links">Rychlé odkazy</h2>
         <ul>
-          <li><a href="#sortiment" data-cs="Sortiment"      data-en="Products">Sortiment</a></li>
-          <li><a href="#jak"       data-cs="Jak to funguje"  data-en="How it works">Jak to funguje</a></li>
-          <li><a href="#trasa"     data-cs="Trasa"           data-en="Route">Trasa</a></li>
-          <li><a href="#doklady"   data-cs="Doklady a clo"   data-en="Compliance">Doklady a clo</a></li>
-          <li><a href="#onas"      data-cs="O nás"           data-en="About">O nás</a></li>
-          <li><a href="#reference" data-cs="Reference"       data-en="Examples">Reference</a></li>
-          <li><a href="#kontakt"   data-cs="Kontakt"         data-en="Contact">Kontakt</a></li>
+          <li><a href="index.html#sortiment" data-cs="Sortiment"      data-en="Products">Sortiment</a></li>
+          <li><a href="index.html#jak"       data-cs="Jak to funguje"  data-en="How it works">Jak to funguje</a></li>
+          <li><a href="index.html#trasa"     data-cs="Trasa"           data-en="Route">Trasa</a></li>
+          <li><a href="index.html#doklady"   data-cs="Doklady a clo"   data-en="Compliance">Doklady a clo</a></li>
+          <li><a href="index.html#onas"      data-cs="O nás"           data-en="About">O nás</a></li>
+          <li><a href="index.html#reference" data-cs="Reference"       data-en="Examples">Reference</a></li>
+          <li><a href="index.html#kontakt"   data-cs="Kontakt"         data-en="Contact">Kontakt</a></li>
         </ul>
       </nav>
 

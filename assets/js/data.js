@@ -27,7 +27,7 @@ window.EXPORTEX_DATA = {
           'Ručníky a osušky 400–600 g/m² — hotelový standard 500–550, 5* a spa 600–650, ekonomy a bazén 400–450',
           'Župany 320–450 g/m²',
           'Provedení: bordura, žakár, velur, proužek',
-          'Výšivka a logo podle vaší předlohy',
+          'Výšivka a logo podle Vaší předlohy',
           'Froté pro veřejný sektor dle ČSN EN 14697 na vyžádání'
         ],
         specs: [{k:'Gramáž',v:'400–650 g/m²'},{k:'Materiál',v:'100% bavlna'},{k:'Barvy',v:'Dle PANTONE'},{k:'Standard',v:'OEKO-TEX 100'}]
@@ -59,11 +59,11 @@ window.EXPORTEX_DATA = {
       {
         tag: 'Konfekce', cat: 'Konfekce', img: 'assets/img/product-konfekce.webp',
         title: 'Konfekce a private label',
-        desc: 'Trička, hoodie, tepláky, polo. Šití podle vašeho techpacku a etikety.',
+        desc: 'Trička, hoodie, tepláky, polo. Šití podle Vašeho techpacku a etikety.',
         points: [
           'Trička, polokošile, mikiny hoodie i crew, tepláky a joggery',
           'Od lehkých triček po heavyweight',
-          'Šití přesně podle vašeho techpacku',
+          'Šití přesně podle Vašeho techpacku',
           'Potisk, výšivka a balení dle zadání',
           'OEKO-TEX® Standard 100'
         ],
@@ -91,7 +91,7 @@ window.EXPORTEX_DATA = {
           'Froté a ložní Ne 12–20, úplety a trika Ne 20–40',
           'Barvení v přízi i melanže',
           'Laboratorní protokol: jemnost, zákrut, pevnost, CV %, IPI',
-          'Dodávka v kontejnerech, CIF/DAP EU, dovozní clo 0 % (GSP+)'
+          'Dodání CIF/DAP do EU, dovozní clo 0 % (GSP+)'
         ],
         specs: [{k:'Jemnost',v:'Ne 10–40'},{k:'Technologie',v:'Ring-spun'},{k:'Úprava',v:'Režná / bělená / barvená'},{k:'Protokol',v:'Ke každé dávce'}]
       },
@@ -116,7 +116,7 @@ window.EXPORTEX_DATA = {
       {n:'03', t:'Vzorek',           d:'Necháme vyrobit vzorek přesně podle specifikace a předložíme ke schválení.'},
       {n:'04', t:'Kontrola kvality', d:'Kvalitu hlídáme přímo ve výrobě a znovu před expedicí, s fotodokumentací a AQL protokolem.'},
       {n:'05', t:'Původ a clo',      d:'Zajistíme doklady o původu, celní odbavení a nulové clo přes GSP+ i celní unii.'},
-      {n:'06', t:'Doručení',         d:'Zboží doručíme až do vašeho skladu v EU — jeden partner, jedna faktura.'}
+      {n:'06', t:'Doručení',         d:'Zboží doručíme až do Vašeho skladu v EU — jeden partner, jedna faktura.'}
     ],
 
     // Mapa: jen výchozí a cílová oblast, žádné mezizastávky
@@ -135,7 +135,7 @@ window.EXPORTEX_DATA = {
     cases: [
       {badge:'Retail',        t:'Sezónní froté kolekce',    d:'Froté kolekce pro prodejní síť — od techpacku a vzorkování po paletizaci připravenou k distribuci.'},
       {badge:'HORECA',        t:'Hotelové sady na míru',     d:'Froté a ložní sady dimenzované na průmyslovou prádelnu, s rámcovou smlouvou a opakovanými dodávkami.'},
-      {badge:'Private label', t:'Konfekce na vlastní značku', d:'Heavyweight konfekce šitá na váš techpack a etikety, s kontrolou AQL a fotodokumentací před expedicí.'}
+      {badge:'Private label', t:'Konfekce na vlastní značku', d:'Heavyweight konfekce šitá na Váš techpack a etikety, s kontrolou AQL a fotodokumentací před expedicí.'}
     ],
 
     fields: [
@@ -226,7 +226,7 @@ window.EXPORTEX_DATA = {
           'Terry and bedding Ne 12–20, knits and tees Ne 20–40',
           'Yarn dyeing and melange',
           'Laboratory report: count, twist, strength, CV%, IPI',
-          'Delivered in containers, CIF/DAP EU, 0% import duty (GSP+)'
+          'Delivered CIF/DAP into the EU, 0% import duty (GSP+)'
         ],
         specs: [{k:'Count',v:'Ne 10–40'},{k:'Technology',v:'Ring-spun'},{k:'Finish',v:'Greige / bleached / dyed'},{k:'Report',v:'With every lot'}]
       },

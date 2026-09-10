@@ -730,7 +730,11 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 .map__dot{fill:var(--ac-l);stroke:var(--map-dot-ring);stroke-width:1.3}
 
 .map__city{fill:var(--tx-1);font-family:var(--f-sans);font-weight:700;font-size:13px;letter-spacing:-.02em}
-.map__sub{fill:var(--ac-ll);font-family:var(--f-mono);font-size:5.6px;letter-spacing:.9px}
+/* Podtitulek byl v akcentu, jenže leží nad červeně zvýrazněnou oblastí a nad
+   svatozáří bodu — červená na červené splývala. Bere proto stejný textový
+   token jako název, který je černý ve světlém a světlý v tmavém režimu;
+   hierarchii drží velikost a mono písmo, ne barva. */
+.map__sub{fill:var(--tx-1);font-family:var(--f-mono);font-size:5.6px;letter-spacing:.9px}
 
 /* Písmo v mapě je v jednotkách viewBoxu, takže se zmenšuje spolu s ní.
    Na užších displejích se proto stupňovitě zvětšuje, aby zůstalo čitelné. */
@@ -970,13 +974,20 @@ body.is-locked .hdr.is-stuck{background:transparent;border-bottom-color:transpar
 @media (max-width:1023px){
   .stats{grid-template-columns:1fr 1fr}
 }
-@media (max-width:899px){
+/* Sedm odkazů plus jazyk, motiv a tlačítko se do hlavičky vejdou až od 960 px;
+   pod tím přebírá navigaci burger. Mezi 960 a 1199 px se mezery stahují, jinak
+   by se odkazy začaly ořezávat. Hranice burgeru a mobilního menu musí zůstat
+   stejná, ať se nesejdou obě navigace naráz. */
+@media (max-width:1199px){
+  .nav{gap:16px}
+}
+@media (max-width:959px){
   .nav__link{display:none}
   .burger{display:block}
   .nav{gap:12px}
   .nav .btn--nav{display:none}
 }
-@media (min-width:900px){
+@media (min-width:960px){
   .drawer{display:none}
 }
 @media (max-width:560px){
