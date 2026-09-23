@@ -5,11 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
 <!-- ==========================================================================
-     PŘI PŘECHODU NA VLASTNÍ DOMÉNU (exportex.cz) přepsat adresu na těchto
-     místech: canonical, hreflang, og:url, JSON-LD (@id a url), robots.txt
-     a sitemap.xml. Teď míří na živou adresu na GitHub Pages, protože
-     exportex.cz zatím ukazuje na parkovací stránku registrátora — canonical
-     na ni by web z výsledků vyhodil.
+     ADRESY. Web běží na https://exportex.cz/ (od 23. 9. 2026). Doménu drží
+     soubor CNAME v kořeni repozitáře — ten na GitHub Pages určuje, pod jakou
+     adresou se web servíruje, a nesmí se smazat.
+
+     Absolutní adresa je natvrdo na těchto místech; při další změně domény se
+     přepisují všechna naráz: canonical, tři řádky hreflang, og:url, og:image,
+     twitter:image, blok application/ld+json (klíče @id a url), robots.txt
+     a sitemap.xml. Kanonická verze je bez www; www na ni GitHub přesměruje sám.
      ========================================================================== -->
 
 <title>Exportex — textil z Uzbekistánu a Střední Asie do EU</title>
@@ -20,10 +23,10 @@
 <meta name="color-scheme" content="light dark">
 <meta name="format-detection" content="telephone=no">
 
-<link rel="canonical" href="https://rj-b.github.io/exportex/">
-<link rel="alternate" hreflang="cs" href="https://rj-b.github.io/exportex/">
-<link rel="alternate" hreflang="en" href="https://rj-b.github.io/exportex/?lang=en">
-<link rel="alternate" hreflang="x-default" href="https://rj-b.github.io/exportex/">
+<link rel="canonical" href="https://exportex.cz/">
+<link rel="alternate" hreflang="cs" href="https://exportex.cz/">
+<link rel="alternate" hreflang="en" href="https://exportex.cz/?lang=en">
+<link rel="alternate" hreflang="x-default" href="https://exportex.cz/">
 
 <!-- Obsahová bezpečnostní politika. GitHub Pages neumí vlastní HTTP hlavičky,
      takže se posílá v <meta>. Pozor: frame-ancestors se v meta ignoruje —
@@ -40,10 +43,10 @@
 <meta property="og:locale" content="cs_CZ">
 <meta property="og:locale:alternate" content="en_GB">
 <meta property="og:site_name" content="Exportex">
-<meta property="og:url" content="https://rj-b.github.io/exportex/">
+<meta property="og:url" content="https://exportex.cz/">
 <meta property="og:title" content="Exportex — textil z Uzbekistánu a Střední Asie do EU">
 <meta property="og:description" content="Sourcing, kontrola kvality, doklady o původu, nulové clo a doprava. Jeden odpovědný partner v Praze — od specifikace po vykládku.">
-<meta property="og:image" content="https://rj-b.github.io/exportex/assets/img/og.webp">
+<meta property="og:image" content="https://exportex.cz/assets/img/og.webp">
 <meta property="og:image:type" content="image/webp">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -51,7 +54,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Exportex — textil z Uzbekistánu a Střední Asie do EU">
 <meta name="twitter:description" content="Sourcing, kontrola kvality, doklady o původu, nulové clo a doprava. Jeden odpovědný partner v Praze.">
-<meta name="twitter:image" content="https://rj-b.github.io/exportex/assets/img/og.webp">
+<meta name="twitter:image" content="https://exportex.cz/assets/img/og.webp">
 
 <!-- Ikony — "e" vyříznuté z firemního loga -->
 <link rel="icon" href="favicon.ico" sizes="32x32">
@@ -77,16 +80,16 @@
  "@graph": [
   {
    "@type": "Organization",
-   "@id": "https://rj-b.github.io/exportex/#organizace",
+   "@id": "https://exportex.cz/#organizace",
    "name": "exportex s.r.o.",
-   "url": "https://rj-b.github.io/exportex/",
+   "url": "https://exportex.cz/",
    "logo": {
     "@type": "ImageObject",
-    "url": "https://rj-b.github.io/exportex/assets/img/logo.png",
+    "url": "https://exportex.cz/assets/img/logo.png",
     "width": 532,
     "height": 120
    },
-   "image": "https://rj-b.github.io/exportex/assets/img/og.webp",
+   "image": "https://exportex.cz/assets/img/og.webp",
    "description": "Český sourcingový a importní partner pro textil z Uzbekistánu a Střední Asie. Výběr a prověření výroby, kontrola kvality, doklady o původu, celní odbavení a doprava do EU.",
    "areaServed": [
     {
@@ -146,25 +149,25 @@
   },
   {
    "@type": "WebSite",
-   "@id": "https://rj-b.github.io/exportex/#web",
-   "url": "https://rj-b.github.io/exportex/",
+   "@id": "https://exportex.cz/#web",
+   "url": "https://exportex.cz/",
    "name": "exportex",
    "inLanguage": [
     "cs",
     "en"
    ],
    "publisher": {
-    "@id": "https://rj-b.github.io/exportex/#organizace"
+    "@id": "https://exportex.cz/#organizace"
    },
    "description": "Sourcing, kontrola kvality, doklady o původu, nulové clo a doprava textilu ze Střední Asie do EU."
   },
   {
    "@type": "Service",
-   "@id": "https://rj-b.github.io/exportex/#sluzba",
+   "@id": "https://exportex.cz/#sluzba",
    "name": "Sourcing a dovoz textilu ze Střední Asie",
    "serviceType": "Sourcing, kontrola kvality a dovoz textilu",
    "provider": {
-    "@id": "https://rj-b.github.io/exportex/#organizace"
+    "@id": "https://exportex.cz/#organizace"
    },
    "areaServed": {
     "@type": "Place",

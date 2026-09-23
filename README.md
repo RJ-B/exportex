@@ -21,6 +21,7 @@ assets/fonts/             Outfit a JetBrains Mono (woff2, latin + latin-ext)
 assets/img/               fotky (WebP), logo, ikony
 
 robots.txt, sitemap.xml, site.webmanifest, favicon.ico
+CNAME                     vlastní doména pro GitHub Pages (exportex.cz)
 .nojekyll                 vypíná Jekyll na GitHub Pages
 NASAZENI.md               předávací postup: doména, formulář, spam
 ```
@@ -213,8 +214,10 @@ není jen doplněk.
 - ikony odvozené z písmene „e" ve firemním logu — `favicon.ico`, SVG,
   apple-touch-icon a maskovatelné ikony pro Android včetně `site.webmanifest`
 
-Adresy míří na GitHub Pages, dokud web nepoběží na vlastní doméně —
-seznam míst k přepsání je v [NASAZENI.md](NASAZENI.md).
+Absolutní adresy míří na `https://exportex.cz/`. Jsou natvrdo na osmi místech
+(canonical, hreflang, og:url, og:image, twitter:image, JSON-LD, `robots.txt`,
+`sitemap.xml`) — seznam je v komentáři v hlavičce `index.html`, podrobnosti
+o doméně v [NASAZENI.md](NASAZENI.md).
 
 ## Bezpečnost a soukromí
 
@@ -254,8 +257,11 @@ git push
 GitHub Pages servíruje větev `main` z kořene repozitáře. Soubor `.nojekyll` zabraňuje
 tomu, aby Jekyll ignoroval složky začínající podtržítkem.
 
-**Vlastní doména:** v Settings → Pages nastavit doménu a u registrátora přidat
-`CNAME` (nebo `A` záznamy na GitHub Pages IP). GitHub si do repozitáře uloží soubor `CNAME`.
+**Vlastní doména:** web běží na `https://exportex.cz/` (doména u Forpsi).
+Adresu drží soubor `CNAME` v kořeni repozitáře, který tam GitHub uložil sám při
+nastavení domény — kdyby zmizel, web spadne zpátky na `rj-b.github.io/exportex/`.
+Celá DNS zóna včetně toho, co se při přepnutí muselo změnit, je v
+[NASAZENI.md](NASAZENI.md).
 
 ## Lokální vývoj
 

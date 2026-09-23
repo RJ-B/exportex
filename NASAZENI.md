@@ -6,39 +6,45 @@ a poštu — ten nepotřebuje nic z kódu měnit kromě jednoho řádku.
 
 ---
 
-## 1. Doména
+## 1. Doména — hotovo (23. 9. 2026)
 
-Web teď běží na `https://rj-b.github.io/exportex/`. Doména `exportex.cz` je
-registrovaná, ale ukazuje na parkovací stránku registrátora (Aruba).
+Web běží na `https://exportex.cz/`. Doména je registrovaná u **Forpsi**
+(registrátor INTERNET CZ, a.s.), pošta běží tamtéž.
 
-**U registrátora nastavit DNS:**
+**DNS zóna, jak je nastavená:**
 
-| Typ | Název | Hodnota |
+| Typ | Hostname | Hodnota |
 |---|---|---|
-| A | `@` | `185.199.108.153` |
-| A | `@` | `185.199.109.153` |
-| A | `@` | `185.199.110.153` |
-| A | `@` | `185.199.111.153` |
-| CNAME | `www` | `rj-b.github.io.` |
+| A | `exportex.cz` | `185.199.108.153` |
+| A | `exportex.cz` | `185.199.109.153` |
+| A | `exportex.cz` | `185.199.110.153` |
+| A | `exportex.cz` | `185.199.111.153` |
+| CNAME | `www` | `rj-b.github.io` |
 
-Pozor: A záznamy pro `@` musí nahradit ty stávající, které míří na parkovací
-stránku. Pokud na doméně běží pošta, **záznamy MX nechat být** — s webem nemají
-nic společného a jejich smazáním by přestaly chodit maily.
+Pošta a kalendáře zůstaly nedotčené: `MX 10 mxavas.forpsi.com`, `autoconfig`,
+`autodiscover`, oba SRV záznamy na `syncdav.forpsi.com`, DKIM v selektoru
+`f2026._domainkey` a `_dmarc`. Na nic z toho se nesahá — smazáním MX přestane
+chodit pošta a s ní i poptávky z formuláře.
 
-**Na GitHubu:** Settings → Pages → Custom domain → `exportex.cz` → Save.
-GitHub si sám vytvoří v repozitáři soubor `CNAME`. Až se DNS rozšíří (běžně
-do hodiny, výjimečně 24 h), zaškrtnout **Enforce HTTPS**.
+**Dvě věci, které se při přepnutí musely změnit:**
 
-Soubor `CNAME` schválně není v repozitáři předem — dokud DNS nemíří na GitHub,
-shodil by tím současnou adresu.
+- **Wildcard `*.exportex.cz CNAME exportex.cz` byl smazán.** Mířil by na sdílené
+  IP adresy GitHub Pages, takže kdokoliv s účtem na GitHubu by si mohl zabrat
+  libovolnou subdoménu `exportex.cz` pro vlastní web (subdomain takeover).
+  Místo něj je `www` zadaný natvrdo. Kdyby byl wildcard někdy potřeba, musí se
+  doména v GitHubu ověřit: Settings → Pages → Verify domain.
+- **SPF se zkrátil** z `v=spf1 a mx include:_spf.forpsi.com -all` na
+  `v=spf1 include:_spf.forpsi.com -all`. Mechanismus `a` povoluje odesílat poštu
+  tomu, co je v A záznamu — po přepnutí by to byly servery GitHub Pages sdílené
+  se všemi weby na GitHubu. `mx` bylo zbytečné, adresa poštovního serveru
+  (`81.2.195.200`) v tom includu už je.
 
-**Po přepnutí domény přepsat adresu na těchto místech** (všude je to
-`https://rj-b.github.io/exportex/` → `https://exportex.cz/`):
+**Na GitHubu:** Settings → Pages → Custom domain `exportex.cz`. GitHub si sám
+vytvořil v repozitáři soubor `CNAME`; ten nesmí zmizet, jinak se web vrátí zpět
+na adresu `rj-b.github.io/exportex/`.
 
-- `index.html` — `canonical`, tři řádky `hreflang`, `og:url`, `og:image`, `twitter:image`
-- `index.html` — blok `application/ld+json` (klíče `url` a `@id`)
-- `robots.txt` — adresa sitemapy
-- `sitemap.xml` — `loc` a `xhtml:link`
+Adresy v kódu jsou přepsané na `https://exportex.cz/`. Seznam míst, kde je
+adresa natvrdo, je v komentáři v hlavičce `index.html`.
 
 ---
 
@@ -110,7 +116,7 @@ Co pomůže hned:
 3. **Nepřeposílat schránku dál** na jinou adresu (Gmail apod.). Přeposílání
    rozbíjí ověření SPF a je to nejčastější důvod, proč zprávy spadnou do spamu.
 
-Co to vyřeší spolehlivě (doporučeno, až bude web pod vlastní doménou):
+Co to vyřeší spolehlivě (web už pod vlastní doménou je, takže je to na stole):
 
 **Posílat z vlastní domény.** Zprávy pak chodí z `web@exportex.cz`, ověřené
 podpisem domény, a poštovní servery je berou jako důvěryhodné. Je k tomu
@@ -149,10 +155,12 @@ Při změně DNS kvůli webu je nechat beze změny.
 
 ## 6. Kontrolní seznam po nasazení
 
-- [ ] DNS míří na GitHub Pages, `www` má CNAME
-- [ ] V Settings → Pages nastavená doména a zapnuté Enforce HTTPS
-- [ ] Přepsané adresy v `index.html`, `robots.txt` a `sitemap.xml`
+- [x] DNS míří na GitHub Pages, `www` má CNAME, wildcard smazaný
+- [x] V Settings → Pages nastavená doména `exportex.cz`
+- [x] Přepsané adresy v `index.html`, `robots.txt` a `sitemap.xml`
+- [x] SPF zkrácený na `v=spf1 include:_spf.forpsi.com -all`
+- [x] MX záznamy domény nedotčené, pošta chodí dál
+- [ ] Zapnuté **Enforce HTTPS** — až GitHub vydá certifikát Let's Encrypt
 - [ ] Odeslaná testovací poptávka a kliknutý aktivační odkaz FormSubmit
 - [ ] Poptávka dorazila do schránky, ne do spamu (jinak viz bod 3)
 - [ ] Sitemapa odeslaná v Google Search Console
-- [ ] MX záznamy domény nedotčené, pošta chodí dál

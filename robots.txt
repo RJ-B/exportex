@@ -1,7 +1,8 @@
 # Exportex — prezentační web
-# Po přechodu na vlastní doménu přepsat adresu sitemapy.
+# Adresa sitemapy je absolutní, protože ji tak vyžaduje standard.
+# Při změně domény se přepisuje spolu s adresami v index.html a sitemap.xml.
 
 User-agent: *
 Allow: /
 
-Sitemap: https://rj-b.github.io/exportex/sitemap.xml
+Sitemap: https://exportex.cz/sitemap.xml
