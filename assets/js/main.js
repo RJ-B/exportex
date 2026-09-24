@@ -38,10 +38,22 @@
      0. Světlý / tmavý režim
 
      Výchozí je světlý; atribut data-theme="light" je rovnou v <html>, takže
-     platí i bez JavaScriptu. Volba se pamatuje; systémové nastavení se
-     nepřebírá, aby první dojem byl vždy stejný.
+     platí i bez JavaScriptu. Systémové nastavení se nepřebírá, aby první
+     dojem byl vždy stejný.
+
+     Ukládá se jen to, co návštěvník sám kliknul. Dřív zapisoval localStorage
+     i applyTheme() při startu, takže se každému natrvalo uložil ten výchozí
+     režim, jaký platil v den jeho první návštěvy — kdo přišel, když byl
+     výchozí tmavý, měl ho zamčený i potom, co se výchozí změnil na světlý.
      ====================================================================== */
   var THEME_COLOR = { dark: '#070B16', light: '#F4F6FA' };
+
+  /* Klíče mají -v2: hodnoty pod původními názvy si uložil web sám při startu,
+     takže o skutečné volbě návštěvníka nic nevypovídají. Novým názvem se
+     jednorázově zahodí a od teď se plní jen kliknutím. Stejný klíč čte
+     theme-init.js v <head>. */
+  var THEME_KEY = 'exportex-theme-v2';
+  var LANG_KEY  = 'exportex-lang-v2';
 
   function applyTheme(mode, animate) {
     state.theme = (mode === 'light') ? 'light' : 'dark';
@@ -60,17 +72,21 @@
       if (label) { b.setAttribute('aria-label', label); b.setAttribute('title', label); }
     });
 
-    try { localStorage.setItem('exportex-theme', state.theme); } catch (e) {}
+  }
+
+  function saveTheme() {
+    try { localStorage.setItem(THEME_KEY, state.theme); } catch (e) {}
   }
 
   function initTheme() {
     var saved = null;
-    try { saved = localStorage.getItem('exportex-theme'); } catch (e) {}
+    try { saved = localStorage.getItem(THEME_KEY); } catch (e) {}
     applyTheme(saved === 'dark' ? 'dark' : 'light', false);
 
     $$('.themebtn').forEach(function (b) {
       b.addEventListener('click', function () {
         applyTheme(state.theme === 'light' ? 'dark' : 'light', true);
+        saveTheme();
       });
     });
   }
@@ -100,7 +116,10 @@
     });
 
     renderAll();
-    try { localStorage.setItem('exportex-lang', state.lang); } catch (e) {}
+  }
+
+  function saveLang() {
+    try { localStorage.setItem(LANG_KEY, state.lang); } catch (e) {}
   }
 
   /* Angličtina má vlastní adresu (?lang=en), aby na ni mohl mířit hreflang
@@ -115,8 +134,10 @@
 
   function initLang() {
     var saved = null;
-    try { saved = localStorage.getItem('exportex-lang'); } catch (e) {}
-    // Pořadí: adresa (kvůli sdíleným odkazům a vyhledávačům) > uložená volba > čeština
+    try { saved = localStorage.getItem(LANG_KEY); } catch (e) {}
+    /* Pořadí: adresa (kvůli sdíleným odkazům a vyhledávačům) > uložená volba
+       > čeština. ?lang=en se záměrně neukládá — sdílený odkaz má ukázat
+       angličtinu jednou, ne přepsat návštěvníkovi nastavení natrvalo. */
     var fromUrl = null;
     try { fromUrl = new URL(location.href).searchParams.get('lang'); } catch (e) {}
     if (fromUrl === 'en' || fromUrl === 'cs') state.lang = fromUrl;
@@ -126,6 +147,7 @@
         if (state.lang === b.dataset.lang) return;
         state.lang = b.dataset.lang;
         applyLang();
+        saveLang();
         syncLangUrl();
       });
     });
