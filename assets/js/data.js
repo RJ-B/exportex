@@ -19,6 +19,7 @@ window.EXPORTEX_DATA = {
     filters: ['Vše', 'Froté a domácí textil', 'Pletené úplety', 'Konfekce', 'Tkaniny a příze'],
     detail: 'Detail',
     cta: 'Poptat tento sortiment',
+    termsNote: 'Orientační, upřesníme dle poptávky.',
     close: 'Zavřít',
 
     products: [
@@ -33,7 +34,8 @@ window.EXPORTEX_DATA = {
           'Výšivka a logo podle Vaší předlohy',
           'Froté pro veřejný sektor dle ČSN EN 14697 na vyžádání'
         ],
-        specs: [{k:'Gramáž',v:'400–650 g/m²'},{k:'Materiál',v:'100% bavlna'},{k:'Barvy',v:'Dle PANTONE'},{k:'Standard',v:'OEKO-TEX 100'}]
+        specs: [{k:'Gramáž',v:'400–650 g/m²'},{k:'Materiál',v:'100% bavlna'},{k:'Barvy',v:'Dle PANTONE'},{k:'Standard',v:'OEKO-TEX 100'}],
+        terms: 'MOQ od 500 ks / barva · vzorek 10–14 dní · výroba 4–6 týdnů · FCA/DAP'
       },
       {
         tag: 'Ložní', cat: 'Froté a domácí textil', img: 'assets/img/product-lozni.webp',
@@ -45,7 +47,8 @@ window.EXPORTEX_DATA = {
           'Přehozy a ochranné potahy',
           'Zapínání hotelovým přesahem, zipem nebo knoflíky'
         ],
-        specs: [{k:'Tkanina',v:'Popelín / satén'},{k:'Gramáž',v:'110–145 g/m²'},{k:'Rozměry',v:'EU i na míru'},{k:'Standard',v:'OEKO-TEX 100'}]
+        specs: [{k:'Tkanina',v:'Popelín / satén'},{k:'Gramáž',v:'110–145 g/m²'},{k:'Rozměry',v:'EU i na míru'},{k:'Standard',v:'OEKO-TEX 100'}],
+        terms: 'MOQ od 500 sad / design · vzorek 10–14 dní · výroba 4–6 týdnů · FCA/DAP'
       },
       {
         tag: 'Úplety', cat: 'Pletené úplety', img: 'assets/img/product-uplety.webp',
@@ -57,7 +60,8 @@ window.EXPORTEX_DATA = {
           'Sanforizace proti srážení',
           'OEKO-TEX® Standard 100'
         ],
-        specs: [{k:'Vazby',v:'Jersey / rib / terry'},{k:'Gramáž',v:'120–360 g/m²'},{k:'Materiál',v:'Bavlna / CVC / elastan'},{k:'Barvení',v:'V kuse / melanž'}]
+        specs: [{k:'Vazby',v:'Jersey / rib / terry'},{k:'Gramáž',v:'120–360 g/m²'},{k:'Materiál',v:'Bavlna / CVC / elastan'},{k:'Barvení',v:'V kuse / melanž'}],
+        terms: 'MOQ od 500 kg / barva · výroba 3–5 týdnů · FCA/DAP'
       },
       {
         tag: 'Konfekce', cat: 'Konfekce', img: 'assets/img/product-konfekce.webp',
@@ -70,7 +74,8 @@ window.EXPORTEX_DATA = {
           'Potisk, výšivka a balení dle zadání',
           'OEKO-TEX® Standard 100'
         ],
-        specs: [{k:'Produkty',v:'Tee / hoodie / polo'},{k:'Gramáž',v:'140–360 g/m²'},{k:'Kontrola',v:'AQL + fotodokumentace'},{k:'Značení',v:'Vaše etikety'}]
+        specs: [{k:'Produkty',v:'Tee / hoodie / polo'},{k:'Gramáž',v:'140–360 g/m²'},{k:'Kontrola',v:'AQL + fotodokumentace'},{k:'Značení',v:'Vaše etikety'}],
+        terms: 'MOQ od 300 ks / střih / barva · vzorek 2–3 týdny · výroba 5–8 týdnů · FCA/DAP'
       },
       {
         tag: 'Tkaniny', cat: 'Tkaniny a příze', img: 'assets/img/product-tkaniny.webp',
@@ -83,7 +88,8 @@ window.EXPORTEX_DATA = {
           'Režná i barvená v kuse',
           'OEKO-TEX® Standard 100'
         ],
-        specs: [{k:'Vazby',v:'Popelín / kepr / kanvas'},{k:'Gramáž',v:'100–360 g/m²'},{k:'Šíře',v:'150–280 cm'},{k:'Úpravy',v:'Sanforizace / EasyCare'}]
+        specs: [{k:'Vazby',v:'Popelín / kepr / kanvas'},{k:'Gramáž',v:'100–360 g/m²'},{k:'Šíře',v:'150–280 cm'},{k:'Úpravy',v:'Sanforizace / EasyCare'}],
+        terms: 'MOQ od 3 000 m / design · výroba 4–6 týdnů · FCA/DAP'
       },
       {
         tag: 'Příze', cat: 'Tkaniny a příze', img: 'assets/img/product-prize.webp',
@@ -96,7 +102,8 @@ window.EXPORTEX_DATA = {
           'Laboratorní protokol: jemnost, zákrut, pevnost, CV %, IPI',
           'Dodání CIF/DAP do EU, dovozní clo 0 % (GSP+)'
         ],
-        specs: [{k:'Jemnost',v:'Ne 10–40'},{k:'Technologie',v:'Ring-spun'},{k:'Úprava',v:'Režná / bělená / barvená'},{k:'Protokol',v:'Ke každé dávce'}]
+        specs: [{k:'Jemnost',v:'Ne 10–40'},{k:'Technologie',v:'Ring-spun'},{k:'Úprava',v:'Režná / bělená / barvená'},{k:'Protokol',v:'Ke každé dávce'}],
+        terms: 'MOQ od 500 kg / typ · dodání 2–4 týdny · FCA/DAP'
       },
       {
         tag: 'HORECA', cat: 'Konfekce', img: 'assets/img/product-horeca.webp',
@@ -109,17 +116,18 @@ window.EXPORTEX_DATA = {
           'Gramáž froté podle třídy hotelu',
           'Rámcové a opakované dodávky'
         ],
-        specs: [{k:'Použití',v:'Hotel / gastro'},{k:'Prádelna',v:'60–95 °C'},{k:'Froté',v:'400–650 g/m²'},{k:'Normy',v:'OEKO-TEX / ČSN EN 14697'}]
+        specs: [{k:'Použití',v:'Hotel / gastro'},{k:'Prádelna',v:'60–95 °C'},{k:'Froté',v:'400–650 g/m²'},{k:'Normy',v:'OEKO-TEX / ČSN EN 14697'}],
+        terms: 'MOQ od 500 ks / položka · výroba 4–6 týdnů · FCA/DAP'
       }
     ],
 
     steps: [
       {n:'01', t:'Specifikace',      d:'Sepíšeme přesné zadání — materiál, gramáž, rozměry, barvy, standardy, balení.'},
       {n:'02', t:'Výběr výroby',     d:'Vybereme a prověříme provoz, který zadání skutečně umí — kapacitou i kvalitou.'},
-      {n:'03', t:'Vzorek',           d:'Necháme vyrobit vzorek přesně podle specifikace a předložíme ke schválení.'},
-      {n:'04', t:'Kontrola kvality', d:'Kvalitu hlídáme přímo ve výrobě a znovu před expedicí, s fotodokumentací a AQL protokolem.'},
-      {n:'05', t:'Původ a clo',      d:'Zajistíme doklady o původu, celní odbavení a nulové clo přes GSP+ i celní unii.'},
-      {n:'06', t:'Doručení',         d:'Zboží doručíme až do Vašeho skladu v EU — jeden partner, jedna faktura.'}
+      {n:'03', t:'Vzorek',           d:'Necháme vyrobit vzorek přesně podle specifikace a předložíme ke schválení (obvykle 10–14 dní).'},
+      {n:'04', t:'Kontrola kvality', d:'Kvalitu hlídáme přímo ve výrobě a znovu před expedicí, s fotodokumentací a AQL protokolem; výroba obvykle 4–6 týdnů.'},
+      {n:'05', t:'Původ a clo',      d:'Zajistíme doklady o původu, celní odbavení a nulové clo přes GSP+.'},
+      {n:'06', t:'Doručení',         d:'Zboží doručíme až do Vašeho skladu v EU.'}
     ],
 
     // Mapa: jen výchozí a cílová oblast, žádné mezizastávky
@@ -130,14 +138,13 @@ window.EXPORTEX_DATA = {
 
     compliance: [
       {k:'GSP+',     t:'Nulové clo z Uzbekistánu', d:'Uzbekistán je zařazen do režimu GSP+. Při správně vystaveném dokladu o původu je dovozní clo na textil 0 %.'},
-      {k:'EU–TR',    t:'Celní unie s Tureckem',      d:'Zboží dokončené v Turecku vstupuje do EU v rámci celní unie — bez dovozního cla, s dokladem A.TR.'},
       {k:'OEKO-TEX', t:'Standard 100',              d:'Materiály testované na zdravotně závadné látky. OEKO-TEX® Standard 100 u relevantních materiálů; certifikát dodáváme k dodávce.'},
       {k:'REACH',    t:'Soulad s EU legislativou',  d:'Barviva a úpravy v souladu s REACH. U private label řešíme i etiketaci podle nařízení o textilních názvech.'}
     ],
 
     cases: [
       {badge:'Retail',        t:'Sezónní froté kolekce',    d:'Froté kolekce pro prodejní síť — od techpacku a vzorkování po paletizaci připravenou k distribuci.'},
-      {badge:'HORECA',        t:'Hotelové sady na míru',     d:'Froté a ložní sady dimenzované na průmyslovou prádelnu, s rámcovou smlouvou a opakovanými dodávkami.'},
+      {badge:'HORECA',        t:'Hotelové sady na míru',     d:'Froté a ložní sady dimenzované na průmyslovou prádelnu.'},
       {badge:'Private label', t:'Konfekce na vlastní značku', d:'Heavyweight konfekce šitá na Váš techpack a etikety, s kontrolou AQL a fotodokumentací před expedicí.'}
     ],
 
@@ -154,6 +161,7 @@ window.EXPORTEX_DATA = {
     filters: ['All', 'Terry & home textiles', 'Knitted fabrics', 'Cut & sew', 'Wovens & yarn'],
     detail: 'Details',
     cta: 'Enquire about this range',
+    termsNote: 'Indicative; confirmed per enquiry.',
     close: 'Close',
 
     products: [
@@ -168,7 +176,8 @@ window.EXPORTEX_DATA = {
           'Embroidery and logo to your artwork',
           'Terry to ČSN EN 14697 for the public sector on request'
         ],
-        specs: [{k:'Weight',v:'400–650 gsm'},{k:'Material',v:'100% cotton'},{k:'Colours',v:'PANTONE matched'},{k:'Standard',v:'OEKO-TEX 100'}]
+        specs: [{k:'Weight',v:'400–650 gsm'},{k:'Material',v:'100% cotton'},{k:'Colours',v:'PANTONE matched'},{k:'Standard',v:'OEKO-TEX 100'}],
+        terms: 'MOQ from 500 pcs / colour · sample 10–14 days · production 4–6 weeks · FCA/DAP'
       },
       {
         tag: 'Bedding', cat: 'Terry & home textiles', img: 'assets/img/product-lozni.webp',
@@ -180,7 +189,8 @@ window.EXPORTEX_DATA = {
           'Throws and protectors',
           'Hotel flap, zip or button closures'
         ],
-        specs: [{k:'Fabric',v:'Percale / sateen'},{k:'Weight',v:'110–145 gsm'},{k:'Sizes',v:'EU and made to spec'},{k:'Standard',v:'OEKO-TEX 100'}]
+        specs: [{k:'Fabric',v:'Percale / sateen'},{k:'Weight',v:'110–145 gsm'},{k:'Sizes',v:'EU and made to spec'},{k:'Standard',v:'OEKO-TEX 100'}],
+        terms: 'MOQ from 500 sets / design · sample 10–14 days · production 4–6 weeks · FCA/DAP'
       },
       {
         tag: 'Knits', cat: 'Knitted fabrics', img: 'assets/img/product-uplety.webp',
@@ -192,7 +202,8 @@ window.EXPORTEX_DATA = {
           'Sanforised against shrinkage',
           'OEKO-TEX® Standard 100'
         ],
-        specs: [{k:'Structures',v:'Jersey / rib / terry'},{k:'Weight',v:'120–360 gsm'},{k:'Material',v:'Cotton / CVC / elastane'},{k:'Dyeing',v:'Piece / melange'}]
+        specs: [{k:'Structures',v:'Jersey / rib / terry'},{k:'Weight',v:'120–360 gsm'},{k:'Material',v:'Cotton / CVC / elastane'},{k:'Dyeing',v:'Piece / melange'}],
+        terms: 'MOQ from 500 kg / colour · production 3–5 weeks · FCA/DAP'
       },
       {
         tag: 'Cut & sew', cat: 'Cut & sew', img: 'assets/img/product-konfekce.webp',
@@ -205,7 +216,8 @@ window.EXPORTEX_DATA = {
           'Print, embroidery and packing to your brief',
           'OEKO-TEX® Standard 100'
         ],
-        specs: [{k:'Products',v:'Tee / hoodie / polo'},{k:'Weight',v:'140–360 gsm'},{k:'Inspection',v:'AQL + photo records'},{k:'Branding',v:'Your labels'}]
+        specs: [{k:'Products',v:'Tee / hoodie / polo'},{k:'Weight',v:'140–360 gsm'},{k:'Inspection',v:'AQL + photo records'},{k:'Branding',v:'Your labels'}],
+        terms: 'MOQ from 300 pcs / style / colour · sample 2–3 weeks · production 5–8 weeks · FCA/DAP'
       },
       {
         tag: 'Wovens', cat: 'Wovens & yarn', img: 'assets/img/product-tkaniny.webp',
@@ -218,7 +230,8 @@ window.EXPORTEX_DATA = {
           'Greige and piece-dyed',
           'OEKO-TEX® Standard 100'
         ],
-        specs: [{k:'Structures',v:'Percale / twill / canvas'},{k:'Weight',v:'100–360 gsm'},{k:'Width',v:'150–280 cm'},{k:'Finishes',v:'Sanforised / EasyCare'}]
+        specs: [{k:'Structures',v:'Percale / twill / canvas'},{k:'Weight',v:'100–360 gsm'},{k:'Width',v:'150–280 cm'},{k:'Finishes',v:'Sanforised / EasyCare'}],
+        terms: 'MOQ from 3,000 m / design · production 4–6 weeks · FCA/DAP'
       },
       {
         tag: 'Yarn', cat: 'Wovens & yarn', img: 'assets/img/product-prize.webp',
@@ -231,7 +244,8 @@ window.EXPORTEX_DATA = {
           'Laboratory report: count, twist, strength, CV%, IPI',
           'Delivered CIF/DAP into the EU, 0% import duty (GSP+)'
         ],
-        specs: [{k:'Count',v:'Ne 10–40'},{k:'Technology',v:'Ring-spun'},{k:'Finish',v:'Greige / bleached / dyed'},{k:'Report',v:'With every lot'}]
+        specs: [{k:'Count',v:'Ne 10–40'},{k:'Technology',v:'Ring-spun'},{k:'Finish',v:'Greige / bleached / dyed'},{k:'Report',v:'With every lot'}],
+        terms: 'MOQ from 500 kg / type · delivery 2–4 weeks · FCA/DAP'
       },
       {
         tag: 'HORECA', cat: 'Cut & sew', img: 'assets/img/product-horeca.webp',
@@ -244,17 +258,18 @@ window.EXPORTEX_DATA = {
           'Terry weight by hotel class',
           'Framework contracts and repeat deliveries'
         ],
-        specs: [{k:'Use',v:'Hotel / gastro'},{k:'Laundry',v:'60–95 °C'},{k:'Terry',v:'400–650 gsm'},{k:'Standards',v:'OEKO-TEX / ČSN EN 14697'}]
+        specs: [{k:'Use',v:'Hotel / gastro'},{k:'Laundry',v:'60–95 °C'},{k:'Terry',v:'400–650 gsm'},{k:'Standards',v:'OEKO-TEX / ČSN EN 14697'}],
+        terms: 'MOQ from 500 pcs / item · production 4–6 weeks · FCA/DAP'
       }
     ],
 
     steps: [
       {n:'01', t:'Specification',      d:'We write the exact brief — material, weight, dimensions, colours, standards, packing.'},
       {n:'02', t:'Selecting the mill', d:'We select and vet the plant that can actually deliver the brief — on capacity and on quality.'},
-      {n:'03', t:'Sample',             d:'A sample is produced exactly to spec and submitted for your approval.'},
-      {n:'04', t:'Quality control',    d:'We control quality in the mill and again before dispatch, with photos and an AQL report.'},
-      {n:'05', t:'Origin and duty',    d:'We arrange origin documents, customs clearance and zero duty via GSP+ and the customs union.'},
-      {n:'06', t:'Delivery',           d:'Goods arrive at your EU warehouse — one partner, one invoice.'}
+      {n:'03', t:'Sample',             d:'A sample is produced exactly to spec and submitted for your approval (typically 10–14 days).'},
+      {n:'04', t:'Quality control',    d:'We control quality in the mill and again before dispatch, with photos and an AQL report; production typically 4–6 weeks.'},
+      {n:'05', t:'Origin and duty',    d:'We arrange origin documents, customs clearance and zero duty via GSP+.'},
+      {n:'06', t:'Delivery',           d:'Goods arrive at your EU warehouse.'}
     ],
 
     mapFrom: { city: 'Uzbekistan', sub: 'CENTRAL ASIA · PRODUCTION' },
@@ -264,14 +279,13 @@ window.EXPORTEX_DATA = {
 
     compliance: [
       {k:'GSP+',     t:'Zero duty from Uzbekistan',  d:'Uzbekistan is included in the GSP+ scheme. With a correctly issued proof of origin, import duty on textiles is 0%.'},
-      {k:'EU–TR',    t:'Customs union with Turkey', d:'Goods finished in Turkey enter the EU under the customs union — no import duty, with an A.TR certificate.'},
       {k:'OEKO-TEX', t:'Standard 100',               d:'Materials tested for harmful substances. OEKO-TEX® Standard 100 on the relevant materials; the certificate ships with the goods.'},
       {k:'REACH',    t:'EU legislation compliance',  d:'Dyes and finishes compliant with REACH. For private label we also handle labelling under the textile names regulation.'}
     ],
 
     cases: [
       {badge:'Retail',        t:'Seasonal terry collection', d:'A terry collection for a retail network — from techpack and sampling to palletisation ready for distribution.'},
-      {badge:'HORECA',        t:'Made-to-measure hotel sets', d:'Terry and bed sets specified for industrial laundering, on a framework contract with repeat deliveries.'},
+      {badge:'HORECA',        t:'Made-to-measure hotel sets', d:'Terry and bed sets specified for industrial laundering.'},
       {badge:'Private label', t:'Garments under your brand',  d:'Heavyweight garments sewn to your techpack and labels, with AQL inspection and photo records before dispatch.'}
     ],
 

@@ -304,6 +304,10 @@
       return '<div class="spec"><div class="spec__k">' + esc(s.k) + '</div>' +
              '<div class="spec__v">' + esc(s.v) + '</div></div>';
     }).join('');
+    $('#modalTerms').innerHTML = p.terms
+      ? '<div class="terms__v">' + esc(p.terms) + '</div>' +
+        '<div class="terms__note">' + esc(d.termsNote) + '</div>'
+      : '';
 
     $('#modal').classList.add('is-open');
     $('#modal').removeAttribute('aria-hidden');
@@ -432,7 +436,10 @@
 
     box.innerHTML = fields +
       field('message', L.msg, 'textarea', L.msgPh, true) +
-      /* Past na roboty: skutečný člověk pole nevidí, a tedy nevyplní. */
+      /* Past na roboty: pole je schované mimo plochu stránky (ne display:none —
+         tu část robotů přeskakuje), takže ho skutečný člověk nevidí ani na něj
+         netabuje, a nevyplní ho. Popisek zůstává v jednom jazyce záměrně:
+         nikdo ho nečte kromě robota. */
       '<div class="hp" aria-hidden="true">' +
         '<label>Nechte prázdné<input type="text" name="website" tabindex="-1" autocomplete="off"></label>' +
       '</div>' +

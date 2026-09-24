@@ -846,6 +846,7 @@ body.is-locked .hdr.is-stuck::after{opacity:0}
 }
 .field.has-err input,.field.has-err textarea{border-color:var(--err);box-shadow:inset 0 0 0 1px var(--err)}
 .field textarea{min-height:120px;resize:vertical;line-height:1.6}
+.hp{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
 .form__note{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;color:var(--tx-7);margin:0}
 .form__gdpr{font-size:12px;line-height:1.55;color:var(--tx-6);margin:-4px 0 0}
 .form__gdpr a{color:var(--tx-4);border-bottom:1px solid var(--line-2);transition:color var(--d-fast) var(--e),border-color var(--d-fast) var(--e)}
@@ -1002,6 +1003,10 @@ body.is-locked .hdr.is-stuck::after{opacity:0}
 .spec{background:var(--spec-bg);padding:14px 16px}
 .spec__k{font-family:var(--f-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--tx-7);margin-bottom:5px}
 .spec__v{font-size:14px;font-weight:600;color:var(--tx-1)}
+.terms{margin-top:14px}
+.terms:empty{display:none}
+.terms__v{font-size:13px;line-height:1.6;color:var(--tx-3)}
+.terms__note{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;color:var(--tx-7);margin-top:6px}
 
 /* ---------- 19. Responsive ---------- */
 @media (max-width:1023px){
