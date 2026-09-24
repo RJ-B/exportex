@@ -2,9 +2,12 @@
    Exportex — obsahová data (CZ / EN)
    Vše, co se opakuje nebo se přepíná jazykem, je tady na jednom místě.
 
-   OBRÁZKY: reálné fotky z provozů, zpracované do WebP (assets/img/).
-   Karty 1200×900 (4:3), sekce O nás 1200×800 (3:2), hero 2400×1350 (16:9).
+   OBRÁZKY: produktová zátiší sortimentu ve WebP (assets/img/product-*.webp).
+   Karty 1350×900 (3:2), sekce O nás 1200×800 (3:2), hero 2400×1350 (16:9).
+   Karta sortimentu se ořezává na 4:3 a detail na 16:9 ze stejného souboru —
+   proto 3:2, které leží mezi nimi a ubírá na obou stranách nejmíň.
    Výměna fotky = nahradit soubor stejného jména nebo změnit hodnotu "img".
+   Fotky z provozů zůstávají jako provoz-*.webp.
 
    MAPA: jeden oblouk Uzbekistán → Evropa, bez zastávek a bez přepínání.
    "bow" je vyklenutí oblouku k jihu ve vnitřních jednotkách mapy.
