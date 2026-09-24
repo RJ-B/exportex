@@ -643,7 +643,11 @@ body.is-locked .hdr.is-stuck::after{opacity:0}
   -webkit-mask-composite:xor;mask-composite:exclude;
 }
 .card--pad{padding:24px}
-.card--link{cursor:pointer;text-align:left;width:100%;display:block}
+/* Karta sortimentu je <button> a prohlížeč mu sám dává padding 1px 6px.
+   Reset u button{} ho nerušil, takže fotka nesahala k okrajům karty —
+   po stranách zůstal 6px proužek a její hranatý roh trčel do zaobleného
+   rohu karty. */
+.card--link{cursor:pointer;text-align:left;width:100%;display:block;padding:0}
 .card--link:hover{
   transform:translateY(-6px);
   background:var(--g-tile-hover);
@@ -655,7 +659,15 @@ body.is-locked .hdr.is-stuck::after{opacity:0}
 .grid--compliance{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
 .grid--cases{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
 
-.pcard__media{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--bg-2)}
+/* Poměr rámu se drží poměru fotek (3:2). Když měl rám 4:3, object-fit ořízl
+   z boků 6 % šířky — a protože produkt je v záběru posazený skoro k okraji,
+   ukrajovalo to přímo z něj: polštáři chyběl roh, prostěradlům pravá strana. */
+.pcard__media{
+  position:relative;aspect-ratio:3/2;overflow:hidden;background:var(--bg-2);
+  border-radius:var(--r-lg) var(--r-lg) 0 0;   /* .card má backdrop-filter a ten
+     v některých prohlížečích ruší ořez potomků podle rádiusu — rohy si proto
+     zaobluje sám rám fotky. */
+}
 .pcard__media img{
   width:100%;height:100%;object-fit:cover;
   filter:grayscale(.55) contrast(1.04);
@@ -971,7 +983,7 @@ body.is-locked .hdr.is-stuck::after{opacity:0}
   transition:background var(--d-fast) var(--e),color var(--d-fast) var(--e);
 }
 .modal__close:hover{background:var(--g-hover);color:var(--tx-1)}
-.modal__media{position:relative;aspect-ratio:16/9;overflow:hidden}
+.modal__media{position:relative;aspect-ratio:3/2;overflow:hidden}   /* viz .pcard__media */
 .modal__media img{width:100%;height:100%;object-fit:cover}
 .modal__media::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,11,22,0) 55%,rgba(7,11,22,.35))}
 .modal__body{padding:24px}
