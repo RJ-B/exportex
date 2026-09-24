@@ -7,6 +7,9 @@
    Karta sortimentu se ořezává na 4:3 a detail na 16:9 ze stejného souboru —
    proto 3:2, které leží mezi nimi a ubírá na obou stranách nejmíň.
    Výměna fotky = nahradit soubor stejného jména nebo změnit hodnotu "img".
+   U "img" je ?v=<datum>: když se pod stejným názvem vymění obsah, prohlížeč,
+   který má v cache tu starou, nemá jak poznat rozdíl. Při výměně fotky to
+   datum přepiš, jinak část návštěvníků uvidí původní snímek.
    Fotky z provozů zůstávají jako provoz-*.webp.
 
    MAPA: jeden oblouk Uzbekistán → Evropa, bez zastávek a bez přepínání.
@@ -24,7 +27,7 @@ window.EXPORTEX_DATA = {
 
     products: [
       {
-        tag: 'Froté', cat: 'Froté a domácí textil', img: 'assets/img/product-frotte.webp',
+        tag: 'Froté', cat: 'Froté a domácí textil', img: 'assets/img/product-frotte.webp?v=20260924',
         title: 'Froté — ručníky, župany',
         desc: 'Ručníky, osušky a župany z uzbecké bavlny. Gramáž 400–650 g/m², bordura nebo žakár.',
         points: [
@@ -38,7 +41,7 @@ window.EXPORTEX_DATA = {
         terms: 'MOQ od 500 ks / barva · vzorek 10–14 dní · výroba 4–6 týdnů · FCA/DAP'
       },
       {
-        tag: 'Ložní', cat: 'Froté a domácí textil', img: 'assets/img/product-lozni.webp',
+        tag: 'Ložní', cat: 'Froté a domácí textil', img: 'assets/img/product-lozni.webp?v=20260924',
         title: 'Ložní prádlo a povlečení',
         desc: 'Povlečení, prostěradla a přehozy. Popelín, saténové tkaniny, hotelové sady.',
         points: [
@@ -51,7 +54,7 @@ window.EXPORTEX_DATA = {
         terms: 'MOQ od 500 sad / design · vzorek 10–14 dní · výroba 4–6 týdnů · FCA/DAP'
       },
       {
-        tag: 'Úplety', cat: 'Pletené úplety', img: 'assets/img/product-uplety.webp',
+        tag: 'Úplety', cat: 'Pletené úplety', img: 'assets/img/product-uplety.webp?v=20260924',
         title: 'Pletené úplety v metráži',
         desc: 'Single jersey, interlock, rib, French terry. Barvení v kuse i melanže.',
         points: [
@@ -64,7 +67,7 @@ window.EXPORTEX_DATA = {
         terms: 'MOQ od 500 kg / barva · výroba 3–5 týdnů · FCA/DAP'
       },
       {
-        tag: 'Konfekce', cat: 'Konfekce', img: 'assets/img/product-konfekce.webp',
+        tag: 'Konfekce', cat: 'Konfekce', img: 'assets/img/product-konfekce.webp?v=20260924',
         title: 'Konfekce a private label',
         desc: 'Trička, hoodie, tepláky, polo. Šití podle Vašeho techpacku a etikety.',
         points: [
@@ -78,7 +81,7 @@ window.EXPORTEX_DATA = {
         terms: 'MOQ od 300 ks / střih / barva · vzorek 2–3 týdny · výroba 5–8 týdnů · FCA/DAP'
       },
       {
-        tag: 'Tkaniny', cat: 'Tkaniny a příze', img: 'assets/img/product-tkaniny.webp',
+        tag: 'Tkaniny', cat: 'Tkaniny a příze', img: 'assets/img/product-tkaniny.webp?v=20260924',
         title: 'Tkaniny v metráži',
         desc: 'Popelín, keprovina, kanvas, oxford. Tkalcovny s vlastní přípravnou.',
         points: [
@@ -92,7 +95,7 @@ window.EXPORTEX_DATA = {
         terms: 'MOQ od 3 000 m / design · výroba 4–6 týdnů · FCA/DAP'
       },
       {
-        tag: 'Příze', cat: 'Tkaniny a příze', img: 'assets/img/product-prize.webp',
+        tag: 'Příze', cat: 'Tkaniny a příze', img: 'assets/img/product-prize.webp?v=20260924',
         title: 'Bavlněná příze',
         desc: 'Ring-spun příze z uzbecké bavlny, česaná i mykaná. Režná i barvená.',
         points: [
@@ -106,7 +109,7 @@ window.EXPORTEX_DATA = {
         terms: 'MOQ od 500 kg / typ · dodání 2–4 týdny · FCA/DAP'
       },
       {
-        tag: 'HORECA', cat: 'Konfekce', img: 'assets/img/product-horeca.webp',
+        tag: 'HORECA', cat: 'Konfekce', img: 'assets/img/product-horeca.webp?v=20260924',
         title: 'Hotelový a pracovní textil',
         desc: 'Hotelové sady, kuchyňský a pracovní textil s vysokou životností v prádelně.',
         points: [
@@ -166,7 +169,7 @@ window.EXPORTEX_DATA = {
 
     products: [
       {
-        tag: 'Terry', cat: 'Terry & home textiles', img: 'assets/img/product-frotte.webp',
+        tag: 'Terry', cat: 'Terry & home textiles', img: 'assets/img/product-frotte.webp?v=20260924',
         title: 'Terry — towels and robes',
         desc: 'Towels, bath sheets and robes in Uzbek cotton. 400–650 gsm, border or jacquard.',
         points: [
@@ -180,7 +183,7 @@ window.EXPORTEX_DATA = {
         terms: 'MOQ from 500 pcs / colour · sample 10–14 days · production 4–6 weeks · FCA/DAP'
       },
       {
-        tag: 'Bedding', cat: 'Terry & home textiles', img: 'assets/img/product-lozni.webp',
+        tag: 'Bedding', cat: 'Terry & home textiles', img: 'assets/img/product-lozni.webp?v=20260924',
         title: 'Bed linen and duvet sets',
         desc: 'Duvet covers, sheets and throws. Percale, sateen, hotel sets.',
         points: [
@@ -193,7 +196,7 @@ window.EXPORTEX_DATA = {
         terms: 'MOQ from 500 sets / design · sample 10–14 days · production 4–6 weeks · FCA/DAP'
       },
       {
-        tag: 'Knits', cat: 'Knitted fabrics', img: 'assets/img/product-uplety.webp',
+        tag: 'Knits', cat: 'Knitted fabrics', img: 'assets/img/product-uplety.webp?v=20260924',
         title: 'Knitted fabric by the roll',
         desc: 'Single jersey, interlock, rib, French terry. Piece dyeing and melange.',
         points: [
@@ -206,7 +209,7 @@ window.EXPORTEX_DATA = {
         terms: 'MOQ from 500 kg / colour · production 3–5 weeks · FCA/DAP'
       },
       {
-        tag: 'Cut & sew', cat: 'Cut & sew', img: 'assets/img/product-konfekce.webp',
+        tag: 'Cut & sew', cat: 'Cut & sew', img: 'assets/img/product-konfekce.webp?v=20260924',
         title: 'Garments and private label',
         desc: 'Tees, hoodies, joggers, polos. Sewn to your techpack and labels.',
         points: [
@@ -220,7 +223,7 @@ window.EXPORTEX_DATA = {
         terms: 'MOQ from 300 pcs / style / colour · sample 2–3 weeks · production 5–8 weeks · FCA/DAP'
       },
       {
-        tag: 'Wovens', cat: 'Wovens & yarn', img: 'assets/img/product-tkaniny.webp',
+        tag: 'Wovens', cat: 'Wovens & yarn', img: 'assets/img/product-tkaniny.webp?v=20260924',
         title: 'Woven fabric by the metre',
         desc: 'Percale, twill, canvas, oxford. Mills with their own preparation lines.',
         points: [
@@ -234,7 +237,7 @@ window.EXPORTEX_DATA = {
         terms: 'MOQ from 3,000 m / design · production 4–6 weeks · FCA/DAP'
       },
       {
-        tag: 'Yarn', cat: 'Wovens & yarn', img: 'assets/img/product-prize.webp',
+        tag: 'Yarn', cat: 'Wovens & yarn', img: 'assets/img/product-prize.webp?v=20260924',
         title: 'Cotton yarn',
         desc: 'Ring-spun yarn from Uzbek cotton, combed and carded. Greige or dyed.',
         points: [
@@ -248,7 +251,7 @@ window.EXPORTEX_DATA = {
         terms: 'MOQ from 500 kg / type · delivery 2–4 weeks · FCA/DAP'
       },
       {
-        tag: 'HORECA', cat: 'Cut & sew', img: 'assets/img/product-horeca.webp',
+        tag: 'HORECA', cat: 'Cut & sew', img: 'assets/img/product-horeca.webp?v=20260924',
         title: 'Hotel and workwear textiles',
         desc: 'Hotel sets, kitchen and workwear textiles built for industrial laundries.',
         points: [
