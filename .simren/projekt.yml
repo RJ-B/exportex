@@ -1,0 +1,10 @@
+# Manifest projektu pro portál Sim&Ren (verze 1).
+#
+# Statický web: hotové soubory, nic se nebuildí ani nespouští. Kořen webu je
+# kořen repa – tak ho servíruje GitHub Pages (produkce exportex.cz). Skryté
+# soubory (.git) na našem serveru blokuje nginx.
+
+verze: 1
+typ: staticky
+koren: .
+kontrola: /
