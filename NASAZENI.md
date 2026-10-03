@@ -1,166 +1,86 @@
 # Nasazení a předání
 
-Vše, co je potřeba udělat, aby web běžel na vlastní doméně a formulář doručoval
-poptávky. Postup je psaný tak, aby se dal předat člověku, který spravuje doménu
-a poštu — ten nepotřebuje nic z kódu měnit kromě jednoho řádku.
+Web běží **jen u nás na serveru** (simren-server, HestiaCP). GitHub Pages jsou zrušené –
+soubor `CNAME` ani `.nojekyll` v repu nejsou a nesmí se vracet.
 
----
+Od 10/2026 je web Laravel na šabloně Sim&Ren. Nasazuje ho portál podle
+`.simren/projekt.yml`: commit na `main` → CRM → portál → stažení nové verze mimo web,
+`composer install`, migrace, cache, `storage:link`, restart fronty, kontrola `/zdravi`;
+když kontrola neprojde, běží dál předchozí verze. **Ručně se na server nic nekopíruje
+a nespouští** (žádný `git pull`, scp ani seedery) – jen git.
 
-## 1. Doména — hotovo (23. 9. 2026)
+| Věc | Hodnota |
+|---|---|
+| Produkce | `https://exportex.cz` (www → exportex.cz přesměruje web sám, `KanonickaDomena`) |
+| Test | `https://exportex-web.test.simren.cz` – nasazuje se sám z `main` |
+| Server | simren-server (Contabo, EU), HestiaCP |
+| Kořen webu | `public/` (ne kořen repa) |
+| PHP | 8.5 |
+| Databáze | MariaDB (zakládá portál, údaje jen v `.env` na serveru) |
+| Plánovač, fronta | cron `schedule:run` každou minutu, `queue:work` fronty `default` (zakládá portál) |
+| Kontrola | `/zdravi` (200/503 podle databáze, cache a storage; plánovač, frontu a poštu hlásí portálu) |
+| Repozitář | `RJ-B/exportex` (veřejný) |
 
-Web běží na `https://exportex.cz/`. Doména je registrovaná u **Forpsi**
-(registrátor INTERNET CZ, a.s.), pošta běží tamtéž.
+## Co musí být na serveru
 
-**DNS zóna, jak je nastavená:**
+Zakládá a udržuje portál – tady pro kontrolu, kdyby se web zakládal znovu:
 
-| Typ | Hostname | Hodnota |
+1. **Kořen webu `public/`** a PHP **8.5** (Hestia šablona pro Laravel).
+2. **Databáze MariaDB** pro web a `.env` s klíči:
+   `APP_NAME=Exportex`, `APP_ENV=production`, `APP_DEBUG=false`, `APP_KEY` (vygenerovaný),
+   `APP_URL=https://exportex.cz` (u testu adresa testu), `DB_CONNECTION=mariadb`,
+   `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`,
+   `SESSION_DRIVER=database`, `CACHE_STORE=database`, `QUEUE_CONNECTION=database`,
+   `MAIL_MAILER=log` (skutečná pošta se nastavuje v administraci, viz níž).
+   Hesla a klíče jen v `.env` na serveru, nikdy v repu.
+3. Po prvním nasazení: `php artisan migrate` doplní údaje firmy a předvyplní poštu
+   (bez hesla), `storage:link` zpřístupní fotky nahrané v administraci.
+4. Účet správce z CRM (*Můj účet správce* → `simren:spravce`) – heslo si nastaví sám přes odkaz.
+
+## Pošta – Forpsi
+
+Schránky exportex.cz jsou u **Forpsi** a tam i zůstanou. Web neposílá přes server
+(ten žádnou poštu nemá), ale přihlásí se ke schránce u Forpsi:
+
+- Administrace → *Obsah webu → Kontakt a formulář*: poskytovatel **Forpsi**
+  (`smtp.forpsi.com`, port 465, SSL/TLS), schránka `mikyska@exportex.cz` – obojí je
+  předvyplněné. **Heslo ke schránce zadá správce sám** a uloží (aplikace se nejdřív zkusí
+  přihlásit; heslo se ukládá zašifrované a do formuláře se nevrací). Pak *Poslat zkušební
+  e-mail*.
+- Dokud heslo není uložené, poptávky se na webu ukládají do *Zpráv z webu*, jen e-mail
+  neodchází – Pošta to v menu hlásí štítkem „!“.
+- Upozornění na poptávky chodí na `mikyska@exportex.cz` (kontaktní e-mail v *Hlavička
+  a patička*, jinou adresu jde nastavit v *Kontakt a formulář*). Odpověď jde rovnou
+  zákazníkovi.
+- Kontrola přihlášení ke schránce běží každých 6 hodin (`posta:kontrola`); když se heslo
+  ve Forpsi změní, portál otevře incident „Neodchází pošta“.
+
+## DNS (u Forpsi)
+
+Doména je registrovaná u Forpsi (INTERNET CZ, a.s.), DNS zóna tamtéž (stav 3. 10. 2026):
+
+| Typ | Název | Hodnota |
 |---|---|---|
-| A | `exportex.cz` | `185.199.108.153` |
-| A | `exportex.cz` | `185.199.109.153` |
-| A | `exportex.cz` | `185.199.110.153` |
-| A | `exportex.cz` | `185.199.111.153` |
-| CNAME | `www` | `rj-b.github.io` |
+| A | `exportex.cz` | `13.140.162.57` (náš server) |
+| A | `www` | `13.140.162.57` |
+| MX | `exportex.cz` | `10 mxavas.forpsi.com` |
+| TXT | `exportex.cz` | `v=spf1 include:_spf.forpsi.com -all` |
+| TXT | `_dmarc` | `v=DMARC1; p=quarantine` |
+| TXT | `f2026._domainkey` | DKIM od Forpsi |
 
-Pošta a kalendáře zůstaly nedotčené: `MX 10 mxavas.forpsi.com`, `autoconfig`,
-`autodiscover`, oba SRV záznamy na `syncdav.forpsi.com`, DKIM v selektoru
-`f2026._domainkey` a `_dmarc`. Na nic z toho se nesahá — smazáním MX přestane
-chodit pošta a s ní i poptávky z formuláře.
+Pošta a kalendáře (`MX`, `autoconfig`, `autodiscover`, SRV na `syncdav.forpsi.com`, DKIM,
+DMARC) se při změnách webu **nemění** – smazáním MX přestane chodit pošta i upozornění
+na poptávky. Kontrolu MX, SPF a DMARC umí *Kontakt a formulář → Zkontrolovat DNS*.
 
-**Dvě věci, které se při přepnutí musely změnit:**
+- **SPF bez mechanismu `a`.** A záznam míří na náš server a ten poštu neposílá; `a` by
+  povolil posílat za exportex.cz komukoli s IP serveru. Web posílá přes SMTP Forpsi,
+  takže stačí `include:_spf.forpsi.com`.
+- **Bez wildcardu `*.exportex.cz`.** Subdomény se zakládají jednotlivě.
 
-- **Wildcard `*.exportex.cz CNAME exportex.cz` byl smazán.** Mířil by na sdílené
-  IP adresy GitHub Pages, takže kdokoliv s účtem na GitHubu by si mohl zabrat
-  libovolnou subdoménu `exportex.cz` pro vlastní web (subdomain takeover).
-  Místo něj je `www` zadaný natvrdo. Kdyby byl wildcard někdy potřeba, musí se
-  doména v GitHubu ověřit: Settings → Pages → Verify domain.
-- **SPF se zkrátil** z `v=spf1 a mx include:_spf.forpsi.com -all` na
-  `v=spf1 include:_spf.forpsi.com -all`. Mechanismus `a` povoluje odesílat poštu
-  tomu, co je v A záznamu — po přepnutí by to byly servery GitHub Pages sdílené
-  se všemi weby na GitHubu. `mx` bylo zbytečné, adresa poštovního serveru
-  (`81.2.195.200`) v tom includu už je.
+## Formulář
 
-**Na GitHubu:** Settings → Pages → Custom domain `exportex.cz`. GitHub si sám
-vytvořil v repozitáři soubor `CNAME`; ten nesmí zmizet, jinak se web vrátí zpět
-na adresu `rj-b.github.io/exportex/`.
-
-Adresy v kódu jsou přepsané na `https://exportex.cz/`. Seznam míst, kde je
-adresa natvrdo, je v komentáři v hlavičce `index.html`.
-
----
-
-## 2. Formulář
-
-Web je statický a nemá server. Odeslání proto obstará externí služba; web
-maily neodesílá sám. **Heslo ke schránce není potřeba** — schránka jen přijímá.
-
-Nastavení je v jediném souboru: `assets/js/config.js`.
-
-### Zapnutí (jednou, zabere minutu)
-
-Formulář je předvyplněný na **FormSubmit** a cílovou adresu `mikyska@exportex.cz`.
-Služba nevyžaduje registraci ani klíč.
-
-1. Po nasazení odeslat formulář jednou nanečisto.
-2. Na `mikyska@exportex.cz` přijde od FormSubmit potvrzovací e-mail.
-3. Kliknout v něm na aktivační odkaz. Hotovo — od té chvíle poptávky chodí.
-
-Do aktivace se zprávy nedoručují.
-
-### Volitelně: skrýt adresu ze zdrojového kódu
-
-Po aktivaci nabídne FormSubmit náhradní „alias" adresu ve tvaru
-`https://formsubmit.co/ajax/xxxxxxxxxxxx`. Když se v `config.js` doplní místo
-adresy s e-mailem, zmizí e-mail ze zdrojového kódu a hůř se sbírá roboty.
-(Na stránce je e-mail stejně vidět v kontaktech, takže jde spíš o kosmetiku.)
-
-### Proč v kódu nejsou žádná hesla
-
-Statický web nemá `.env`. Cokoliv si prohlížeč načte, je veřejné — kdokoliv si
-to přečte ve zdrojovém kódu. Proto v `config.js` **nesmí být heslo ke schránce,
-SMTP údaje ani jiné skutečné tajemství**.
-
-Adresa příjemce (a u jiných služeb i jejich klíč) jsou veřejné záměrně; tak
-jsou tyhle služby postavené. Nechrání se utajením, ale nastavením na straně
-služby — omezením na vlastní doménu a ochranou proti spamu. Kdyby bylo někdy
-potřeba skutečné tajemství, musel by web dostat malou serverovou funkci
-(viz bod 4).
-
-### Alternativní služby
-
-V `config.js` stačí přepnout `provider` a `endpoint`:
-
-| Služba | Registrace | Poznámka |
-|---|---|---|
-| `formsubmit` | ne | přednastaveno, stačí e-mail |
-| `web3forms` | ne (klíč přijde e-mailem) | `accessKey` z e-mailu |
-| `formspree` | ano | archiv zpráv a statistiky |
-
-Při změně služby zkontrolovat `connect-src` v CSP hlavičce v `index.html` —
-nepoužité domény je vhodné ze seznamu vyhodit.
-
----
-
-## 3. Aby poptávky nekončily ve spamu
-
-Tohle je potřeba říct na rovinu: **žádná formulářová služba nedokáže doručení
-do složky Doručená pošta zaručit.** Zpráva přijde ze serveru té služby, ne
-z `exportex.cz`, a o zařazení rozhoduje přijímající poštovní server.
-
-Co pomůže hned:
-
-1. **Po aktivaci poslat testovací poptávku.** Když skončí ve spamu, označit
-   „Není spam" a odesílatele přidat mezi kontakty. Jednorázově, ale účinné.
-2. **Ve schránce založit pravidlo**, které zprávy od odesílatele FormSubmit
-   (`noreply@formsubmit.co`) nikdy neoznačí jako spam a rovnou je složkuje
-   třeba do „Poptávky".
-3. **Nepřeposílat schránku dál** na jinou adresu (Gmail apod.). Přeposílání
-   rozbíjí ověření SPF a je to nejčastější důvod, proč zprávy spadnou do spamu.
-
-Co to vyřeší spolehlivě (web už pod vlastní doménou je, takže je to na stole):
-
-**Posílat z vlastní domény.** Zprávy pak chodí z `web@exportex.cz`, ověřené
-podpisem domény, a poštovní servery je berou jako důvěryhodné. Je k tomu
-potřeba:
-
-- účet u služby pro transakční poštu (Resend, Postmark, Brevo, Mailgun —
-  všechny mají tarif zdarma, který na poptávkový formulář bohatě stačí),
-- do DNS domény přidat záznamy **SPF**, **DKIM** a **DMARC**, které ta služba
-  vygeneruje,
-- malou serverovou funkci, která poptávku převezme a odešle (viz bod 4).
-
-Bez těchto tří záznamů v DNS bude část zpráv končit ve spamu vždycky, ať se
-použije jakákoliv služba.
-
----
-
-## 4. Proč tu je externí služba
-
-Web je záměrně **čistě statický a bez backendu** — je to rozhodnutí, ne
-opomenutí. Prohlížeč sám e-mail odeslat neumí; k odeslání je vždycky potřeba
-server, který mluví SMTP. Když web žádný nemá, musí ho zastoupit externí
-služba. Jiná cesta u statického webu neexistuje.
-
-Do formulářové služby proto **nepatří žádné přihlašovací údaje** — jen adresa,
-kam se má poptávka doručit. Kdyby se web měl někdy úplně obejít bez třetí
-strany, znamenalo by to přesunout ho z GitHub Pages na hosting s PHP a doplnit
-malý odesílací skript. To ale není v plánu.
-
-## 5. Pošta na doméně
-
-S webem nesouvisí, ale patří to k předání: schránka `mikyska@exportex.cz` musí
-existovat u poskytovatele pošty a doména musí mít odpovídající **MX** záznamy.
-Při změně DNS kvůli webu je nechat beze změny.
-
----
-
-## 6. Kontrolní seznam po nasazení
-
-- [x] DNS míří na GitHub Pages, `www` má CNAME, wildcard smazaný
-- [x] V Settings → Pages nastavená doména `exportex.cz`
-- [x] Přepsané adresy v `index.html`, `robots.txt` a `sitemap.xml`
-- [x] SPF zkrácený na `v=spf1 include:_spf.forpsi.com -all`
-- [x] MX záznamy domény nedotčené, pošta chodí dál
-- [ ] Zapnuté **Enforce HTTPS** — až GitHub vydá certifikát Let's Encrypt
-- [ ] Odeslaná testovací poptávka a kliknutý aktivační odkaz FormSubmit
-- [ ] Poptávka dorazila do schránky, ne do spamu (jinak viz bod 3)
-- [ ] Sitemapa odeslaná v Google Search Console
+Poptávky jdou na náš server (`/kontakt`), ne k cizí službě – formsubmit.co se už
+nepoužívá a jeho aktivační e-mail ani alias nejsou potřeba. Ochrana proti spamu je na
+serveru: skryté pole, podepsaný čas zobrazení (rychlejší než 3 s nebo starší než 2 h =
+robot, tváří se jako odesláno), limit 3 odeslání za minutu a 20 za den z jedné IP.
+Žádná captcha.
