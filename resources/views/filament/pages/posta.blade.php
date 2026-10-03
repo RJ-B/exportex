@@ -32,6 +32,10 @@
 
         @if (! $domena)
             <p class="posta-slabe">Nejdřív vyplň schránku – návod se připraví pro její doménu.</p>
+        @elseif (! $poskytovatel)
+            <p class="posta-slabe">Schránka je u jiného poskytovatele ({{ $server }}). Záznamy MX, SPF, DKIM a DMARC pro něj zná jen on –
+                nastavují se podle jeho návodu a tady se nekontrolují. SPF musí povolit jeho servery a nesmí obsahovat „a“
+                (A domény míří na náš server, a ten poštu neposílá).</p>
         @elseif ($bezplatna)
             <p class="posta-slabe">Bezplatná schránka Seznamu – doména není vaše, DNS se nenastavuje. Pro firemní poštu
                 (a lepší doručitelnost) je lepší schránka na vlastní doméně v <a href="https://emailprofi.seznam.cz" target="_blank" rel="noopener" style="text-decoration: underline;">Email Profi</a>.</p>
@@ -53,9 +57,15 @@
             </table>
 
             <ol class="posta-kroky posta-slabe">
-                <li>Doménu zaregistruj v <a href="https://emailprofi.seznam.cz" target="_blank" rel="noopener">Email Profi</a> a založ schránku (heslo bez diakritiky).</li>
-                <li>U registrátora zapiš záznamy z tabulky. <strong>Název</strong> „@“ znamená samotnou doménu (u některých registrátorů se nechává prázdný).</li>
-                <li>Počkej aspoň hodinu – Seznam si nové záznamy načte až po čase – a pak dej <em>Zkontrolovat DNS</em>.</li>
+                @if ($poskytovatel === 'seznam')
+                    <li>Doménu zaregistruj v <a href="https://emailprofi.seznam.cz" target="_blank" rel="noopener">Email Profi</a> a založ schránku (heslo bez diakritiky).</li>
+                    <li>U registrátora zapiš záznamy z tabulky. <strong>Název</strong> „@“ znamená samotnou doménu (u některých registrátorů se nechává prázdný).</li>
+                    <li>Počkej aspoň hodinu – Seznam si nové záznamy načte až po čase – a pak dej <em>Zkontrolovat DNS</em>.</li>
+                @else
+                    <li>Pošta i DNS jsou u {{ $nazevPoskytovatele }} – MX a SPF tam obvykle už jsou. DKIM zapni v administraci {{ $nazevPoskytovatele }} u e-mailu domény.</li>
+                    <li>Chybějící záznamy doplň u {{ $nazevPoskytovatele }} podle tabulky. <strong>Název</strong> „@“ znamená samotnou doménu.</li>
+                    <li>Pak dej <em>Zkontrolovat DNS</em> (MX, SPF a DMARC; DKIM má selektor od {{ $nazevPoskytovatele }} a tady se nekontroluje).</li>
+                @endif
                 <li>Nakonec <em>Poslat zkušební e-mail</em> a ověř, že nepřišel do spamu.</li>
             </ol>
 

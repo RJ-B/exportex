@@ -138,9 +138,24 @@ class Posta extends Page
 
     public function mount(): void
     {
+        $posta = collect(NastaveniPosty::nacti())->except('heslo_ulozeno')->all();
+
         // Heslo se do formuláře nikdy nevrací – jen prázdné pole na změnu.
-        $this->form->fill(collect(NastaveniPosty::nacti())->except('heslo_ulozeno')->all()
-            + ['heslo' => null, 'formular_prijemce' => NastaveniWebu::get('formular_prijemce')]);
+        $this->form->fill($posta
+            + ['heslo' => null, 'formular_prijemce' => NastaveniWebu::get('formular_prijemce'),
+                'poskytovatel' => self::poskytovatelPodle($posta['host'] ?? null, $posta['port'] ?? null, $posta['sifrovani'] ?? null)]);
+    }
+
+    /** Předvolba, které odpovídá uložený server (jinak „jiný“ – server a port ručně). */
+    private static function poskytovatelPodle(?string $host, ?string $port, ?string $sifrovani): string
+    {
+        foreach (NastaveniPosty::POSKYTOVATELE as $klic => $p) {
+            if ($p['host'] === $host && $p['port'] === (string) $port && $p['sifrovani'] === $sifrovani) {
+                return $klic;
+            }
+        }
+
+        return 'jiny';
     }
 
     public function form(Schema $schema): Schema
@@ -157,23 +172,39 @@ class Posta extends Page
                             ->helperText('Prázdné = na kontaktní e-mail z Hlavičky a patičky.'),
                     ]),
                 Section::make('Schránka pro odesílání')
-                    ->description('Odtud aplikace posílá všechno – formuláře, upozornění i obnovu hesla. Schránky jsou u Seznamu Email Profi.')
+                    ->description('Odtud aplikace posílá všechno – formuláře, upozornění i obnovu hesla. Schránka je u poskytovatele pošty (Seznam Email Profi, Forpsi…), na našem serveru pošta není.')
                     ->columns(2)
                     ->schema([
+                        // Předvolba jen vyplní server, port a šifrování – ukládají se ta pole.
+                        Select::make('poskytovatel')
+                            ->label('Poskytovatel pošty')
+                            ->options(collect(NastaveniPosty::POSKYTOVATELE)->map(fn ($p) => $p['nazev'])->all() + ['jiny' => 'Jiný (server a port ručně)'])
+                            ->selectablePlaceholder(false)
+                            ->native(false)
+                            ->dehydrated(false)
+                            ->live()
+                            ->afterStateUpdated(function (?string $state, $set): void {
+                                if ($p = NastaveniPosty::POSKYTOVATELE[$state] ?? null) {
+                                    $set('host', $p['host']);
+                                    $set('port', $p['port']);
+                                    $set('sifrovani', $p['sifrovani']);
+                                }
+                            })
+                            ->columnSpanFull(),
                         TextInput::make('uzivatel')
                             ->label('Schránka')
                             ->email()
                             ->required()
                             ->live(onBlur: true)   // návod na DNS se přepočítá pro doménu schránky
                             ->placeholder('info@firma.cz')
-                            ->helperText('Odesílatelem bude tahle adresa – Seznam jinou nepustí.'),
+                            ->helperText('Odesílatelem bude tahle adresa – server pošty jinou obvykle nepustí.'),
                         TextInput::make('heslo')
                             ->label('Heslo')
                             ->password()
                             ->revealable()
                             ->autocomplete('new-password')
                             ->regex(NastaveniPosty::HESLO_ASCII)
-                            ->validationMessages(['regex' => 'Heslo nesmí obsahovat diakritiku – Seznam ho při odesílání nepřijme. Změň ho ve schránce.'])
+                            ->validationMessages(['regex' => 'Heslo nesmí obsahovat diakritiku – při odesílání ho server pošty nepřijme. Změň ho ve schránce.'])
                             ->required(fn () => ! NastaveniPosty::nacti()['heslo_ulozeno'])
                             ->placeholder(fn () => NastaveniPosty::nacti()['heslo_ulozeno'] ? '•••••••• uložené' : '')
                             ->helperText(fn () => NastaveniPosty::nacti()['heslo_ulozeno']
@@ -186,7 +217,8 @@ class Posta extends Page
                             ->label('Šifrování')
                             ->options(NastaveniPosty::SIFROVANI)
                             ->selectablePlaceholder(false),
-                        TextInput::make('host')->label('Server pro odesílání')->required(),
+                        TextInput::make('host')->label('Server pro odesílání')->required()->live(onBlur: true)
+                            ->helperText('Např. smtp.seznam.cz, smtp.forpsi.com.'),
                         TextInput::make('port')->label('Port')->integer()->required(),
                     ]),
             ]);
@@ -260,8 +292,17 @@ class Posta extends Page
     {
         $domena = $this->domena();
 
-        $this->dns = $domena ? PostaDns::over($domena) : null;
-        $this->prefixMx = $domena ? PostaDns::prefixMx($domena) : null;
+        $poskytovatel = $this->poskytovatelDns();
+
+        // DNS se kontroluje jen u poskytovatele, jehož záznamy známe (Seznam, Forpsi).
+        $this->dns = $domena && $poskytovatel ? PostaDns::over($domena, $poskytovatel) : null;
+        $this->prefixMx = $domena && $poskytovatel === 'seznam' ? PostaDns::prefixMx($domena) : null;
+    }
+
+    /** Poskytovatel podle serveru z formuláře (jinak uloženého) – podle něj návod a kontrola DNS. */
+    public function poskytovatelDns(): ?string
+    {
+        return PostaDns::poskytovatel($this->data['host'] ?? NastaveniPosty::nacti()['host']);
     }
 
     /** Doména schránky – z formuláře, jinak z uložené. */
@@ -276,11 +317,16 @@ class Posta extends Page
     {
         $domena = $this->domena();
 
+        $poskytovatel = $this->poskytovatelDns();
+
         return [
             'stav' => NastaveniPosty::popisStavu(),
             'domena' => $domena,
-            'navod' => $domena ? PostaDns::navod($domena, $this->data['uzivatel'] ?? null, $this->prefixMx) : [],
-            'bezplatna' => NastaveniPosty::bezplatna($this->data['uzivatel'] ?? null),
+            'poskytovatel' => $poskytovatel,
+            'nazevPoskytovatele' => $poskytovatel ? PostaDns::POSKYTOVATELE[$poskytovatel]['nazev'] : null,
+            'server' => $this->data['host'] ?? NastaveniPosty::nacti()['host'],
+            'navod' => $domena && $poskytovatel ? PostaDns::navod($domena, $this->data['uzivatel'] ?? null, $this->prefixMx, $poskytovatel) : [],
+            'bezplatna' => $poskytovatel === 'seznam' && NastaveniPosty::bezplatna($this->data['uzivatel'] ?? null),
         ];
     }
 }

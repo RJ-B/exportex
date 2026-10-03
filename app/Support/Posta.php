@@ -13,7 +13,9 @@ use Throwable;
  * Schránka, ze které aplikace posílá poštu (Administrace → Pošta).
  *
  * Skoro každý projekt něco posílá (formulář, upozornění, obnova hesla) a pošta
- * se nehostuje na našich serverech – schránky jsou u Seznamu. Nastavuje se
+ * se nehostuje na našich serverech – schránky jsou u poskytovatele pošty
+ * (obvykle Seznam Email Profi, u exportex.cz Forpsi; jde zadat libovolný SMTP
+ * server, předvolby v POSKYTOVATELE). Nastavuje se
  * v aplikaci, ne v `.env`: mění se to (nové heslo, jiná schránka) a sahat kvůli
  * tomu na server je zbytečné.
  *
@@ -31,6 +33,12 @@ class Posta
         'sifrovani' => 'smtps',
     ];
 
+    /** Předvolby SMTP pro výběr ve formuláři; „jiný“ = server a port ručně. */
+    public const POSKYTOVATELE = [
+        'seznam' => ['nazev' => 'Seznam Email Profi', 'host' => 'smtp.seznam.cz', 'port' => '465', 'sifrovani' => 'smtps'],
+        'forpsi' => ['nazev' => 'Forpsi', 'host' => 'smtp.forpsi.com', 'port' => '465', 'sifrovani' => 'smtps'],
+    ];
+
     public const SIFROVANI = [
         'smtps' => 'SSL/TLS (port 465)',
         'tls' => 'STARTTLS (port 587)',
@@ -38,7 +46,7 @@ class Posta
 
     /**
      * Náhrada přihlášení k SMTP v testech: fn (array $nastaveni, string $heslo): void,
-     * při chybě vyhodí výjimku. Testy se NESMÍ připojovat ke skutečnému Seznamu –
+     * při chybě vyhodí výjimku. Testy se NESMÍ připojovat ke skutečnému SMTP –
      * opakovaná chybná přihlášení by mohla zablokovat IP.
      */
     public static ?\Closure $prihlaseni = null;
@@ -110,7 +118,7 @@ class Posta
                 'password' => self::heslo(),
                 'timeout' => 20,
             ],
-            // Seznam odmítne odesílatele jiného než přihlášenou schránku.
+            // Seznam i Forpsi odmítnou odesílatele jiného než přihlášenou schránku.
             'mail.from' => ['address' => $n['uzivatel'], 'name' => $n['jmeno'] ?: config('app.name')],
         ]);
     }
@@ -143,7 +151,7 @@ class Posta
 
             return ['ok' => true, 'zprava' => 'Přihlášení k '.$n['host'].' v pořádku.'];
         } catch (Throwable $e) {
-            return ['ok' => false, 'zprava' => self::srozumitelne($e->getMessage(), $n['uzivatel'])];
+            return ['ok' => false, 'zprava' => self::srozumitelne($e->getMessage(), $n['uzivatel'], $n['host'])];
         }
     }
 
@@ -176,11 +184,17 @@ class Posta
         return is_array($ulozeno) ? $ulozeno : ['nastavena' => self::kompletni(), 'ok' => null, 'zprava' => null, 'kdy' => null];
     }
 
-    /** Chyba SMTP lidsky – technická hláška Seznamu nikomu neřekne, co dělat. */
-    public static function srozumitelne(string $zprava, string $schranka): string
+    /** Chyba SMTP lidsky – technická hláška serveru pošty nikomu neřekne, co dělat. */
+    public static function srozumitelne(string $zprava, string $schranka, ?string $host = null): string
     {
         if (str_contains($zprava, '535') || stripos($zprava, 'authenticat') !== false) {
-            return 'Seznam heslo odmítl – zkontroluj schránku a heslo.'
+            $kdo = match (PostaDns::poskytovatel($host ?? self::VYCHOZI['host'])) {
+                'seznam' => 'Seznam',
+                'forpsi' => 'Forpsi',
+                default => 'Server pošty ('.$host.')',
+            };
+
+            return $kdo.' heslo odmítl – zkontroluj schránku a heslo.'
                 .(self::bezplatna($schranka) ? ' U bezplatné schránky musí být v nastavení e-mailu povolený přístup z jiných aplikací (IMAP/SMTP).' : '');
         }
 

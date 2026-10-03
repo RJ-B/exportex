@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\DB;
  * a soukromi.html). Texty sekcí mají výchozí obsah v App\Support\ObsahWebu,
  * takže po nasazení je web hned stejný jako statický. Doplní se jen klíče,
  * které ještě nejsou – co správce v administraci změnil, se nepřepíše.
+ *
+ * Pošta exportex.cz je u Forpsi: předvyplní se server, port, šifrování
+ * a schránka (zároveň odesílatel). Heslo NE – zadá ho správce sám v Obsahu
+ * webu → Kontakt a formulář; do té doby web poptávky jen ukládá a e-mail
+ * neodchází (Pošta to hlásí štítkem).
  */
 return new class extends Migration
 {
@@ -20,6 +25,10 @@ return new class extends Migration
         'zaklad.adresa' => 'Na Poříčí 1070/19, Nové Město, 110 00 Praha 1',
         'zaklad.rejstrik' => 'Zapsaná u Městského soudu v Praze, oddíl C, vložka 374806',
         'web.tagline' => 'textil z Uzbekistánu a Střední Asie do EU',
+        'posta.host' => 'smtp.forpsi.com',
+        'posta.port' => '465',
+        'posta.sifrovani' => 'smtps',
+        'posta.uzivatel' => 'mikyska@exportex.cz',
         'gdpr.ucinnost_od' => '2026-10-03',
         'gdpr.formular_udaje' => 'jméno a příjmení, název firmy, e-mailová adresa, telefonní číslo, pokud jej uvedete, a obsah poptávky',
         'gdpr.formular_doba' => 'po dobu jednání o poptávce a následně nejdéle 3 roky',
