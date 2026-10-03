@@ -1,10 +1,30 @@
 # Manifest projektu pro portál Sim&Ren (verze 1).
 #
-# Statický web: hotové soubory, nic se nebuildí ani nespouští. Kořen webu je
-# kořen repa – tak ho servíruje GitHub Pages (produkce exportex.cz). Skryté
-# soubory (.git) na našem serveru blokuje nginx.
+# Popisuje, CO projekt potřebuje – portál podle něj zakládá web a nasazuje.
+# Název a domény sem nepatří: vede je CRM u zakázky (jinak by byly na dvou
+# místech a rozešly by se). Tajné údaje taky ne – ty jsou jen v .env na
+# serveru a portál je tam zakládá sám.
+#
+# exportex.cz: do 10/2026 statický web (typ: staticky, kořen = kořen repa).
+# Teď Laravel na šabloně Sim&Ren – kořen webu je public/, nic se nebuildí
+# (vlastní CSS a JS jsou hotové soubory v public/assets).
 
 verze: 1
-typ: staticky
-koren: .
-kontrola: /
+typ: laravel
+php: "8.5"                 # 8.5 | 8.4
+databaze: mariadb          # mariadb | sqlite | zadna
+
+# Kroky po stažení nové verze, v tomto pořadí.
+# Povolené: composer migrate cache storage-link queue-restart
+kroky: [composer, migrate, cache, storage-link, queue-restart]
+
+planovac: true             # cron: php artisan schedule:run každou minutu
+fronta: default            # název fronty pro queue:work, null = bez fronty
+kontrola: /zdravi          # vrací 200/503 podle databáze, cache a storage (App\Support\Zdravi)
+
+# Co nasazení nepřepíše (soubory nahrané uživateli).
+ponechat: [storage/app]
+
+zalohy:
+  databaze: true
+  soubory: [storage/app]
