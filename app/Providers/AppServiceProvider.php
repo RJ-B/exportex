@@ -4,15 +4,15 @@ namespace App\Providers;
 
 use App\Mail\LoggingMailManager;
 use App\Observers\AuditableObserver;
-use App\Support\Posta;
+use App\Support\Posta\Propojeni as Posta;
 use App\Support\SekceWebu;
 use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Console\Signals;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -25,8 +25,9 @@ class AppServiceProvider extends ServiceProvider
         // maily posílané mimo Mailable (Mail::raw). Musí to být extend():
         // MailServiceProvider je deferred a prostou vazbu by přepsal.
         //
-        // Schránka z Administrace → Pošta (Posta) se nastaví tady – při prvním
-        // odeslání, ne při každém požadavku. Bez ní platí .env.
+        // Pošta (posta.simren.cz): propojená aplikace posílá přes transport `posta`
+        // (App\Support\Posta, PostaServiceProvider) – nastaví se tady, při prvním
+        // odeslání, ne při každém požadavku. Bez propojení platí .env.
         $this->app->extend('mail.manager', function ($manager, $app) {
             Posta::pouzij();
 

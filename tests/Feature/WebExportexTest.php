@@ -3,13 +3,20 @@
 namespace Tests\Feature;
 
 use App\Filament\Pages\HlavickaPaticka;
+use App\Filament\Pages\Posta;
+use App\Filament\Pages\Web\DokladyClo;
+use App\Filament\Pages\Web\JakToFunguje;
 use App\Filament\Pages\Web\KontaktTexty;
 use App\Filament\Pages\Web\ONas;
 use App\Filament\Pages\Web\Sortiment;
+use App\Filament\Pages\Web\Trasa;
+use App\Filament\Pages\Web\UkazkyZakazek;
 use App\Filament\Pages\Web\Uvod;
 use App\Models\User;
+use App\Support\NastaveniWebu;
 use App\Support\ObsahWebu;
 use App\Support\SekceWebu;
+use App\Support\StrukturovanaData;
 use App\Support\ZakladniUdaje;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -186,7 +193,7 @@ class WebExportexTest extends TestCase
         $this->assertSame('Froté — ručníky, osušky, župany', $data['cs']['products'][0]['title']);
         $this->assertSame('Terry — towels, bath sheets, robes', $data['en']['products'][0]['title']);
         $this->assertSame('Cut & sew', $data['en']['products'][0]['cat']);
-        $this->assertSame('Froté — ručníky, osušky, župany', json_decode(json_encode(\App\Support\StrukturovanaData::web()), true)['@graph'][2]['hasOfferCatalog']['itemListElement'][0]['itemOffered']['name']);
+        $this->assertSame('Froté — ručníky, osušky, župany', json_decode(json_encode(StrukturovanaData::web()), true)['@graph'][2]['hasOfferCatalog']['itemListElement'][0]['itemOffered']['name']);
     }
 
     public function test_puvodni_fotky_po_ulozeni_zustanou(): void
@@ -325,7 +332,7 @@ class WebExportexTest extends TestCase
 
         // Cookie lišta jen s měřením (Obsah webu → SEO a měření).
         $this->get('/')->assertDontSee('id="cc-lista"', false);
-        \App\Support\NastaveniWebu::uloz(['ga4_id' => 'G-TEST12345']);
+        NastaveniWebu::uloz(['ga4_id' => 'G-TEST12345']);
         $this->get('/')->assertSee('id="cc-lista"', false)->assertSee('Nastavení cookies');
     }
 
@@ -333,14 +340,14 @@ class WebExportexTest extends TestCase
     {
         $this->actingAs($this->spravce());
 
-        foreach ([Uvod::class, Sortiment::class, \App\Filament\Pages\Web\JakToFunguje::class, \App\Filament\Pages\Web\Trasa::class,
-            \App\Filament\Pages\Web\DokladyClo::class, ONas::class, \App\Filament\Pages\Web\UkazkyZakazek::class, KontaktTexty::class,
+        foreach ([Uvod::class, Sortiment::class, JakToFunguje::class, Trasa::class,
+            DokladyClo::class, ONas::class, UkazkyZakazek::class, KontaktTexty::class,
             HlavickaPaticka::class] as $stranka) {
             $this->get($stranka::getUrl())->assertOk();
             Livewire::test($stranka)->call('uloz')->assertHasNoErrors();
         }
-        // Pošta bez hesla neuloží (heslo zadá správce) – jen se otevře.
-        $this->get(\App\Filament\Pages\Posta::getUrl())->assertOk()->assertSee('smtp.forpsi.com');
+        // Pošta jde přes Poštu (posta.simren.cz) – před propojením se stránka jen otevře.
+        $this->get(Posta::getUrl())->assertOk()->assertSee('není propojená s Poštou');
 
         // Uložení beze změny nic nepokazí – web je pořád jako před převodem.
         auth()->logout();

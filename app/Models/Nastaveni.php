@@ -35,4 +35,10 @@ class Nastaveni extends Model
         static::query()->updateOrCreate(['klic' => $klic], ['hodnota' => $hodnota]);
         Cache::forget('nastaveni.'.$klic);
     }
+
+    public static function smaz(string $klic): void
+    {
+        static::query()->whereKey($klic)->delete();
+        Cache::forget('nastaveni.'.$klic);
+    }
 }

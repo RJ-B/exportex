@@ -1,94 +1,77 @@
-{{-- Administrace → Pošta. Soběstačná (vlastní styly), aby šla přenést do každého projektu.
-     Tailwind třídy ve vlastních šablonách Filament nekompiluje, proto třídy .posta-*
-     s proměnnými Filamentu (jen existující: --gray-500, --success-600…). --}}
+{{-- Administrace → Pošta: propojení s Poštou (posta.simren.cz). Soběstačná (vlastní styly),
+     aby šla přenést do každého projektu. Tailwind třídy ve vlastních šablonách Filament
+     nekompiluje, proto třídy .posta-* s existujícími proměnnými Filamentu. --}}
 <x-filament-panels::page>
     <style>
         .posta-stav { border-radius: .5rem; background: var(--gray-50); padding: .75rem 1rem; font-size: .875rem; }
         .dark .posta-stav { background: rgb(255 255 255 / .05); }
-        .posta-tab { width: 100%; font-size: .8rem; border-collapse: collapse; }
-        .posta-tab th { text-align: left; color: var(--gray-500); font-weight: 500; padding: .25rem .75rem .25rem 0; }
-        .posta-tab td { padding: .4rem .75rem .4rem 0; border-top: 1px solid var(--gray-200); vertical-align: top; }
-        .dark .posta-tab td { border-color: rgb(255 255 255 / .1); }
-        .posta-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .75rem; overflow-wrap: anywhere; }
+        .posta-chyba { border-radius: .5rem; background: var(--danger-50); padding: .75rem 1rem; font-size: .875rem; }
+        .dark .posta-chyba { background: rgb(239 68 68 / .1); }
+        .posta-udaje { display: grid; grid-template-columns: minmax(8rem, 1fr) 3fr; gap: .4rem 1rem; margin: 0; font-size: .875rem; }
+        .posta-udaje dt { color: var(--gray-500); }
+        .posta-udaje dd { margin: 0; }
         .posta-slabe { color: var(--gray-500); font-size: .8rem; }
-        .posta-kroky { margin: 1rem 0 0; padding-left: 1.25rem; line-height: 1.7; list-style: decimal; }
-        .posta-kroky a { text-decoration: underline; }
     </style>
 
-    <div class="posta-stav">{{ $stav }}</div>
+    @if (! $propojeni['propojeno'])
+        <div class="posta-chyba">
+            Aplikace není propojená s Poštou – e-maily (formuláře, upozornění, obnova hesla) neodcházejí.
+            Klikni na <strong>Propojit s poštou</strong>; v Poště správce přidělí adresy, ze kterých smí aplikace posílat.
+            @if ($stara)
+                <br>Aplikace má ještě starou schránku <strong>{{ $stara['adresa'] }}</strong> ({{ $stara['smtp_host'] }}{{ $stara['zdroj'] === 'env' ? ', v .env' : '' }}) –
+                při propojení ji Pošta může převzít i s heslem (správce to povolí na souhlasu).
+            @endif
+        </div>
+    @else
+        @if ($prevzeti && empty($prevzeti['smazano']))
+            <div class="{{ ($prevzeti['ok'] ?? false) ? 'posta-stav' : 'posta-chyba' }}" style="margin-bottom: 1rem">
+                <strong>Převzetí staré schránky {{ $prevzeti['adresa'] }}:</strong> {{ $prevzeti['zprava'] ?? '' }}
+                @if ($prevzeti['ok'] ?? false)
+                    @if (! empty($prevzeti['zkouska_id']))
+                        <br>Zkušební e-mail je v Poště – jakmile ho Pošta potvrdí jako odeslaný, stará schránka (i heslo) se z aplikace smaže.
+                    @else
+                        <br>Pošli <strong>zkušební e-mail</strong> – až ho Pošta potvrdí jako odeslaný, stará schránka (i heslo) se z aplikace sama smaže.
+                    @endif
+                @endif
+            </div>
+        @elseif ($prevzeti && ! empty($prevzeti['env_zbyva']))
+            <div class="posta-stav" style="margin-bottom: 1rem">
+                Stará schránka {{ $prevzeti['adresa'] }} je převzatá do Pošty. Zbývá smazat SMTP z <code>.env</code> na serveru
+                (MAIL_HOST, MAIL_USERNAME, MAIL_PASSWORD…) – přes portál, <code>MAIL_MAILER=log</code> stačí jako záloha.
+            </div>
+        @endif
+
+        @if ($stav['ok'] === false)
+            <div class="posta-chyba">{{ $stav['zprava'] }}</div>
+        @endif
+
+        <x-filament::section heading="Propojení">
+            <dl class="posta-udaje">
+                <dt>Pošta</dt><dd>{{ $propojeni['url'] }}{{ $propojeni['rucne'] ? ' (klíč zadaný ručně)' : '' }}</dd>
+                @if ($propojeni['aplikace'])<dt>Aplikace v Poště</dt><dd>{{ $propojeni['aplikace'] }}</dd>@endif
+                <dt>Smí posílat z</dt>
+                <dd>
+                    @forelse ($propojeni['adresy'] as $adresa)
+                        <div>{{ $adresa['jmeno'] ? $adresa['jmeno'].' <'.$adresa['adresa'].'>' : $adresa['adresa'] }}</div>
+                    @empty
+                        <span class="posta-slabe">žádné adresy – přiděl je v Poště a dej Ověřit</span>
+                    @endforelse
+                </dd>
+                @if ($propojeni['kdy'])<dt>Propojeno</dt><dd>{{ \Illuminate\Support\Carbon::parse($propojeni['kdy'])->format('j. n. Y H:i') }}</dd>@endif
+                @if ($propojeni['token_plati_do'])<dt>Klíč platí do</dt><dd>{{ \Illuminate\Support\Carbon::parse($propojeni['token_plati_do'])->format('j. n. Y') }} <span class="posta-slabe">(obnovuje se sám)</span></dd>@endif
+                <dt>Odchozí fronta</dt><dd>{{ $fronta ? $fronta.' zpráv čeká na Poštu – předají se samy' : 'prázdná' }}</dd>
+            </dl>
+            <p class="posta-slabe" style="margin-top: .75rem;">Schránky, DNS domény (SPF, DKIM, DMARC) a opakování při chybě řeší Pošta. Co odešlo a co ne: Provoz → Logy → E-maily.</p>
+        </x-filament::section>
+    @endif
 
     <form wire:submit="uloz">
         {{ $this->form }}
 
-        <div style="margin-top: 1.5rem">
-            <x-filament::button type="submit">Uložit</x-filament::button>
-        </div>
-    </form>
-
-    {{-- Návod pro klienta: co zapsat u registrátora domény, aby pošta nepadala do spamu. --}}
-    <x-filament::section
-        heading="DNS domény{{ $domena ? ' '.$domena : '' }}"
-        description="Aby pošta z domény chodila a nekončila ve spamu, musí mít doména u registrátora (Forpsi, Wedos, Active24…) tyhle záznamy. Zapisuje je majitel domény v administraci registrátora.">
-
-        @if (! $domena)
-            <p class="posta-slabe">Nejdřív vyplň schránku – návod se připraví pro její doménu.</p>
-        @elseif (! $poskytovatel)
-            <p class="posta-slabe">Schránka je u jiného poskytovatele ({{ $server }}). Záznamy MX, SPF, DKIM a DMARC pro něj zná jen on –
-                nastavují se podle jeho návodu a tady se nekontrolují. SPF musí povolit jeho servery a nesmí obsahovat „a“
-                (A domény míří na náš server, a ten poštu neposílá).</p>
-        @elseif ($bezplatna)
-            <p class="posta-slabe">Bezplatná schránka Seznamu – doména není vaše, DNS se nenastavuje. Pro firemní poštu
-                (a lepší doručitelnost) je lepší schránka na vlastní doméně v <a href="https://emailprofi.seznam.cz" target="_blank" rel="noopener" style="text-decoration: underline;">Email Profi</a>.</p>
-        @else
-            <table class="posta-tab">
-                <thead>
-                    <tr><th style="width: 4.5rem;">Typ</th><th style="width: 9rem;">Název</th><th>Hodnota</th><th style="width: 30%;">Pozn.</th></tr>
-                </thead>
-                <tbody>
-                    @foreach ($navod as $radek)
-                        <tr>
-                            <td>{{ $radek['typ'] }}</td>
-                            <td class="posta-mono">{{ $radek['nazev'] }}</td>
-                            <td class="posta-mono">{{ $radek['hodnota'] }}</td>
-                            <td class="posta-slabe">{{ $radek['poznamka'] }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-
-            <ol class="posta-kroky posta-slabe">
-                @if ($poskytovatel === 'seznam')
-                    <li>Doménu zaregistruj v <a href="https://emailprofi.seznam.cz" target="_blank" rel="noopener">Email Profi</a> a založ schránku (heslo bez diakritiky).</li>
-                    <li>U registrátora zapiš záznamy z tabulky. <strong>Název</strong> „@“ znamená samotnou doménu (u některých registrátorů se nechává prázdný).</li>
-                    <li>Počkej aspoň hodinu – Seznam si nové záznamy načte až po čase – a pak dej <em>Zkontrolovat DNS</em>.</li>
-                @else
-                    <li>Pošta i DNS jsou u {{ $nazevPoskytovatele }} – MX a SPF tam obvykle už jsou. DKIM zapni v administraci {{ $nazevPoskytovatele }} u e-mailu domény.</li>
-                    <li>Chybějící záznamy doplň u {{ $nazevPoskytovatele }} podle tabulky. <strong>Název</strong> „@“ znamená samotnou doménu.</li>
-                    <li>Pak dej <em>Zkontrolovat DNS</em> (MX, SPF a DMARC; DKIM má selektor od {{ $nazevPoskytovatele }} a tady se nekontroluje).</li>
-                @endif
-                <li>Nakonec <em>Poslat zkušební e-mail</em> a ověř, že nepřišel do spamu.</li>
-            </ol>
-
-            <div style="margin-top: 1rem; display: flex; align-items: center; gap: .75rem;">
-                <x-filament::button color="gray" wire:click="zkontrolujDns" icon="heroicon-o-magnifying-glass">Zkontrolovat DNS</x-filament::button>
-                <span wire:loading wire:target="zkontrolujDns" class="posta-slabe">Ptám se DNS…</span>
+        @if ($propojeni['propojeno'] || static::webovy())
+            <div style="margin-top: 1.5rem">
+                <x-filament::button type="submit">Uložit</x-filament::button>
             </div>
-
-            @if ($dns)
-                <table class="posta-tab" style="margin-top: 1rem;">
-                    <tbody>
-                        @foreach ($dns as $v)
-                            <tr>
-                                <td style="width: 6rem;"><strong>{{ $v['zaznam'] }}</strong></td>
-                                <td style="width: 6.5rem; color: var(--{{ ['ok' => 'success', 'varovani' => 'warning', 'chyba' => 'danger'][$v['stav']] }}-600);">
-                                    {{ ['ok' => '✓ v pořádku', 'varovani' => '! pozor', 'chyba' => '✕ chybí'][$v['stav']] }}
-                                </td>
-                                <td style="overflow-wrap: anywhere;">{{ $v['zprava'] }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @endif
         @endif
-    </x-filament::section>
+    </form>
 </x-filament-panels::page>

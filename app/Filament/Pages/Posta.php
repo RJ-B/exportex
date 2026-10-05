@@ -2,27 +2,34 @@
 
 namespace App\Filament\Pages;
 
-use App\Support\Posta as NastaveniPosty;
 use App\Filament\Support\CastObsahuWebu;
 use App\Support\NastaveniWebu;
-use App\Support\PostaDns;
+use App\Support\Posta\Odchozi;
+use App\Support\Posta\PostaTransport;
+use App\Support\Posta\Propojeni;
+use App\Support\Posta\StaraSchranka;
+use App\Support\Posta\StavPosty;
+use App\Support\SekceWebu;
+use App\Support\ZakladniUdaje;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Route;
 use Throwable;
 
 /**
- * Schránka, ze které aplikace posílá, a návod na DNS domény pro klienta
- * (aby pošta chodila a nepadala do spamu).
+ * Pošta aplikace: propojení s Poštou (posta.simren.cz), přes kterou aplikace
+ * posílá všechno – formuláře, upozornění, obnovu hesla. Schránky, DNS domény
+ * (SPF, DKIM, DMARC) i opakování řeší Pošta; tady je jen „Propojit s poštou“
+ * a výchozí odesílatel z adres, které aplikaci přidělil správce Pošty.
  *
  * U webu je to Obsah webu → Kontakt a formulář (každý web má formulář) a
  * navíc kam chodí zprávy z formuláře. U aplikace bez webu (sablona.obsah_webu
@@ -33,6 +40,7 @@ class Posta extends Page
     use CastObsahuWebu {
         CastObsahuWebu::getNavigationGroup as protected skupinaObsahu;
     }
+
     protected string $view = 'filament.pages.posta';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;
@@ -44,12 +52,6 @@ class Posta extends Page
 
     public ?array $data = [];
 
-    /** Výsledek poslední kontroly DNS (null = zatím nekontrolováno). */
-    public ?array $dns = null;
-
-    /** Prefix MX z Email Profi, zjištěný kontrolou – doplní se do návodu. */
-    public ?string $prefixMx = null;
-
     /**
      * Web s kontaktní stránkou (routa „kontakt“): Pošta je Obsah webu → Kontakt
      * a formulář. Web bez ní (maily posílá třeba rezervace) i aplikace bez webu
@@ -57,10 +59,10 @@ class Posta extends Page
      */
     public static function webovy(): bool
     {
-        return static::obsahWebu() !== null && \Illuminate\Support\Facades\Route::has(self::routaKontaktu());
+        return static::obsahWebu() !== null && Route::has(self::routaKontaktu());
     }
 
-    /** Nenastavená schránka = nic neodchází. Štítek, dokud ji někdo nevyplní. */
+    /** Nepropojená aplikace = nic neodchází. Štítek, dokud ji někdo nepropojí. */
     public static function getNavigationBadge(): ?string
     {
         return self::sekceVypnuta() ? 'vypnuto' : (self::nicNeodchazi() ? '!' : null);
@@ -73,21 +75,18 @@ class Posta extends Page
 
     public static function getNavigationBadgeTooltip(): ?string
     {
-        return self::sekceVypnuta() ? null : 'Pošta neodchází – není nastavená schránka';
+        return self::sekceVypnuta() ? null : 'Pošta neodchází – aplikace není propojená s Poštou';
     }
 
-    /**
-     * Varovat jen když opravdu nic neodchází: bez schránky v aplikaci a se
-     * serverem na log/array. Web, který posílá podle .env serveru, maily posílá.
-     */
+    /** Varovat, když aplikace není propojená s Poštou (a .env nic neposílá). */
     private static function nicNeodchazi(): bool
     {
-        return ! NastaveniPosty::kompletni() && in_array(config('mail.default'), ['log', 'array'], true);
+        return ! Propojeni::propojeno() && in_array(config('mail.default'), ['log', 'array'], true);
     }
 
     private static function sekceVypnuta(): bool
     {
-        return static::webovy() && ! \App\Support\SekceWebu::zapnuta('formular');
+        return static::webovy() && ! SekceWebu::zapnuta('formular');
     }
 
     private static function routaKontaktu(): string
@@ -108,7 +107,7 @@ class Posta extends Page
     /** Stránka s formulářem na webu – když ji projekt má (routa „kontakt“). */
     public static function odkazSekce(): ?string
     {
-        return \Illuminate\Support\Facades\Route::has(self::routaKontaktu()) ? route(self::routaKontaktu(), absolute: false) : null;
+        return Route::has(self::routaKontaktu()) ? route(self::routaKontaktu(), absolute: false) : null;
     }
 
     public static function getNavigationGroup(): string|\UnitEnum|null
@@ -138,24 +137,10 @@ class Posta extends Page
 
     public function mount(): void
     {
-        $posta = collect(NastaveniPosty::nacti())->except('heslo_ulozeno')->all();
-
-        // Heslo se do formuláře nikdy nevrací – jen prázdné pole na změnu.
-        $this->form->fill($posta
-            + ['heslo' => null, 'formular_prijemce' => NastaveniWebu::get('formular_prijemce'),
-                'poskytovatel' => self::poskytovatelPodle($posta['host'] ?? null, $posta['port'] ?? null, $posta['sifrovani'] ?? null)]);
-    }
-
-    /** Předvolba, které odpovídá uložený server (jinak „jiný“ – server a port ručně). */
-    private static function poskytovatelPodle(?string $host, ?string $port, ?string $sifrovani): string
-    {
-        foreach (NastaveniPosty::POSKYTOVATELE as $klic => $p) {
-            if ($p['host'] === $host && $p['port'] === (string) $port && $p['sifrovani'] === $sifrovani) {
-                return $klic;
-            }
-        }
-
-        return 'jiny';
+        $this->form->fill([
+            'od' => Propojeni::odesilatel()['adresa'] ?? null,
+            'formular_prijemce' => NastaveniWebu::get('formular_prijemce'),
+        ]);
     }
 
     public function form(Schema $schema): Schema
@@ -168,58 +153,18 @@ class Posta extends Page
                     ->visible(fn () => static::webovy())
                     ->schema([
                         TextInput::make('formular_prijemce')->label('Zprávy z formuláře posílat na')->email()
-                            ->placeholder(fn () => \App\Support\ZakladniUdaje::get('email') ?: 'info@firma.cz')
+                            ->placeholder(fn () => ZakladniUdaje::get('email') ?: 'info@firma.cz')
                             ->helperText('Prázdné = na kontaktní e-mail z Hlavičky a patičky.'),
                     ]),
-                Section::make('Schránka pro odesílání')
-                    ->description('Odtud aplikace posílá všechno – formuláře, upozornění i obnovu hesla. Schránka je u poskytovatele pošty (Seznam Email Profi, Forpsi…), na našem serveru pošta není.')
-                    ->columns(2)
+                Section::make('Odesílatel')
+                    ->description('Adresy, ze kterých aplikace smí posílat, přiděluje správce Pošty. Jinou adresu Pošta nahradí výchozí.')
+                    ->visible(fn () => Propojeni::propojeno())
                     ->schema([
-                        // Předvolba jen vyplní server, port a šifrování – ukládají se ta pole.
-                        Select::make('poskytovatel')
-                            ->label('Poskytovatel pošty')
-                            ->options(collect(NastaveniPosty::POSKYTOVATELE)->map(fn ($p) => $p['nazev'])->all() + ['jiny' => 'Jiný (server a port ručně)'])
-                            ->selectablePlaceholder(false)
+                        Select::make('od')
+                            ->label('Výchozí odesílatel')
+                            ->options(fn () => collect(Propojeni::adresy())->mapWithKeys(fn ($a) => [$a['adresa'] => $a['jmeno'] ? $a['jmeno'].' <'.$a['adresa'].'>' : $a['adresa']])->all())
                             ->native(false)
-                            ->dehydrated(false)
-                            ->live()
-                            ->afterStateUpdated(function (?string $state, $set): void {
-                                if ($p = NastaveniPosty::POSKYTOVATELE[$state] ?? null) {
-                                    $set('host', $p['host']);
-                                    $set('port', $p['port']);
-                                    $set('sifrovani', $p['sifrovani']);
-                                }
-                            })
-                            ->columnSpanFull(),
-                        TextInput::make('uzivatel')
-                            ->label('Schránka')
-                            ->email()
-                            ->required()
-                            ->live(onBlur: true)   // návod na DNS se přepočítá pro doménu schránky
-                            ->placeholder('info@firma.cz')
-                            ->helperText('Odesílatelem bude tahle adresa – server pošty jinou obvykle nepustí.'),
-                        TextInput::make('heslo')
-                            ->label('Heslo')
-                            ->password()
-                            ->revealable()
-                            ->autocomplete('new-password')
-                            ->regex(NastaveniPosty::HESLO_ASCII)
-                            ->validationMessages(['regex' => 'Heslo nesmí obsahovat diakritiku – při odesílání ho server pošty nepřijme. Změň ho ve schránce.'])
-                            ->required(fn () => ! NastaveniPosty::nacti()['heslo_ulozeno'])
-                            ->placeholder(fn () => NastaveniPosty::nacti()['heslo_ulozeno'] ? '•••••••• uložené' : '')
-                            ->helperText(fn () => NastaveniPosty::nacti()['heslo_ulozeno']
-                                ? 'Uložené. Vyplň jen, když ho chceš změnit.'
-                                : 'Heslo ke schránce, bez diakritiky.'),
-                        TextInput::make('jmeno')
-                            ->label('Jméno odesílatele')
-                            ->placeholder(config('app.name')),
-                        Select::make('sifrovani')
-                            ->label('Šifrování')
-                            ->options(NastaveniPosty::SIFROVANI)
                             ->selectablePlaceholder(false),
-                        TextInput::make('host')->label('Server pro odesílání')->required()->live(onBlur: true)
-                            ->helperText('Např. smtp.seznam.cz, smtp.forpsi.com.'),
-                        TextInput::make('port')->label('Port')->integer()->required(),
                     ]),
             ]);
     }
@@ -228,41 +173,74 @@ class Posta extends Page
     {
         $data = $this->form->getState();
 
-        // Nejdřív se přihlásit – nefunkční heslo by se jinak tiše uložilo
-        // a maily by přestaly odcházet.
-        $test = NastaveniPosty::otestuj($data);
-
-        if (! $test['ok']) {
-            throw ValidationException::withMessages([
-                filled($data['heslo'] ?? null) ? 'data.heslo' : 'data.uzivatel' => $test['zprava'],
-            ]);
+        if (Propojeni::propojeno() && filled($data['od'] ?? null)) {
+            Propojeni::nastavOdesilatele($data['od']);
         }
-
-        NastaveniPosty::uloz($data);
 
         if (static::webovy()) {
             NastaveniWebu::uloz(['formular_prijemce' => $data['formular_prijemce'] ?? null]);
         }
-        // Heslo po uložení z formuláře pryč, ať nezůstává v prohlížeči.
-        $this->data['heslo'] = null;
-        $this->dns = null;
 
-        Notification::make()->title('Uloženo')->body(NastaveniPosty::popisStavu())->success()->send();
+        Notification::make()->title('Uloženo')->success()->send();
     }
 
     protected function getHeaderActions(): array
     {
         return [
             ...array_filter([$this->prepinacSekce()]),
-            Action::make('vyzkouset')
-                ->label('Vyzkoušet přihlášení')
+            Action::make('propojit')
+                ->label(fn () => Propojeni::propojeno() ? 'Propojit znovu' : 'Propojit s poštou')
+                ->icon('heroicon-o-link')
+                ->color(fn () => Propojeni::propojeno() ? 'gray' : 'primary')
+                ->modalHeading('Propojit s poštou')
+                ->modalDescription('V Poště správce přidělí adresy, ze kterých aplikace smí posílat, a povolí. Klíče si aplikace vyzvedne sama a uloží šifrovaně.')
+                ->modalSubmitActionLabel('Pokračovat do Pošty')
+                ->schema([
+                    TextInput::make('url')->label('Adresa Pošty')->url()->required()->default(fn () => Propojeni::url()),
+                    // Stará schránka aplikace (nastavení nebo .env) – Pošta ji může převzít i s heslem.
+                    Toggle::make('prevzit')
+                        ->label(fn () => 'Převzít stávající schránku ('.(StaraSchranka::popis()['adresa'] ?? '').')')
+                        ->helperText('Aplikace dosud posílá ze své schránky. Když převzetí v Poště správce povolí, pošle jí aplikace údaje i heslo přímo ze serveru; po zkušebním e-mailu se stará schránka z aplikace smaže.')
+                        ->default(true)
+                        ->visible(fn () => StaraSchranka::popis() !== null),
+                ])
+                ->action(function (array $data) {
+                    try {
+                        $this->redirect(app(Propojeni::class)->zacni($data['url'], (bool) ($data['prevzit'] ?? false)));
+                    } catch (Throwable $e) {
+                        Notification::make()->title('Propojení nejde začít')->body($e->getMessage())->danger()->send();
+                    }
+                }),
+            Action::make('rucne')
+                ->label('Klíč ručně')
+                ->icon('heroicon-o-key')
+                ->color('gray')
+                ->modalHeading('Napojit ručně klíčem z Pošty')
+                ->modalDescription('Záloha k tlačítku Propojit s poštou: v Poště Aplikace → Přidat ručně ukáže API klíč a tajemství webhooků jednou.')
+                ->schema([
+                    TextInput::make('url')->label('Adresa Pošty')->url()->required()->default(fn () => Propojeni::url()),
+                    TextInput::make('token')->label('API klíč')->password()->revealable()->required()->autocomplete('off'),
+                    TextInput::make('tajemstvi')->label('Tajemství webhooků')->password()->revealable()->autocomplete('off')
+                        ->helperText('Bez něj aplikace výsledek zpráv zjišťuje dotazem (každých pár minut).'),
+                ])
+                ->action(function (array $data) {
+                    try {
+                        $aplikace = app(Propojeni::class)->rucne($data['url'], $data['token'], $data['tajemstvi'] ?? null);
+                        Notification::make()->title('Napojeno na Poštu')->body('Aplikace „'.($aplikace['nazev'] ?? '?').'“.')->success()->send();
+                    } catch (Throwable $e) {
+                        Notification::make()->title('Napojení nevyšlo')->body($e->getMessage())->danger()->persistent()->send();
+                    }
+                }),
+            Action::make('overit')
+                ->label('Ověřit')
                 ->icon('heroicon-o-signal')
                 ->color('gray')
+                ->visible(fn () => Propojeni::propojeno())
                 ->action(function (): void {
-                    $vysledek = NastaveniPosty::otestuj($this->data ?? []);
+                    $vysledek = app(Propojeni::class)->otestuj();
 
                     Notification::make()
-                        ->title($vysledek['ok'] ? 'Přihlášení funguje' : 'Přihlášení nefunguje')
+                        ->title($vysledek['ok'] ? 'Pošta odpovídá' : 'Pošta neodpovídá')
                         ->body($vysledek['zprava'])
                         ->{$vysledek['ok'] ? 'success' : 'danger'}()
                         ->persistent(! $vysledek['ok'])
@@ -273,60 +251,47 @@ class Posta extends Page
                 ->icon('heroicon-o-paper-airplane')
                 ->color('gray')
                 ->requiresConfirmation()
-                ->modalDescription(fn () => 'Pošle se na '.auth()->user()->email.' přes uloženou schránku.')
+                ->visible(fn () => Propojeni::propojeno())
+                ->modalDescription(fn () => 'Pošle se na '.auth()->user()->email.' přes Poštu.')
                 ->action(function (): void {
                     try {
-                        Mail::raw('Zkušební e-mail z '.config('app.name').' – odesílání funguje.', fn ($m) => $m
+                        $odeslano = Mail::raw('Zkušební e-mail z '.config('app.name').' – odesílání přes Poštu funguje.', fn ($m) => $m
                             ->to(auth()->user()->email)
                             ->subject(config('app.name').': zkouška odesílání'));
 
-                        Notification::make()->title('Odesláno')->body('Zkontroluj schránku '.auth()->user()->email.' – a jestli nedorazil do spamu.')->success()->send();
+                        // Po převzetí staré schránky: až Pošta tuhle zprávu potvrdí, stará schránka se smaže.
+                        $id = (string) $odeslano?->getMessageId();
+                        if (str_starts_with($id, PostaTransport::PREDPONA_ID)) {
+                            StaraSchranka::zkouska(substr($id, strlen(PostaTransport::PREDPONA_ID)));
+                        }
+
+                        Notification::make()->title('Předáno Poště')->body('Výsledek uvidíš v Logy → E-maily. Zkontroluj schránku '.auth()->user()->email.' – i spam.')->success()->send();
                     } catch (Throwable $e) {
                         Notification::make()->title('Neodešlo')->body($e->getMessage())->danger()->persistent()->send();
                     }
                 }),
+            Action::make('odpojit')
+                ->label('Odpojit')
+                ->icon('heroicon-o-no-symbol')
+                ->color('danger')
+                ->requiresConfirmation()
+                ->visible(fn () => Propojeni::propojeno())
+                ->modalDescription('Pošta klíče hned zneplatní. Aplikace pak neodešle nic, dokud se znovu nepropojí.')
+                ->action(function (): void {
+                    app(Propojeni::class)->odpoj();
+                    Notification::make()->title('Odpojeno od Pošty')->success()->send();
+                }),
         ];
-    }
-
-    public function zkontrolujDns(): void
-    {
-        $domena = $this->domena();
-
-        $poskytovatel = $this->poskytovatelDns();
-
-        // DNS se kontroluje jen u poskytovatele, jehož záznamy známe (Seznam, Forpsi).
-        $this->dns = $domena && $poskytovatel ? PostaDns::over($domena, $poskytovatel) : null;
-        $this->prefixMx = $domena && $poskytovatel === 'seznam' ? PostaDns::prefixMx($domena) : null;
-    }
-
-    /** Poskytovatel podle serveru z formuláře (jinak uloženého) – podle něj návod a kontrola DNS. */
-    public function poskytovatelDns(): ?string
-    {
-        return PostaDns::poskytovatel($this->data['host'] ?? NastaveniPosty::nacti()['host']);
-    }
-
-    /** Doména schránky – z formuláře, jinak z uložené. */
-    public function domena(): ?string
-    {
-        $schranka = $this->data['uzivatel'] ?? NastaveniPosty::nacti()['uzivatel'];
-
-        return str_contains((string) $schranka, '@') ? Str::lower(Str::afterLast($schranka, '@')) : null;
     }
 
     protected function getViewData(): array
     {
-        $domena = $this->domena();
-
-        $poskytovatel = $this->poskytovatelDns();
-
         return [
-            'stav' => NastaveniPosty::popisStavu(),
-            'domena' => $domena,
-            'poskytovatel' => $poskytovatel,
-            'nazevPoskytovatele' => $poskytovatel ? PostaDns::POSKYTOVATELE[$poskytovatel]['nazev'] : null,
-            'server' => $this->data['host'] ?? NastaveniPosty::nacti()['host'],
-            'navod' => $domena && $poskytovatel ? PostaDns::navod($domena, $this->data['uzivatel'] ?? null, $this->prefixMx, $poskytovatel) : [],
-            'bezplatna' => $poskytovatel === 'seznam' && NastaveniPosty::bezplatna($this->data['uzivatel'] ?? null),
+            'propojeni' => Propojeni::popis(),
+            'stav' => StavPosty::proZdravi(),
+            'fronta' => Odchozi::query()->count(),
+            'prevzeti' => Propojeni::prevzeti(),
+            'stara' => StaraSchranka::popis(),
         ];
     }
 }

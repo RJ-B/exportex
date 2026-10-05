@@ -33,7 +33,7 @@ vrátí odkaz na nastavení hesla. Testy: `php artisan test </dev/null`.
 Přehled · Zobrazit web · Zprávy z webu (poptávky z formuláře – firma, jazyk webu)
 Obsah webu   Hlavička a patička (název, kontakty, provozovatel, patička CZ/EN, sekce na webu – pořadí a vypnutí)
              · Úvod · Sortiment · Jak to funguje · Trasa · Doklady a clo · O nás · Ukázky zakázek
-             · Kontakt a formulář (pošta – Forpsi, kam chodí poptávky) · Kontakt – texty
+             · Kontakt a formulář (propojení s Poštou, kam chodí poptávky) · Kontakt – texty
              · Ochrana osobních údajů · SEO a měření
 Nastavení    Uživatelé
 Provoz       Logy · Stav webu (jen superadmin)
@@ -94,7 +94,7 @@ Body a dlaždice se nesmí opakovat – co je v dlaždici, do bodů nepatří.
 ## Poptávkový formulář
 
 Odesílá JSON na `/kontakt` (`KontaktController`) – poptávka se uloží do **Zprávy z webu**
-a upozornění odejde e-mailem na kontaktní e-mail (mikyska@exportex.cz) přes schránku
-z **Kontakt a formulář** (SMTP Forpsi). Dřív šla přes formsubmit.co – to je pryč.
+a upozornění odejde e-mailem na kontaktní e-mail (mikyska@exportex.cz) přes Poštu
+(posta.simren.cz, schránka Forpsi). Dřív šla přes formsubmit.co – to je pryč.
 Ochrana proti spamu: skryté pole a podepsaná časová past (`OchranaFormulare`), limit
 3/min a 20/den z jedné IP, serverová validace; žádná captcha.

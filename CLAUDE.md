@@ -58,14 +58,12 @@ skryté pole a podepsaný čas z atributů formuláře (`data-past`, `data-cas`)
 `throttle:formular` (JSON 429), `OdeslaniZpravy`; `botCheck()` v `main.js` jen navíc.
 Žádnou vrstvu neodstraňovat bez rozhovoru. formsubmit.co se nepoužívá.
 
-**Pošta exportex.cz je u Forpsi**, ne u Seznamu: SMTP `smtp.forpsi.com:465` SSL, schránka
-mikyska@exportex.cz (zároveň odesílatel). Předvyplněno migrací, **heslo zadává správce
-v administraci** – do kódu, `.env.example`, seederů ani migrací nikdy. Pošta šablony je
-tady upravená na libovolný SMTP server: výběr poskytovatele (Seznam / Forpsi / jiný), hlášky
-bez „Seznamu“, návod a kontrola DNS podle poskytovatele (`PostaDns::poskytovatel()`; Forpsi =
-MX `*.forpsi.com`, SPF `include:_spf.forpsi.com`, DMARC; DKIM se nekontroluje – selektor
-volí Forpsi). U jiného serveru se DNS nekontroluje. Portál dostane doménu pro DNS pošty
-(`Posta::domenaSchranky()`) jen u Seznamu.
+**Pošta jde přes Poštu (posta.simren.cz)** – Administrace → Kontakt a formulář → Propojit
+s poštou (`App\Support\Posta`, transport `posta`, `Mail::` beze změny). Schránka exportex.cz
+zůstává u Forpsi (`smtp.forpsi.com:465` SSL, mikyska@exportex.cz) – v Poště ji zadá správce
+Pošty i s heslem (v aplikaci heslo nikdy nebylo, převzít není co). DNS domény (SPF, DKIM,
+DMARC) hlídá Pošta. Řádky `posta.host/port/sifrovani/uzivatel` z migrace `udaje_exportex`
+zůstávají – migrací se nemažou (docs prevodu, smaže je až převzetí schránky).
 
 ## Bezpečnost
 

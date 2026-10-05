@@ -9,7 +9,9 @@ use App\Filament\Resources\ErrorLogResource;
 use App\Filament\Resources\MailLogResource;
 use App\Models\ErrorLog;
 use App\Models\MailLog;
-use App\Support\Posta;
+use App\Support\Posta\Odchozi;
+use App\Support\Posta\Propojeni;
+use App\Support\Posta\StavPosty;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -58,16 +60,14 @@ class StavAplikace extends StatsOverviewWidget
 
     private function posta(): Stat
     {
-        $kontrola = Posta::posledniKontrola();
-
-        // Bez schránky v aplikaci může pošta pořád chodit podle nastavení serveru (.env).
-        $zeServeru = ! in_array(config('mail.default'), ['log', 'array'], true);
+        $stav = StavPosty::proZdravi();
+        $fronta = Odchozi::query()->count();
 
         [$hodnota, $popis, $barva] = match (true) {
-            ! Posta::kompletni() && $zeServeru => ['Ze serveru', 'posílá se podle .env – schránku nastavte v aplikaci', 'info'],
-            ! Posta::kompletni() => ['Chybí', 'schránka není nastavená – e-maily neodchází', 'warning'],
-            ($kontrola['ok'] ?? null) === false => ['Nefunguje', 'přihlášení ke schránce selhalo', 'danger'],
-            default => ['V pořádku', Posta::nacti()['uzivatel'], 'success'],
+            ! Propojeni::propojeno() => ['Nepropojeno', 'propojit s Poštou – e-maily neodcházejí', 'warning'],
+            $stav['ok'] === false => ['Problém', mb_substr((string) $stav['zprava'], 0, 90), 'danger'],
+            $fronta > 0 => ['Čeká '.$fronta, 'Pošta zrovna nepřijímá – předá se samo', 'info'],
+            default => ['V pořádku', 'přes Poštu z '.(Propojeni::odesilatel()['adresa'] ?? '–'), 'success'],
         };
 
         return Stat::make('Pošta', $hodnota)->description($popis)->color($barva)->url(PostaStranka::getUrl());

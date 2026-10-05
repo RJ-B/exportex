@@ -33,27 +33,24 @@ Zakládá a udržuje portál – tady pro kontrolu, kdyby se web zakládal znovu
    `SESSION_DRIVER=database`, `CACHE_STORE=database`, `QUEUE_CONNECTION=database`,
    `MAIL_MAILER=log` (skutečná pošta se nastavuje v administraci, viz níž).
    Hesla a klíče jen v `.env` na serveru, nikdy v repu.
-3. Po prvním nasazení: `php artisan migrate` doplní údaje firmy a předvyplní poštu
-   (bez hesla), `storage:link` zpřístupní fotky nahrané v administraci.
+3. Po prvním nasazení: `php artisan migrate` doplní údaje firmy a předvyplní starou
+   schránku (bez hesla, Pošta ji nepoužívá), `storage:link` zpřístupní fotky nahrané v administraci.
 4. Účet správce z CRM (*Můj účet správce* → `simren:spravce`) – heslo si nastaví sám přes odkaz.
 
-## Pošta – Forpsi
+## Pošta – přes Poštu, schránka u Forpsi
 
-Schránky exportex.cz jsou u **Forpsi** a tam i zůstanou. Web neposílá přes server
-(ten žádnou poštu nemá), ale přihlásí se ke schránce u Forpsi:
+Schránky exportex.cz jsou u **Forpsi** a tam i zůstanou. Web neposílá přes server ani
+přímo přes SMTP, ale přes **Poštu** (posta.simren.cz):
 
-- Administrace → *Obsah webu → Kontakt a formulář*: poskytovatel **Forpsi**
-  (`smtp.forpsi.com`, port 465, SSL/TLS), schránka `mikyska@exportex.cz` – obojí je
-  předvyplněné. **Heslo ke schránce zadá správce sám** a uloží (aplikace se nejdřív zkusí
-  přihlásit; heslo se ukládá zašifrované a do formuláře se nevrací). Pak *Poslat zkušební
-  e-mail*.
-- Dokud heslo není uložené, poptávky se na webu ukládají do *Zpráv z webu*, jen e-mail
-  neodchází – Pošta to v menu hlásí štítkem „!“.
+- Administrace → *Obsah webu → Kontakt a formulář* → **Propojit s poštou**. V Poště
+  správce přidělí aplikaci schránku `mikyska@exportex.cz` (Forpsi, `smtp.forpsi.com`,
+  port 465, SSL/TLS) – heslo zadá v Poště, aplikace ho nemá. Pak *Poslat zkušební e-mail*.
+- Dokud aplikace není propojená, poptávky se na webu ukládají do *Zpráv z webu*, jen e-mail
+  neodchází; `simren:zdravi` hlásí „nepropojeno“ a portál otevře incident „Neodchází pošta“.
 - Upozornění na poptávky chodí na `mikyska@exportex.cz` (kontaktní e-mail v *Hlavička
   a patička*, jinou adresu jde nastavit v *Kontakt a formulář*). Odpověď jde rovnou
   zákazníkovi.
-- Kontrola přihlášení ke schránce běží každých 6 hodin (`posta:kontrola`); když se heslo
-  ve Forpsi změní, portál otevře incident „Neodchází pošta“.
+- Opakování, kontrolu schránky a kopii do Odeslaných dělá Pošta.
 
 ## DNS (u Forpsi)
 

@@ -22,7 +22,9 @@ use Illuminate\Support\Str;
  * E-maily — co odešlo, co ne a co se s tím dělalo.
  *
  * Mail na rozdíl od auditu prochází stavy a dá se s ním ještě něco udělat,
- * proto tu je akce „Poslat znovu". Stav se schválně skládá ze čtyř údajů
+ * proto tu je akce „Poslat znovu" (zařadí ho znovu Pošta). Posílá se přes
+ * Poštu (posta.simren.cz): „ve frontě Pošty“ = předáno, výsledek přijde
+ * webhookem; „selhalo“ = Pošta ho nedoručila nebo odmítla. Stav se schválně skládá ze čtyř údajů
  * (co / kdy / kdo / kolikátý pokus): „Odesláno" samo o sobě neodpoví na
  * otázku, kvůli které se sem člověk dívá — jestli to doopravdy došlo a
  * jestli u toho někdo musel zasáhnout.
@@ -121,6 +123,7 @@ class MailLogResource extends Resource
                         $record->wasRetried() => 'warning',
                         $record->status === MailLog::STATUS_SENT => 'success',
                         $record->status === MailLog::STATUS_FAILED => 'danger',
+                        $record->status === MailLog::STATUS_QUEUED => 'info',
                         default => 'gray',
                     })
                     // Čtyři patra POD SEBOU: stav, kdy, kdo, kolikátý pokus.
@@ -139,9 +142,11 @@ class MailLogResource extends Resource
                     ->label('Stav')
                     ->options([
                         MailLog::STATUS_SENT => 'Odesláno',
+                        MailLog::STATUS_QUEUED => 'Ve frontě Pošty',
                         MailLog::STATUS_FAILED => 'Selhalo',
                         MailLog::STATUS_SENDING => 'Odesílá se',
-                    ]),
+                    ])
+                    ->native(false),
                 Filter::make('neodeslane')
                     ->label('Jen neodeslané')
                     // Parametr se MUSÍ jmenovat `$query` — Filament vstřikuje
@@ -163,8 +168,8 @@ class MailLogResource extends Resource
                     ->label('Poslat znovu')
                     ->icon('heroicon-o-arrow-path')
                     ->requiresConfirmation()
-                    ->modalDescription('E-mail se pošle na tutéž adresu se stejným obsahem.')
-                    // Jen selhané a jen s uloženým tělem — bez MIME není co poslat.
+                    ->modalDescription('Pošta zprávu zařadí znovu – stejný obsah, tíž příjemci.')
+                    // Jen nedoručené v Poště – Pošta drží obsah (90 dní).
                     ->visible(fn (MailLog $record) => $record->isRetryable())
                     ->action(function (MailLog $record) {
                         $vysledek = app(MailRetrier::class)->retry($record);

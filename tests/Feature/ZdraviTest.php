@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Support\Posta;
 use App\Support\Zdravi;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -67,30 +66,6 @@ class ZdraviTest extends TestCase
         $this->assertSame('došla paměť', $d['chyby']['posledni']['zprava']);
         $this->assertLessThan(5, $d['planovac']['pred_s']);
         $this->assertSame(0, $d['fronta']['selhane']);
-    }
-
-    public function test_diagnostika_posle_jen_domenu_schranky_email_profi(): void
-    {
-        Posta::$prihlaseni = fn () => null;   // nikdy skutečné SMTP
-
-        try {
-            $this->assertNull(Zdravi::diagnostika()['posta']['domena']);
-
-            Posta::uloz(['uzivatel' => 'Info@Firma.cz', 'host' => 'smtp.seznam.cz', 'port' => '465', 'sifrovani' => 'smtps', 'heslo' => 'Heslo-1']);
-            $posta = Zdravi::diagnostika()['posta'];
-            $this->assertTrue($posta['nastavena']);
-            $this->assertSame('firma.cz', $posta['domena']);
-            // Adresa schránky do portálu nejde.
-            $this->assertStringNotContainsString('info@', (string) json_encode(Zdravi::diagnostika()));
-
-            // Bezplatná schránka ani jiný poskytovatel – DNS Seznamu tam nepatří.
-            Posta::uloz(['uzivatel' => 'firma@seznam.cz']);
-            $this->assertNull(Zdravi::diagnostika()['posta']['domena']);
-            Posta::uloz(['uzivatel' => 'info@firma.cz', 'host' => 'smtp.gmail.com']);
-            $this->assertNull(Zdravi::diagnostika()['posta']['domena']);
-        } finally {
-            Posta::$prihlaseni = null;
-        }
     }
 
     public function test_planovac_ma_znacku(): void

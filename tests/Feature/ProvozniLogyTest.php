@@ -10,7 +10,6 @@ use App\Models\ErrorLog;
 use App\Models\MailLog;
 use App\Models\User;
 use App\Services\ErrorLogger;
-use App\Services\MailRetrier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
@@ -38,29 +37,6 @@ class ProvozniLogyTest extends TestCase
         $this->assertSame('Potvrzení objednávky', $log->subject);
         $this->assertSame(['klient@example.cz', 'kopie@example.cz'], $log->recipients);
         $this->assertNull($log->raw_mime);
-    }
-
-    public function test_selhany_mail_jde_poslat_znovu_a_stopa_po_chybe_zustane(): void
-    {
-        $log = MailLog::create([
-            'status' => MailLog::STATUS_FAILED,
-            'to_email' => 'klient@example.cz',
-            'recipients' => ['klient@example.cz'],
-            'subject' => 'Faktura',
-            'error' => 'Connection timed out',
-            'failed_at' => now()->subHour(),
-            'raw_mime' => "Subject: Faktura\r\nTo: klient@example.cz\r\nFrom: app@example.cz\r\n\r\nText",
-        ]);
-
-        $vysledek = app(MailRetrier::class)->retry($log);
-
-        $log->refresh();
-        $this->assertTrue($vysledek['ok']);
-        $this->assertSame('Odesláno po chybě', $log->statusLabel());
-        $this->assertSame('automaticky', $log->odesilatelPopis());
-        $this->assertNull($log->raw_mime);
-        $this->assertNotNull($log->failed_at);
-        $this->assertSame(1, MailLog::count(), 'opakování nesmí založit druhý záznam');
     }
 
     public function test_opakovana_chyba_se_agreguje_i_s_ruznym_uuid(): void

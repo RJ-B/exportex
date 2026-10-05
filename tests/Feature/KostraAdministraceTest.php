@@ -3,16 +3,24 @@
 namespace Tests\Feature;
 
 use App\Enums\StavWebu;
-use App\Filament\Pages\StavWebu as StavWebuStranka;
+use App\Events\SekceWebuZmeneny;
 use App\Filament\Pages\HlavickaPaticka;
+use App\Filament\Pages\OchranaOsobnichUdaju;
 use App\Filament\Pages\Posta;
-use App\Filament\Pages\SeoMereni;
-use App\Support\NastaveniWebu;
+use App\Filament\Pages\StavWebu as StavWebuStranka;
+use App\Filament\Support\CastObsahuWebu;
 use App\Models\Nastaveni;
 use App\Models\User;
+use App\Support\NastaveniWebu;
+use App\Support\OchranaUdaju;
+use App\Support\SekceWebu;
+use App\Support\TextyStavuWebu;
 use App\Support\ZakladniUdaje as Udaje;
 use Filament\Actions\Testing\TestAction;
+use Filament\Facades\Filament;
+use Filament\Pages\Page;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -129,7 +137,7 @@ class KostraAdministraceTest extends TestCase
             ->assertOk()
             ->assertSee('Stav aplikace')
             ->assertSee('Pošta')
-            ->assertSee('schránka není nastavená')
+            ->assertSee('Nepropojeno')
             ->assertSee('Nevyřešené chyby');
 
         $this->actingAs($this->ucet('admin'))->get('/admin')
@@ -140,7 +148,7 @@ class KostraAdministraceTest extends TestCase
 
     public function test_vlastni_text_udrzby(): void
     {
-        \App\Support\TextyStavuWebu::uloz(['udrzba_nadpis' => 'Pracujeme na webu', 'udrzba_text' => '']);
+        TextyStavuWebu::uloz(['udrzba_nadpis' => 'Pracujeme na webu', 'udrzba_text' => '']);
         Nastaveni::nastav(StavWebu::KLIC, 'udrzba');
 
         $this->get('/')->assertStatus(503)->assertSee('Pracujeme na webu')->assertSee('Probíhá krátká údržba');
@@ -151,7 +159,7 @@ class KostraAdministraceTest extends TestCase
             ->call('uloz')
             ->assertHasNoErrors();
 
-        $this->assertSame('Otevíráme v listopadu.', \App\Support\TextyStavuWebu::nacti()['pripravujeme_text']);
+        $this->assertSame('Otevíráme v listopadu.', TextyStavuWebu::nacti()['pripravujeme_text']);
     }
 
     public function test_sekci_jde_vypnout_prepinacem_a_seradit(): void
@@ -159,11 +167,11 @@ class KostraAdministraceTest extends TestCase
         // Exportex: sekce úvodní stránky (Obsah webu) + Kontakt a Měření ze šablony.
         $this->assertEqualsCanonicalizing(
             ['formular' => 'Kontakt', 'mereni' => 'Měření návštěvnosti', 'sortiment' => 'Sortiment', 'jak' => 'Jak to funguje', 'trasa' => 'Trasa', 'doklady' => 'Doklady a clo', 'onas' => 'O nás', 'reference' => 'Ukázky zakázek'],
-            \App\Support\SekceWebu::vsechny(),
+            SekceWebu::vsechny(),
         );
         // Výchozí pořadí = pořadí sekcí na webu před převodem (01–07); Kontakt na konci.
-        $this->assertSame(['sortiment', 'jak', 'trasa', 'doklady', 'onas', 'reference', 'formular'], array_keys(\App\Support\SekceWebu::stranky()));
-        $this->assertContains(['klic' => 'formular', 'nazev' => 'Kontakt', 'odkaz' => '/kontakt'], \App\Support\SekceWebu::menu());
+        $this->assertSame(['sortiment', 'jak', 'trasa', 'doklady', 'onas', 'reference', 'formular'], array_keys(SekceWebu::stranky()));
+        $this->assertContains(['klic' => 'formular', 'nazev' => 'Kontakt', 'odkaz' => '/kontakt'], SekceWebu::menu());
         $this->assertSame(160, Posta::getNavigationSort());
 
         // Přepínač a pořadí v Hlavičce a patičce.
@@ -173,15 +181,15 @@ class KostraAdministraceTest extends TestCase
             ->set('data.sekce', [['nazev' => 'Kontakt', 'zapnuto' => false]])
             ->call('uloz')
             ->assertHasNoErrors();
-        $this->assertFalse(\App\Support\SekceWebu::zapnuta('formular'));
-        $this->assertNotContains('formular', array_column(\App\Support\SekceWebu::menu(), 'klic'), 'Vypnutá sekce v menu webu není.');
+        $this->assertFalse(SekceWebu::zapnuta('formular'));
+        $this->assertNotContains('formular', array_column(SekceWebu::menu(), 'klic'), 'Vypnutá sekce v menu webu není.');
 
         // Přepínač v hlavičce stránky sekce.
         Livewire::test(Posta::class)->callAction('prepnoutSekci');
-        $this->assertTrue(\App\Support\SekceWebu::zapnuta('formular'));
+        $this->assertTrue(SekceWebu::zapnuta('formular'));
 
         // Veřejná routa sekce: vypnutá = 404 pro návštěvníka, přihlášený ji vidí.
-        \App\Support\SekceWebu::nastav('formular', false);
+        SekceWebu::nastav('formular', false);
         auth()->logout();
         $this->get('/kontakt')->assertNotFound();
         $this->actingAs($this->ucet('admin'))->get('/kontakt')->assertRedirect(url('/').'#kontakt');
@@ -194,8 +202,8 @@ class KostraAdministraceTest extends TestCase
     {
         Udaje::uloz(['nazev' => 'Pekárna U Nováků', 'firma' => 'Pekárna U Nováků s.r.o.', 'email' => 'info@pekarna.cz', 'ico' => '']);
         // Exportex má z migrace vyplněné údaje a zapnuté smlouvy – test šablony začíná od prázdna.
-        \App\Support\OchranaUdaju::uloz(['smlouvy' => false]);
-        $this->assertContains('IČO – Hlavička a patička', \App\Support\OchranaUdaju::chybejici());
+        OchranaUdaju::uloz(['smlouvy' => false]);
+        $this->assertContains('IČO – Hlavička a patička', OchranaUdaju::chybejici());
 
         // Přístupná vždy – i v Údržbě.
         Nastaveni::nastav(StavWebu::KLIC, 'udrzba');
@@ -209,8 +217,8 @@ class KostraAdministraceTest extends TestCase
 
         // Měření s Google Analytics, smlouvy a vypnutý formulář.
         NastaveniWebu::uloz(['ga4_id' => 'G-TEST123']);
-        \App\Support\OchranaUdaju::uloz(['smlouvy' => true, 'ucinnost_od' => '2026-10-01', 'dalsi_prijemci' => "platební brána Comgate, a.s."]);
-        \App\Support\SekceWebu::nastav('formular', false);
+        OchranaUdaju::uloz(['smlouvy' => true, 'ucinnost_od' => '2026-10-01', 'dalsi_prijemci' => 'platební brána Comgate, a.s.']);
+        SekceWebu::nastav('formular', false);
 
         $html = $this->get('/ochrana-osobnich-udaju')->getContent();
         $this->assertStringContainsString('Google Ireland Limited', $html);
@@ -221,16 +229,16 @@ class KostraAdministraceTest extends TestCase
         $this->assertStringNotContainsString('Zpráva z kontaktního formuláře', $html);
 
         // Měření vypnuté přepínačem = Google z textu zmizí, i když ID zůstalo.
-        \App\Support\SekceWebu::nastav('mereni', false);
+        SekceWebu::nastav('mereni', false);
         $this->assertStringNotContainsString('Google', $this->get('/ochrana-osobnich-udaju')->getContent());
 
         // Administrace: stránka se uloží a upozorní na chybějící údaje.
-        Livewire::actingAs($this->ucet('admin'))->test(\App\Filament\Pages\OchranaOsobnichUdaju::class)
+        Livewire::actingAs($this->ucet('admin'))->test(OchranaOsobnichUdaju::class)
             ->assertSee('Co ještě chybí')
             ->set('data.formular_doba', '1 rok')
             ->call('uloz')
             ->assertHasNoErrors();
-        $this->assertSame('1 rok', \App\Support\OchranaUdaju::nacti()['formular_doba']);
+        $this->assertSame('1 rok', OchranaUdaju::nacti()['formular_doba']);
     }
 
     public function test_cookie_lista_jen_kdyz_web_meri(): void
@@ -261,66 +269,84 @@ class KostraAdministraceTest extends TestCase
         NastaveniWebu::uloz(['cookie_lista' => false]);
         $this->assertStringNotContainsString('googletagmanager', $this->get('/')->getContent());
         NastaveniWebu::uloz(['cookie_lista' => true]);
-        \App\Support\SekceWebu::nastav('mereni', false);
+        SekceWebu::nastav('mereni', false);
         $this->assertStringNotContainsString('googletagmanager', $this->get('/')->getContent());
     }
 
     public function test_zmena_sekci_se_ozve_projektu(): void
     {
-        \Illuminate\Support\Facades\Event::fake([\App\Events\SekceWebuZmeneny::class]);
+        Event::fake([SekceWebuZmeneny::class]);
 
-        \App\Support\SekceWebu::nastav('formular', false);
-        \App\Support\SekceWebu::nastavPoradi(['formular']);
+        SekceWebu::nastav('formular', false);
+        SekceWebu::nastavPoradi(['formular']);
 
-        \Illuminate\Support\Facades\Event::assertDispatchedTimes(\App\Events\SekceWebuZmeneny::class, 2);
-        $this->assertSame(['formular'], \App\Support\SekceWebu::ulozenePoradi());
+        Event::assertDispatchedTimes(SekceWebuZmeneny::class, 2);
+        $this->assertSame(['formular'], SekceWebu::ulozenePoradi());
     }
 
     public function test_jadro_webu_nejde_vypnout_a_sekce_jen_na_strance_neni_v_menu(): void
     {
-        \Filament\Facades\Filament::getPanel('admin')->pages([SekceRozvrhTest::class, SekceGalerieTest::class]);
-        \App\Support\SekceWebu::nastavPoradi(['galerie-test', 'formular', 'rozvrh-test']);
+        Filament::getPanel('admin')->pages([SekceRozvrhTest::class, SekceGalerieTest::class]);
+        SekceWebu::nastavPoradi(['galerie-test', 'formular', 'rozvrh-test']);
 
         // Jádro: uložené „vypnuto“ neplatí a přepínač v hlavičce není.
-        \App\Support\SekceWebu::nastav('rozvrh-test', false);
-        $this->assertTrue(\App\Support\SekceWebu::zapnuta('rozvrh-test'));
+        SekceWebu::nastav('rozvrh-test', false);
+        $this->assertTrue(SekceWebu::zapnuta('rozvrh-test'));
         $this->assertNull((new \ReflectionMethod(SekceRozvrhTest::class, 'prepinacSekce'))->invoke(new SekceRozvrhTest));
         $this->assertNull(SekceRozvrhTest::getNavigationBadge());
 
         // Galerie je na stránce a v pořadí, v menu webu ne.
         $testovaci = fn (array $klice) => array_values(array_intersect($klice, ['galerie-test', 'formular', 'rozvrh-test']));
-        $this->assertSame(['galerie-test', 'formular', 'rozvrh-test'], $testovaci(\App\Support\SekceWebu::naWebu()));
-        $this->assertSame(['formular', 'rozvrh-test'], $testovaci(array_column(\App\Support\SekceWebu::menu(), 'klic')));
+        $this->assertSame(['galerie-test', 'formular', 'rozvrh-test'], $testovaci(SekceWebu::naWebu()));
+        $this->assertSame(['formular', 'rozvrh-test'], $testovaci(array_column(SekceWebu::menu(), 'klic')));
 
-        \App\Support\SekceWebu::nastav('galerie-test', false);
-        $this->assertSame(['formular', 'rozvrh-test'], $testovaci(\App\Support\SekceWebu::naWebu()));
+        SekceWebu::nastav('galerie-test', false);
+        $this->assertSame(['formular', 'rozvrh-test'], $testovaci(SekceWebu::naWebu()));
     }
 }
 
 /** Sekce jádra pro test: jde přesunout, ne vypnout. */
-class SekceRozvrhTest extends \Filament\Pages\Page
+class SekceRozvrhTest extends Page
 {
-    use \App\Filament\Support\CastObsahuWebu;
+    use CastObsahuWebu;
 
     protected static ?string $navigationLabel = 'Rozvrh';
 
-    public static function klicSekce(): ?string { return 'rozvrh-test'; }
+    public static function klicSekce(): ?string
+    {
+        return 'rozvrh-test';
+    }
 
-    public static function odkazSekce(): ?string { return '/#rozvrh'; }
+    public static function odkazSekce(): ?string
+    {
+        return '/#rozvrh';
+    }
 
-    public static function vypnoutJde(): bool { return false; }
+    public static function vypnoutJde(): bool
+    {
+        return false;
+    }
 }
 
 /** Sekce jen na stránce: v pořadí, ne v menu webu. */
-class SekceGalerieTest extends \Filament\Pages\Page
+class SekceGalerieTest extends Page
 {
-    use \App\Filament\Support\CastObsahuWebu;
+    use CastObsahuWebu;
 
     protected static ?string $navigationLabel = 'Galerie';
 
-    public static function klicSekce(): ?string { return 'galerie-test'; }
+    public static function klicSekce(): ?string
+    {
+        return 'galerie-test';
+    }
 
-    public static function odkazSekce(): ?string { return '/#galerie'; }
+    public static function odkazSekce(): ?string
+    {
+        return '/#galerie';
+    }
 
-    public static function vMenuWebu(): bool { return false; }
+    public static function vMenuWebu(): bool
+    {
+        return false;
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Support\Posta\StavPosty;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -94,9 +95,9 @@ final class Zdravi
             'fronta' => self::fronta(),
             'chyby' => self::chyby(),
             'disk' => self::disk(),
-            // Poslední ověření přihlášení ke schránce (posta:kontrola); ok=false = pošta neodchází.
-            // domena = doména schránky Email Profi (bez adresy) – portál podle ní nastaví DNS pošty.
-            'posta' => rescue(fn () => [...Posta::posledniKontrola(), 'domena' => Posta::domenaSchranky()], null, false),
+            // Pošta (posta.simren.cz): ok=false = pošta neodchází (nepropojeno, Pošta
+            // nedostupná, nedoručené nad prahem) – portál otevře incident „Neodchází pošta“.
+            'posta' => rescue(fn () => StavPosty::proZdravi(), null, false),
             'prostredi' => app()->environment(),
             'ladeni' => (bool) config('app.debug'),
         ];

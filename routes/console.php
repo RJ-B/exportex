@@ -10,9 +10,8 @@ use Illuminate\Support\Facades\Schedule;
 // Provozní logy. withoutOverlapping(minuty, false): druhý parametr vypíná
 // pcntl_signal(), který Hestia zakazuje; platnost zámku podle doby běhu,
 // ne na den – po pádu by se úloha do vypršení zámku ani nezkusila.
-Schedule::command('mail:retry-failed')->everyFiveMinutes()->withoutOverlapping(10, false);
-Schedule::command('mail:reconcile')->hourly()->withoutOverlapping(55, false);
-Schedule::command('posta:kontrola')->everySixHours()->withoutOverlapping(10, false);
+// Pošta (posta:fronta, posta:obnov-token) se plánuje v PostaServiceProvider;
+// opakování a kontrolu schránek dělá Pošta sama.
 Schedule::command('logs:prune')->dailyAt('03:30')->withoutOverlapping(60, false);
 
 // Značka pro portál, že plánovač běží (App\Support\Zdravi).

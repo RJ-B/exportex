@@ -26,6 +26,11 @@
         <dt>Kdo poslal</dt>
         <dd>{{ $mail->odesilatelPopis() }}</dd>
 
+        @if ($mail->posta_id)
+            <dt>Id v Poště</dt>
+            <dd class="simren-mono">{{ $mail->posta_id }}</dd>
+        @endif
+
         <dt>Typ</dt>
         <dd class="simren-mono">{{ $mail->mailable ? class_basename($mail->mailable) : '—' }}</dd>
     </dl>

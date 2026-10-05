@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use App\Models\MailLog;
 use App\Models\User;
+use App\Support\Posta\PostaTransport;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\SentMessage;
@@ -29,9 +30,7 @@ class LoggingTransport implements TransportInterface
     /**
      * Vypne zápis do logu pro jedno odeslání.
      *
-     * Nastavuje ho MailRetrier: opakované odeslání jde tímtéž transportem a bez
-     * tohohle by založilo DRUHÝ záznam místo aktualizace původního — navíc prázdný,
-     * protože se posílá syrový MIME, ze kterého se předmět nedá vytáhnout.
+     * Pro odeslání, které se do logu psát nemá (zkouška spojení apod.).
      */
     public static bool $suppress = false;
 
@@ -48,22 +47,20 @@ class LoggingTransport implements TransportInterface
         try {
             $sent = $this->inner->send($message, $envelope);
 
-            $this->finish($log, fn (MailLog $l) => $l->update([
-                'status' => MailLog::STATUS_SENT,
-                'sent_at' => now(),
-            ]));
+            // Přes Poštu: předáno, výsledek (odesláno / nedoručeno) přijde později
+            // webhookem nebo dotazem na stav – záznam nese id zprávy v Poště.
+            $this->finish($log, fn (MailLog $l) => $this->inner instanceof PostaTransport && $sent
+                ? PostaTransport::poOdeslani($l, $sent)
+                : $l->update(['status' => MailLog::STATUS_SENT, 'sent_at' => now()]));
 
             return $sent;
         } catch (Throwable $e) {
-            // Tělo se ukládá AŽ TADY: `$message` je pořád v scope, takže není důvod
-            // serializovat celý MIME u každého odeslání a u úspěšných ho zase mazat.
-            // U mailu s PDF jsou to stovky kB zapsaných a hned zahozených, a mezitím
-            // osobní údaje v databázi. Drží se jen to, co se má opakovat.
+            // Pošta zprávu odmítla (neplatná adresa…) – opakování nepomůže, obsah se
+            // nedrží (osobní údaje); poslat znovu jde jen z aplikace.
             $this->finish($log, fn (MailLog $l) => $l->update([
                 'status' => MailLog::STATUS_FAILED,
                 'failed_at' => now(),
                 'error' => mb_substr($e->getMessage(), 0, 2000),
-                'raw_mime' => $this->safeToString($message),
             ]));
 
             throw $e;
@@ -141,17 +138,6 @@ class LoggingTransport implements TransportInterface
         try {
             return User::query()->where('email', $email)->value('id');
         } catch (Throwable) {
-            return null;
-        }
-    }
-
-    private function safeToString(RawMessage $message): ?string
-    {
-        try {
-            return $message->toString();
-        } catch (Throwable) {
-            // Např. neúplná zpráva bez příjemce — ta stejně spadne v transportu
-            // a důvod se dozvíme z chybové hlášky.
             return null;
         }
     }

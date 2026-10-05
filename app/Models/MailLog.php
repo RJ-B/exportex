@@ -16,9 +16,13 @@ class MailLog extends Model
 
     public const STATUS_FAILED = 'failed';
 
+    /** Předáno Poště (posta.simren.cz), výsledek přijde webhookem / dotazem na stav. */
+    public const STATUS_QUEUED = 'queued';
+
     protected $fillable = [
         'status', 'to_email', 'to_name', 'recipients', 'subject', 'mailable',
         'user_id', 'error', 'attempts', 'retried_by', 'sent_at', 'failed_at', 'raw_mime',
+        'posta_id', 'posta_kontrola_at',
     ];
 
     protected function casts(): array
@@ -26,6 +30,7 @@ class MailLog extends Model
         return [
             'sent_at' => 'datetime',
             'failed_at' => 'datetime',
+            'posta_kontrola_at' => 'datetime',
             'recipients' => 'array',
         ];
     }
@@ -52,7 +57,7 @@ class MailLog extends Model
 
     /**
      * Kdo mail poslal znovu ručně. `null` = poslala ho automatika
-     * (`mail:retry-failed`) — v UI se to píše jako „automaticky".
+     * (plánovač, Pošta) — v UI se to píše jako „automaticky".
      *
      * Bez cizího klíče: `users` bývá v ekosystému VIEW do sdílené identity
      * a MariaDB na VIEW klíč nepověsí (errno 150).
@@ -73,10 +78,14 @@ class MailLog extends Model
         return $this->status === self::STATUS_FAILED;
     }
 
-    /** Jde poslat znovu? Jen selhané, u kterých máme uložený syrový mail. */
+    /**
+     * Jde poslat znovu? Jen selhané v Poště (nedoručené) – Pošta je pošle znovu
+     * se stejným obsahem, dokud ho drží (90 dní). Zprávu, kterou Pošta vůbec
+     * nepřijala (odmítnutá adresa), je potřeba poslat znovu z aplikace.
+     */
     public function isRetryable(): bool
     {
-        return $this->isFailed() && ! empty($this->raw_mime);
+        return $this->isFailed() && filled($this->posta_id);
     }
 
     /**
@@ -96,6 +105,7 @@ class MailLog extends Model
             $this->wasRetried() => 'Odesláno po chybě',
             $this->status === self::STATUS_SENT => 'Odesláno',
             $this->status === self::STATUS_FAILED => 'Selhalo',
+            $this->status === self::STATUS_QUEUED => 'Ve frontě Pošty',
             default => 'Odesílá se',
         };
     }
