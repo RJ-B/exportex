@@ -5,12 +5,22 @@
  *
  * Aplikace neposílá přes vlastní SMTP: předá zprávu Poště (mail transport
  * `posta`, App\Support\Posta). Propojení (token, tajemství webhooků, přidělené
- * adresy) se nastavuje v administraci tlačítkem Propojit s poštou a ukládá
- * šifrovaně v `nastaveni` – ne v .env.
+ * adresy) zařídí portál (posta:z-portalu), nebo tlačítko Propojit s poštou
+ * v administraci; ukládá se šifrovaně v `nastaveni`. .env jen jako záloha.
  */
 return [
     // Adresa Pošty – výchozí pro tlačítko Propojit s poštou (jde změnit v okně).
     'url' => env('POSTA_URL', 'https://posta.simren.cz'),
+
+    /*
+     * Propojení z .env – platí jen, když v nastavení žádné není. Weby z portálu
+     * dostanou klíče do nastavení samy (posta:z-portalu); .env je záloha pro
+     * ruční nasazení. Token a tajemství jen do .env serveru, nikdy do gitu.
+     * POSTA_OD = odesílatel (musí být přidělený v Poště; bez něj platí první přidělená).
+     */
+    'token' => env('POSTA_TOKEN'),
+    'webhook_tajemstvi' => env('POSTA_WEBHOOK_TAJEMSTVI'),
+    'od' => env('POSTA_OD'),
 
     // Jak dlouho čekat na odpověď API, než se zpráva uloží do odchozí fronty.
     'timeout' => 10,

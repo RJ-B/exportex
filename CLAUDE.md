@@ -64,6 +64,7 @@ zůstává u Forpsi (`smtp.forpsi.com:465` SSL, mikyska@exportex.cz) – v Pošt
 Pošty i s heslem (v aplikaci heslo nikdy nebylo, převzít není co). DNS domény (SPF, DKIM,
 DMARC) hlídá Pošta. Řádky `posta.host/port/sifrovani/uzivatel` z migrace `udaje_exportex`
 zůstávají – migrací se nemažou (docs prevodu, smaže je až převzetí schránky).
+Web z portálu propojí s Poštou portál sám (`posta:z-portalu`, `app/Support/Posta/PrikazZPortalu.php`, klíče na stdin); `.env` (`POSTA_TOKEN`, `POSTA_WEBHOOK_TAJEMSTVI`, `POSTA_OD`) je jen záloha, když v nastavení nic není.
 
 ## Bezpečnost
 

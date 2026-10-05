@@ -19,6 +19,9 @@ class MailLog extends Model
     /** Předáno Poště (posta.simren.cz), výsledek přijde webhookem / dotazem na stav. */
     public const STATUS_QUEUED = 'queued';
 
+    /** Pošta v testovacím režimu zprávu zadržela – žádný příjemce nebyl interní. Neopakuje se. */
+    public const STATUS_HELD = 'held';
+
     protected $fillable = [
         'status', 'to_email', 'to_name', 'recipients', 'subject', 'mailable',
         'user_id', 'error', 'attempts', 'retried_by', 'sent_at', 'failed_at', 'raw_mime',
@@ -106,6 +109,7 @@ class MailLog extends Model
             $this->status === self::STATUS_SENT => 'Odesláno',
             $this->status === self::STATUS_FAILED => 'Selhalo',
             $this->status === self::STATUS_QUEUED => 'Ve frontě Pošty',
+            $this->status === self::STATUS_HELD => 'Zadrženo (test)',
             default => 'Odesílá se',
         };
     }

@@ -71,6 +71,12 @@ class Webhook
                 'error' => mb_substr((string) ($zprava['chyba'] ?? 'Nedoručeno.'), 0, 2000),
                 'posta_kontrola_at' => now(),
             ]),
+            // Testovací režim Pošty: žádný příjemce nebyl interní – zpráva neodešla a odejít nemá.
+            'zadrzeno' => $log->update([
+                'status' => MailLog::STATUS_HELD,
+                'error' => mb_substr((string) ($zprava['chyba'] ?? 'Zadrženo (test).'), 0, 2000),
+                'posta_kontrola_at' => now(),
+            ]),
             default => $log->update(['posta_kontrola_at' => now(), 'attempts' => max(1, (int) ($zprava['pokusu'] ?? 1))]),
         };
 

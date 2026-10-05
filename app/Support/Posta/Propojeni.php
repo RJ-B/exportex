@@ -24,8 +24,13 @@ use Throwable;
  * když ho správce Pošty povolí, dokonci() pošle Poště ze serveru aplikace
  * její SMTP údaje i s heslem (POST /prevzeti-schranky) – jednou, hned.
  *
- * Záloha: rucne() – adresa, API klíč a tajemství z Pošty (Aplikace → Přidat ručně).
- * Token si aplikace obnovuje sama (posta:obnov-token denně).
+ * Z portálu (výchozí u webů, které portál vytvoří): portál založí aplikaci
+ * v Poště sám a klíče předá příkazem `posta:z-portalu` (stdin, PrikazZPortalu)
+ * → zPortalu(). Bez klikání; stará schránka se převezme stejně jako výš.
+ *
+ * Záloha: rucne() – adresa, API klíč a tajemství z Pošty (Aplikace → Přidat ručně),
+ * nebo .env (POSTA_TOKEN, POSTA_WEBHOOK_TAJEMSTVI, POSTA_OD) – platí jen, když
+ * v nastavení propojení není. Token si aplikace obnovuje sama (posta:obnov-token denně).
  *
  * Úložiště jen v cti()/zapis()/smaz() – při převodu do projektu s jiným
  * modelem nastavení se mění jen ty.
@@ -47,21 +52,40 @@ class Propojeni
         return rtrim((string) (self::cti('url') ?: config('posta.url')), '/');
     }
 
+    /** Token z nastavení; když tam není, z .env (POSTA_TOKEN). */
     public static function token(): ?string
     {
-        return self::desifruj(self::cti('token'));
+        return self::desifruj(self::cti('token')) ?? (filled(config('posta.token')) ? (string) config('posta.token') : null);
     }
 
-    /** @return list<string> tajemství webhooků (aktuální; po výměně dočasně i předchozí) */
+    /** Odkud je propojení: nastaveni (tlačítko, portál, ručně) | env | null. */
+    public static function zdroj(): ?string
+    {
+        return match (true) {
+            self::desifruj(self::cti('token')) !== null => 'nastaveni',
+            filled(config('posta.token')) => 'env',
+            default => null,
+        };
+    }
+
+    /** @return list<string> tajemství webhooků (aktuální; po výměně dočasně i předchozí; bez nich .env) */
     public static function webhookTajemstvi(): array
     {
-        return array_values(array_filter([self::desifruj(self::cti('webhook_tajemstvi')), self::desifruj(self::cti('webhook_tajemstvi_predchozi'))]));
+        $ulozene = array_values(array_filter([self::desifruj(self::cti('webhook_tajemstvi')), self::desifruj(self::cti('webhook_tajemstvi_predchozi'))]));
+
+        return $ulozene !== [] ? $ulozene : array_values(array_filter([(string) config('posta.webhook_tajemstvi')]));
     }
 
-    /** Adresy, ze kterých aplikace smí posílat (přidělil správce Pošty). @return list<array{adresa: string, jmeno: ?string}> */
+    /** Adresy, ze kterých aplikace smí posílat (přidělil správce Pošty; bez nich POSTA_OD z .env). @return list<array{adresa: string, jmeno: ?string}> */
     public static function adresy(): array
     {
-        return array_values(array_filter((array) json_decode((string) self::cti('adresy'), true), fn ($a) => is_array($a) && filled($a['adresa'] ?? null)));
+        $ulozene = array_values(array_filter((array) json_decode((string) self::cti('adresy'), true), fn ($a) => is_array($a) && filled($a['adresa'] ?? null)));
+
+        if ($ulozene === [] && filter_var(config('posta.od'), FILTER_VALIDATE_EMAIL)) {
+            return [['adresa' => strtolower((string) config('posta.od')), 'jmeno' => null]];
+        }
+
+        return $ulozene;
     }
 
     /** Výchozí odesílatel (vybraný v administraci, jinak první přidělená adresa). */
@@ -88,6 +112,8 @@ class Propojeni
             'kdy' => $info['kdy'] ?? null,
             'aplikace' => $info['aplikace'] ?? null,
             'rucne' => (bool) ($info['rucne'] ?? false),
+            'z_portalu' => (bool) ($info['portal'] ?? false),
+            'zdroj' => self::zdroj(),
             'token_plati_do' => self::cti('token_plati_do'),
             'adresy' => self::adresy(),
             'od' => self::odesilatel(),
@@ -285,6 +311,55 @@ class Propojeni
         return true;
     }
 
+    /**
+     * Klíče od portálu (posta:z-portalu): portál aplikaci v Poště založil sám
+     * a token, tajemství a přidělené adresy předal na server aplikace stdinem.
+     * Uloží se stejně jako po Propojit s poštou. Když Pošta otevřela převzetí
+     * staré schránky (prevzeti.adresa) a aplikace ji pořád má, hned ji předá.
+     *
+     * @param  array{url?: string, token?: string, webhook_tajemstvi?: ?string, aplikace?: array, prevzeti?: ?array}  $data
+     * @return array{ok: bool, aplikace: ?string, prevzeti: ?array}
+     */
+    public function zPortalu(array $data): array
+    {
+        $url = rtrim(trim((string) ($data['url'] ?? '')), '/');
+        $token = trim((string) ($data['token'] ?? ''));
+
+        if (! preg_match('~^https://[a-z0-9.-]+(:\d+)?$~i', $url) && ! app()->environment(['local', 'testing'])) {
+            throw new RuntimeException('Adresa Pošty musí být https.');
+        }
+
+        if (! str_starts_with($token, 'pst_') || strlen($token) > 200) {
+            throw new RuntimeException('Token Pošty chybí nebo nemá správný tvar.');
+        }
+
+        $aplikace = (array) ($data['aplikace'] ?? []);
+        $tajemstvi = filled($data['webhook_tajemstvi'] ?? null) ? (string) $data['webhook_tajemstvi'] : null;
+        $this->uloz($url, $token, $tajemstvi, $aplikace, rucne: false, zPortalu: true);
+
+        // Vybraný odesílatel, který už aplikace nesmí, zapomenout (platí první přidělená).
+        $vybrana = strtolower((string) self::cti('od'));
+        if ($vybrana !== '' && ! collect(self::adresy())->contains(fn ($a) => strtolower($a['adresa']) === $vybrana)) {
+            self::smaz('od');
+        }
+
+        $prevzeti = null;
+        $adresa = strtolower((string) ($data['prevzeti']['adresa'] ?? ''));
+        if ($adresa !== '' && (StaraSchranka::popis()['adresa'] ?? null) === $adresa) {
+            $prevzeti = $this->prevezmi($adresa);
+        }
+
+        return ['ok' => true, 'aplikace' => $aplikace['slug'] ?? null, 'prevzeti' => $prevzeti];
+    }
+
+    /** Zapomene propojení bez volání Pošty (portál aplikaci v Poště odpojil sám). */
+    public function zapomen(): void
+    {
+        foreach (['token', 'webhook_tajemstvi', 'webhook_tajemstvi_predchozi', 'token_plati_do', 'propojeno', 'adresy', 'od', 'prevzeti'] as $klic) {
+            self::smaz($klic);
+        }
+    }
+
     /** Odpojí aplikaci: Pošta hned zneplatní klíče, aplikace je zapomene. */
     public function odpoj(): void
     {
@@ -301,7 +376,7 @@ class Propojeni
         }
     }
 
-    private function uloz(string $url, string $token, ?string $tajemstvi, array $aplikace, bool $rucne): void
+    private function uloz(string $url, string $token, ?string $tajemstvi, array $aplikace, bool $rucne, bool $zPortalu = false): void
     {
         $stare = self::cti('webhook_tajemstvi');
 
@@ -316,7 +391,7 @@ class Propojeni
 
         self::zapis('token_plati_do', (string) ($aplikace['token_plati_do'] ?? ''));
         self::zapis('adresy', json_encode($aplikace['adresy'] ?? [], JSON_UNESCAPED_UNICODE));
-        self::zapis('propojeno', json_encode(['kdy' => now()->toIso8601String(), 'aplikace' => $aplikace['nazev'] ?? null, 'rucne' => $rucne], JSON_UNESCAPED_UNICODE));
+        self::zapis('propojeno', json_encode(['kdy' => now()->toIso8601String(), 'aplikace' => $aplikace['nazev'] ?? null, 'rucne' => $rucne, 'portal' => $zPortalu], JSON_UNESCAPED_UNICODE));
     }
 
     private static function desifruj(?string $sifra): ?string

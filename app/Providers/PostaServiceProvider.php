@@ -7,6 +7,7 @@ use App\Support\Posta\Klient;
 use App\Support\Posta\NavratZPosty;
 use App\Support\Posta\ObnovTokenPrikaz;
 use App\Support\Posta\PostaTransport;
+use App\Support\Posta\PrikazZPortalu;
 use App\Support\Posta\Webhook;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Route;
@@ -35,7 +36,7 @@ class PostaServiceProvider extends ServiceProvider
         Route::get('/posta/propojeni/navrat', NavratZPosty::class)->middleware('web')->name('posta.propojeni.navrat');
 
         if ($this->app->runningInConsole()) {
-            $this->commands([FrontaPrikaz::class, ObnovTokenPrikaz::class]);
+            $this->commands([FrontaPrikaz::class, ObnovTokenPrikaz::class, PrikazZPortalu::class]);
         }
 
         // withoutOverlapping(minuty, false): druhý parametr vypíná pcntl_signal(),

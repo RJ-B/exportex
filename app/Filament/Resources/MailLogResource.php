@@ -144,6 +144,7 @@ class MailLogResource extends Resource
                         MailLog::STATUS_SENT => 'Odesláno',
                         MailLog::STATUS_QUEUED => 'Ve frontě Pošty',
                         MailLog::STATUS_FAILED => 'Selhalo',
+                        MailLog::STATUS_HELD => 'Zadrženo (test)',
                         MailLog::STATUS_SENDING => 'Odesílá se',
                     ])
                     ->native(false),
