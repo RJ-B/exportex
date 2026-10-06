@@ -20,6 +20,7 @@ kroky: [composer, migrate, cache, storage-link, queue-restart]
 
 planovac: true             # cron: php artisan schedule:run každou minutu
 fronta: default            # název fronty pro queue:work, null = bez fronty
+fronta_spousti: planovac   # queue:work pouští plánovač, jen když je práce – v cronu jen schedule:run
 kontrola: /zdravi          # vrací 200/503 podle databáze, cache a storage (App\Support\Zdravi)
 
 # Co nasazení nepřepíše (soubory nahrané uživateli).

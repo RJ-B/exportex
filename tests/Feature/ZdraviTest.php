@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\ErrorLog;
 use App\Support\Zdravi;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -71,5 +72,31 @@ class ZdraviTest extends TestCase
     public function test_planovac_ma_znacku(): void
     {
         $this->artisan('schedule:list')->expectsOutputToContain('zdravi-planovac');
+    }
+
+    public function test_404_neni_chyba_aplikace(): void
+    {
+        $storage = sys_get_temp_dir().'/zdravi-404-'.uniqid();
+        mkdir($storage.'/logs', 0777, true);
+        mkdir($storage.'/framework/cache', 0777, true);
+        $this->app->useStoragePath($storage);
+        config(['logging.channels.single.path' => storage_path('logs/laravel.log'), 'logging.default' => 'single']);
+
+        try {
+            $this->get('/careers')->assertNotFound();
+            $this->post('/zdravi')->assertStatus(405);
+            $chyby = Zdravi::diagnostika()['chyby']['za_hodinu'];
+            $log = (string) @file_get_contents(storage_path('logs/laravel.log'));
+        } finally {
+            array_map('unlink', array_merge(glob($storage.'/*/*.*') ?: [], glob($storage.'/framework/cache/*') ?: []));
+            @rmdir($storage.'/logs');
+            @rmdir($storage.'/framework/cache');
+            @rmdir($storage.'/framework');
+            @rmdir($storage);
+        }
+
+        $this->assertSame(0, $chyby, 'boti na /careers nesmí v portálu otevřít „Chyby v aplikaci“');
+        $this->assertStringNotContainsString('NotFoundHttpException', $log);
+        $this->assertSame(0, ErrorLog::query()->count());
     }
 }

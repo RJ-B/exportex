@@ -34,6 +34,9 @@ final class Zdravi
     /** Z logu se čte jen konec – kvůli chybám za hodinu stačí. */
     private const LOG_KONEC = 2 * 1024 * 1024;
 
+    /** Řádek logu s HTTP výjimkou 4xx (Symfony i Laravel) – do chyb se nepočítá. */
+    private const HTTP_4XX = '/\b(NotFound|MethodNotAllowed|AccessDenied|Unauthorized|BadRequest|TooManyRequests|Gone|NotAcceptable|Conflict|LengthRequired|PreconditionFailed|PreconditionRequired|UnsupportedMediaType|UnprocessableEntity|Locked)HttpException\b|\bModelNotFoundException\b|\bTokenMismatchException\b|\bHttpException\(code: 0\): (?:Page Expired|Forbidden)\b/';
+
     /** GET /zdravi – jen 200 nebo 503, bez podrobností. */
     public function odpoved(): Response
     {
@@ -180,6 +183,13 @@ final class Zdravi
             preg_match_all('/^\[(\d{4}-\d\d-\d\d[ T]\d\d:\d\d:\d\d)[^\]]*\] [\w-]+\.(ERROR|CRITICAL|ALERT|EMERGENCY): (.*)$/m', $text, $shody, PREG_SET_ORDER);
 
             foreach ($shody as [, $cas, , $zprava]) {
+                // 404, 405, 403… nejsou chyba aplikace, jen běžný provoz (boti
+                // zkoušejí /careers, /wp-login.php). Starší řádky v logu z doby
+                // před filtrem v bootstrap/app.php se tak nepočítají taky.
+                if (preg_match(self::HTTP_4XX, $zprava)) {
+                    continue;
+                }
+
                 $kdy = rescue(fn () => Carbon::parse($cas), null, false);
 
                 if (! $kdy || $kdy->lt($od)) {

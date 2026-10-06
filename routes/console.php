@@ -1,11 +1,20 @@
 <?php
 
+use App\Support\FrontaUloh;
 use App\Support\Zdravi;
 use Illuminate\Support\Facades\Schedule;
 
-// Frontu (queue:work) spouští vlastní řádek v cronu, který zakládá portál –
-// ne plánovač: podproces plánovače by běžel bez `-d disable_functions=`
-// a queue:work na Hestii spadne na zakázaném pcntl_signal().
+// Fronta úloh: worker na pozadí jen, když ve frontě něco čeká (FrontaUloh) –
+// v cronu má aplikace jen schedule:run (portál ho posouvá v rámci minuty).
+// Doběhne, až je fronta prázdná (nejvýš 50 s); další minutu se pustí znovu.
+// withoutOverlapping(minuty, false): druhý parametr vypíná pcntl_signal(),
+// který Hestia zakazuje; zámek drží, dokud worker běží (uvolní schedule:finish).
+Schedule::exec(FrontaUloh::prikaz())
+    ->everyMinute()
+    ->name('fronta')
+    ->withoutOverlapping(5, false)
+    ->runInBackground()
+    ->when(fn () => FrontaUloh::maPraci());
 
 // Provozní logy. withoutOverlapping(minuty, false): druhý parametr vypíná
 // pcntl_signal(), který Hestia zakazuje; platnost zámku podle doby běhu,
