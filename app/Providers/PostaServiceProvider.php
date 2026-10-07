@@ -53,7 +53,11 @@ class PostaServiceProvider extends ServiceProvider
                 ->name('posta-fronta')
                 ->withoutOverlapping(5, false)
                 ->when(fn () => OdchoziFronta::maPraci());
-            $schedule->call(fn () => $this->app->make(Propojeni::class)->obnovToken(false))
+            // Bez návratové hodnoty: obnovToken() vrací false, když token ještě obnovit netřeba,
+            // a false by plánovač vzal jako selhání úlohy (každou noc chyba v logu i v portálu).
+            $schedule->call(function (): void {
+                $this->app->make(Propojeni::class)->obnovToken(false);
+            })
                 ->dailyAt('04:20')
                 ->name('posta-obnov-token')
                 ->withoutOverlapping(10, false)
