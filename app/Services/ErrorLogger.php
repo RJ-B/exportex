@@ -141,7 +141,9 @@ class ErrorLogger
         }
 
         // HTTP výjimky pod 500 (404, 403, 419…) jsou očekávaný provoz, ne chyba kódu.
-        return $e instanceof HttpExceptionInterface && $e->getStatusCode() < 500;
+        // 503 v režimu údržby (artisan down – převod, nasazení) je záměr, ne chyba.
+        return $e instanceof HttpExceptionInterface
+            && ($e->getStatusCode() < 500 || ($e->getStatusCode() === 503 && app()->isDownForMaintenance()));
     }
 
     /**

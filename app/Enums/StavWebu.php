@@ -29,6 +29,22 @@ enum StavWebu: string
         return self::tryFrom((string) rescue(fn () => Nastaveni::hodnota(self::KLIC), null, false)) ?? self::Online;
     }
 
+    /**
+     * Čitelný záznam do Aktivity: „Stav webu: Údržba zapnuta“, ne „Změněno:
+     * Nastaveni – web.stav“, ze kterého se nepozná, co se s webem stalo.
+     */
+    public static function popisZmeny(mixed $pred, mixed $po): string
+    {
+        $novy = self::tryFrom((string) $po) ?? self::Online;
+        $stary = self::tryFrom((string) $pred);
+
+        return 'Stav webu: '.match (true) {
+            $novy === self::Udrzba => 'Údržba zapnuta',
+            $stary === self::Udrzba => 'Údržba vypnuta → '.$novy->nazev(),
+            default => $novy->nazev(),
+        };
+    }
+
     public function nazev(): string
     {
         return match ($this) {

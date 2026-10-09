@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Enums\StavWebu;
 use App\Models\Nastaveni;
 use App\Models\User;
 use App\Services\AuditLogger;
@@ -71,6 +72,19 @@ class AuditableObserver
 
     private function write(Model $model, string $action, ?array $old, ?array $new): void
     {
+        // Stav webu (Provoz → Stav webu) jako vlastní čitelná událost.
+        if ($model instanceof Nastaveni && $model->getAttribute('klic') === StavWebu::KLIC && $action !== 'deleted') {
+            AuditLogger::record(
+                event: 'stav_webu.zmenen',
+                subject: $model,
+                summary: StavWebu::popisZmeny($old['hodnota'] ?? null, $model->getAttribute('hodnota')),
+                old: $old,
+                new: $new,
+            );
+
+            return;
+        }
+
         AuditLogger::record(
             event: strtolower(class_basename($model)).'.'.$action,
             subject: $model,

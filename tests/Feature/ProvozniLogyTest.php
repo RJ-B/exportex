@@ -52,6 +52,55 @@ class ProvozniLogyTest extends TestCase
         $this->assertNull($chyba->resolved_at);
     }
 
+    public function test_udrzba_503_se_nezapise(): void
+    {
+        $logger = app(ErrorLogger::class);
+        app()->maintenanceMode()->activate([]);
+
+        try {
+            $logger->report(new \Symfony\Component\HttpKernel\Exception\HttpException(503, 'Service Unavailable'));
+        } finally {
+            app()->maintenanceMode()->deactivate();
+        }
+
+        $this->assertSame(0, ErrorLog::count(), 'Údržba (artisan down) není chyba.');
+
+        $logger->report(new \Symfony\Component\HttpKernel\Exception\HttpException(503, 'Platební brána neodpovídá'));
+        $this->assertSame(1, ErrorLog::count(), 'Mimo údržbu je 503 chyba.');
+    }
+
+    public function test_udrzba_se_zapise_do_aktivity_a_ne_do_chyb(): void
+    {
+        $pruchod = 'pruchod-udrzbou';
+        $this->artisan('down', ['--retry' => 60, '--secret' => $pruchod])->assertSuccessful();
+
+        try {
+            $this->get('/')->assertStatus(503);
+        } finally {
+            $this->artisan('up')->assertSuccessful();
+        }
+
+        $zapnuta = AuditLog::where('event', 'udrzba.zapnuta')->sole();
+        $this->assertSame('Údržba zapnuta', $zapnuta->summary);
+        $this->assertNull($zapnuta->user_id, 'Kdo = systém (příkaz na serveru).');
+        $this->assertSame(60, $zapnuta->new_values['retry']);
+        $this->assertStringNotContainsString($pruchod, json_encode($zapnuta->new_values), 'Tajný klíč údržby do logu nepatří.');
+
+        $this->assertSame('Údržba vypnuta', AuditLog::where('event', 'udrzba.vypnuta')->sole()->summary);
+        $this->assertSame(0, ErrorLog::count(), 'Údržba není chyba.');
+    }
+
+    public function test_stav_webu_se_zapise_citelne(): void
+    {
+        \App\Models\Nastaveni::nastav(\App\Enums\StavWebu::KLIC, 'udrzba');
+        \App\Models\Nastaveni::nastav(\App\Enums\StavWebu::KLIC, 'online');
+
+        $this->assertSame(
+            ['Stav webu: Údržba zapnuta', 'Stav webu: Údržba vypnuta → Online'],
+            AuditLog::where('event', 'stav_webu.zmenen')->orderBy('id')->pluck('summary')->all(),
+        );
+    }
+
     public function test_abort_500_se_zapise_a_404_ne(): void
     {
         Route::get('/_test/padne', fn () => abort(500, 'Něco se rozbilo'));

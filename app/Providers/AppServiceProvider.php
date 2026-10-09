@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Mail\LoggingMailManager;
 use App\Observers\AuditableObserver;
+use App\Services\UdrzbaDoAktivity;
 use App\Support\Posta\Propojeni as Posta;
 use App\Support\SekceWebu;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -63,6 +64,9 @@ class AppServiceProvider extends ServiceProvider
         foreach (array_keys(AuditableObserver::WATCHED) as $model) {
             $model::observe(AuditableObserver::class);
         }
+
+        // Údržba (artisan down / up) do Aktivity jako „Údržba zapnuta / vypnuta“, ne do Chyb.
+        UdrzbaDoAktivity::poslouchej();
 
         // HestiaCP má v CLI zakázané pcntl_* funkce, ale rozšíření je načtené.
         // Laravel se ptá jen extension_loaded('pcntl'), takže příkazy se
