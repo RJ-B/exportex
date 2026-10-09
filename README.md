@@ -37,6 +37,7 @@ Obsah webu   Hlavička a patička (název, kontakty, provozovatel, patička CZ/E
              · Ochrana osobních údajů · SEO a měření
 Nastavení    Uživatelé
 Provoz       Logy · Stav webu (jen superadmin)
+Přehled · Zobrazit web · Oznámení (+ Skupiny příjemců)
 ```
 
 Každý text má pole česky a vedle anglicky. Co se v administraci nemění: popisky
@@ -98,3 +99,12 @@ a upozornění odejde e-mailem na kontaktní e-mail (mikyska@exportex.cz) přes 
 (posta.simren.cz, schránka Forpsi). Dřív šla přes formsubmit.co – to je pryč.
 Ochrana proti spamu: skryté pole a podepsaná časová past (`OchranaFormulare`), limit
 3/min a 20/den z jedné IP, serverová validace; žádná captcha.
+- **Oznámení** ([docs/oznameni.md](docs/oznameni.md)): zpráva žije jednou na serveru a k lidem dojde kanály –
+  **centrum** (zvoneček na webu `@include('oznameni.zvonecek')` i v administraci, stránka `/oznameni`, Moje oznámení),
+  **pruh** přes web a administraci (`@include('oznameni.pruh')` hned za `<body>` – odstávky s odpočtem, výpadky; pro
+  všechny ho vidí i nepřihlášení) a **e-mail přes Poštu**. Administrace → Oznámení: koncept, náhled, zkouška sobě,
+  cílení (všem / role / skupiny / víc vybraných lidí, každý jednou, superadmini nikdy hromadně), naplánování,
+  odeslání s potvrzením počtu příjemců a limitem, čísla (přečteno, prokliknuto, doručeno). Z kódu
+  `Oznam::provozni('…')->komu($user)->klic('…')->posli()`. Předvolby druh × kanál, novinky e-mailem jen se souhlasem
+  (záznam v `oznameni_souhlasy`), odhlášení jedním kliknutím (List-Unsubscribe-Post), marketing ve výchozím stavu
+  vypnutý (Oznámení → Nastavení, superadmin). E-maily po dávkách ve frontě. Web push a mobil – krok 3.

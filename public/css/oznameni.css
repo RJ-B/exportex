@@ -1,0 +1,107 @@
+/* Oznámení – zvoneček (centrum) a pruh přes web. Web i administrace (Filament).
+   Vlastní proměnné: světlé výchozí, tmavé podle systému na webu a podle třídy
+   .dark v administraci (html.fi). Slovo se neláme uprostřed. */
+
+.ozn-zvonecek, .ozn-pruhy {
+    --ozn-karta: #ffffff;
+    --ozn-text: #16181c;
+    --ozn-slabe: #6b7280;
+    --ozn-okraj: #e5e7eb;
+    --ozn-podklad: #f3f4f6;
+    --ozn-akcent: #2563eb;
+    --ozn-tecka: #2563eb;
+    --ozn-info: #1e40af;        --ozn-info-pozadi: #dbeafe;
+    --ozn-varovani: #92400e;    --ozn-varovani-pozadi: #fef3c7;
+    --ozn-kriticke: #ffffff;    --ozn-kriticke-pozadi: #b91c1c;
+    --ozn-vyreseno: #166534;    --ozn-vyreseno-pozadi: #dcfce7;
+    font-family: inherit;
+}
+
+@media (prefers-color-scheme: dark) {
+    html:not(.fi) .ozn-zvonecek, html:not(.fi) .ozn-pruhy {
+        --ozn-karta: #171a21; --ozn-text: #eceef1; --ozn-slabe: #9aa1ab; --ozn-okraj: #2a2f38; --ozn-podklad: #20242c;
+        --ozn-akcent: #60a5fa; --ozn-tecka: #60a5fa;
+        --ozn-info: #bfdbfe; --ozn-info-pozadi: #1e3a8a;
+        --ozn-varovani: #fde68a; --ozn-varovani-pozadi: #713f12;
+        --ozn-vyreseno: #bbf7d0; --ozn-vyreseno-pozadi: #14532d;
+    }
+}
+
+html.fi.dark .ozn-zvonecek, html.fi.dark .ozn-pruhy {
+    --ozn-karta: #18181b; --ozn-text: #f4f4f5; --ozn-slabe: #a1a1aa; --ozn-okraj: #3f3f46; --ozn-podklad: #27272a;
+    --ozn-akcent: #60a5fa; --ozn-tecka: #60a5fa;
+    --ozn-info: #bfdbfe; --ozn-info-pozadi: #1e3a8a;
+    --ozn-varovani: #fde68a; --ozn-varovani-pozadi: #713f12;
+    --ozn-vyreseno: #bbf7d0; --ozn-vyreseno-pozadi: #14532d;
+}
+
+/* ---- Zvoneček ---- */
+.ozn-zvonecek { position: relative; display: inline-flex; }
+.ozn-tlacitko {
+    position: relative; display: inline-grid; place-items: center; width: 38px; height: 38px;
+    padding: 0; border: 0; border-radius: 10px; background: transparent; color: var(--ozn-slabe); cursor: pointer;
+}
+.ozn-tlacitko:hover, .ozn-tlacitko[aria-expanded="true"] { background: var(--ozn-podklad); color: var(--ozn-text); }
+.ozn-tlacitko:focus-visible { outline: 2px solid var(--ozn-akcent); outline-offset: 1px; }
+.ozn-tlacitko svg { width: 22px; height: 22px; }
+.ozn-pocet {
+    position: absolute; top: 3px; right: 2px; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box;
+    border-radius: 9px; background: #dc2626; color: #fff; font-size: 11px; font-weight: 700; line-height: 18px; text-align: center;
+}
+.ozn-pocet[hidden] { display: none; }
+
+.ozn-panel {
+    position: absolute; z-index: 60; top: calc(100% + 8px); right: 0; width: min(380px, calc(100vw - 24px));
+    background: var(--ozn-karta); color: var(--ozn-text); border: 1px solid var(--ozn-okraj); border-radius: 14px;
+    box-shadow: 0 12px 32px rgb(0 0 0 / .14); overflow: hidden; font-size: 14px; line-height: 1.45; text-align: left;
+}
+.ozn-panel[hidden] { display: none; }
+.ozn-hlava { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--ozn-okraj); }
+.ozn-odkaz { padding: 0; border: 0; background: none; color: var(--ozn-akcent); font: inherit; font-size: 13px; cursor: pointer; }
+.ozn-odkaz[hidden] { display: none; }
+.ozn-odkaz:hover { text-decoration: underline; }
+.ozn-seznam { max-height: min(60vh, 440px); overflow-y: auto; }
+.ozn-prazdno { margin: 0; padding: 22px 14px; color: var(--ozn-slabe); text-align: center; }
+
+.ozn-polozka { position: relative; display: flex; gap: 10px; padding: 12px 40px 12px 14px; border-bottom: 1px solid var(--ozn-okraj); cursor: pointer; }
+.ozn-polozka:last-child { border-bottom: 0; }
+.ozn-polozka:hover { background: var(--ozn-podklad); }
+.ozn-polozka:focus-visible { outline: 2px solid var(--ozn-akcent); outline-offset: -2px; }
+.ozn-tecka { flex: none; width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: transparent; }
+.ozn-polozka--neprectene .ozn-tecka { background: var(--ozn-tecka); }
+.ozn-polozka--neprectene .ozn-titulek { font-weight: 600; }
+.ozn-telo { min-width: 0; }
+.ozn-meta { display: block; margin-bottom: 2px; color: var(--ozn-slabe); font-size: 12px; }
+.ozn-titulek { display: block; }
+.ozn-text { display: block; margin-top: 2px; color: var(--ozn-slabe); }
+.ozn-archivovat {
+    position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 24px; height: 24px;
+    padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--ozn-slabe); cursor: pointer; opacity: .6;
+}
+.ozn-archivovat:hover { background: var(--ozn-karta); opacity: 1; }
+.ozn-archivovat svg { width: 14px; height: 14px; }
+.ozn-pata { display: block; padding: 11px 14px; border-top: 1px solid var(--ozn-okraj); color: var(--ozn-akcent); text-align: center; text-decoration: none; font-size: 13px; }
+.ozn-pata:hover { background: var(--ozn-podklad); }
+
+/* ---- Pruh přes web ---- */
+.ozn-pruhy { position: relative; z-index: 50; }
+.ozn-pruh {
+    display: flex; align-items: center; gap: 12px; padding: 10px 16px; font-size: 14px; line-height: 1.45;
+    background: var(--ozn-info-pozadi); color: var(--ozn-info);
+}
+.ozn-pruh[hidden] { display: none; }
+.ozn-pruh + .ozn-pruh { border-top: 1px solid rgb(0 0 0 / .08); }
+.ozn-pruh--varovani { background: var(--ozn-varovani-pozadi); color: var(--ozn-varovani); }
+.ozn-pruh--kriticke { background: var(--ozn-kriticke-pozadi); color: var(--ozn-kriticke); }
+.ozn-pruh--vyreseno { background: var(--ozn-vyreseno-pozadi); color: var(--ozn-vyreseno); }
+.ozn-pruh-obsah { flex: 1; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 4px 12px; text-align: center; }
+.ozn-pruh-text { opacity: .92; }
+.ozn-pruh-kdy { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ozn-odpocet:not(:empty)::before { content: " · "; }
+.ozn-pruh a { color: inherit; font-weight: 600; text-decoration: underline; }
+.ozn-zavrit {
+    flex: none; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 8px;
+    background: transparent; color: inherit; cursor: pointer; opacity: .75;
+}
+.ozn-zavrit:hover { background: rgb(0 0 0 / .08); opacity: 1; }
+.ozn-zavrit svg { width: 16px; height: 16px; }

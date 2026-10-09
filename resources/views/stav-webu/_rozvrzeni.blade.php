@@ -12,7 +12,7 @@
         :root { --pozadi: #f5f6f8; --karta: #ffffff; --text: #16181c; --slabe: #6b7280; --akcent: #2563eb; --okraj: #e5e7eb; }
         @media (prefers-color-scheme: dark) { :root { --pozadi: #0f1115; --karta: #171a21; --text: #eceef1; --slabe: #9aa1ab; --akcent: #60a5fa; --okraj: #2a2f38; } }
         * { box-sizing: border-box; }
-        body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px 16px;
+        body { margin: 0; min-height: 100vh; display: grid; grid-template-rows: auto 1fr; place-items: center; padding: 24px 16px;
                background: var(--pozadi); color: var(--text); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
         .karta { width: 100%; max-width: 520px; background: var(--karta); border: 1px solid var(--okraj); border-radius: 16px; padding: 40px 32px; text-align: center; }
         .ikona { width: 56px; height: 56px; margin: 0 auto 20px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--akcent) 12%, transparent); color: var(--akcent); font-size: 26px; }
@@ -22,10 +22,13 @@
         .kontakt { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--okraj); font-size: 15px; display: flex; flex-direction: column; gap: 4px; }
         .kontakt a { color: var(--akcent); text-decoration: none; }
         .provozovatel { margin-top: 16px; font-size: 13px; color: var(--slabe); }
+        body > .ozn-pruhy { justify-self: stretch; align-self: start; margin: -24px -16px 16px; }
     </style>
 </head>
 <body>
-    <main class="karta">
+    {{-- Pruh oznámení (odstávka, výpadek) – i v Údržbě a Připravujeme. --}}
+    @include('oznameni.pruh')
+    <main class="karta" style="grid-row: 2;">
         <div class="ikona" aria-hidden="true">{{ $ikona }}</div>
         <p class="nazev">{{ $udaje['nazev'] }}</p>
         <h1>{{ $nadpis }}</h1>

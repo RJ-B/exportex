@@ -57,6 +57,8 @@
 @stack('jsonld')
 </head>
 <body>
+{{-- Pruh oznámení (odstávka, výpadek) – docs/oznameni.md. --}}
+@include('oznameni.pruh')
 
 <a href="#obsah" class="skip" data-cs="Přeskočit na obsah" data-en="Skip to content">Přeskočit na obsah</a>
 
@@ -98,6 +100,7 @@
         <span></span><span></span><span></span>
       </button>
     </nav>
+    @include('oznameni.zvonecek')
   </div>
 </header>
 

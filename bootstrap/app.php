@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\BezpecnostniHlavicky;
+use App\Http\Middleware\KanonickaDomena;
+use App\Http\Middleware\SekceWebuMiddleware;
 use App\Services\ErrorLogger;
 use App\Support\Zdravi;
 use Illuminate\Foundation\Application;
@@ -24,9 +27,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias(['sekce' => \App\Http\Middleware\SekceWebuMiddleware::class]);
         // www.exportex.cz trvale na exportex.cz a bezpečnostní hlavičky na celém
         // webu (administrace je má v AdminPanelProvider).
+        // Odhlášení z oznámení jedním kliknutím z poštovního programu (RFC 8058):
+        // POST bez cookies – pravost dává podpis odkazu, ne CSRF.
+        $middleware->validateCsrfTokens(except: ['oznameni/odhlasit/*']);
+        // Nepřihlášený na stránce, která přihlášení chce (Oznámení): přihlášení
+        // projektu, když ho web má, jinak přihlášení do administrace.
+        $middleware->redirectGuestsTo(fn () => Route::has('login') ? route('login') : '/admin/login');
         $middleware->web(append: [
-            \App\Http\Middleware\KanonickaDomena::class,
-            \App\Http\Middleware\BezpecnostniHlavicky::class,
+            KanonickaDomena::class,
+            BezpecnostniHlavicky::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

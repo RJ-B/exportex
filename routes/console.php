@@ -1,6 +1,7 @@
 <?php
 
 use App\Support\FrontaUloh;
+use App\Support\Oznameni\Odeslani;
 use App\Support\Zdravi;
 use Illuminate\Support\Facades\Schedule;
 
@@ -15,6 +16,13 @@ Schedule::exec(FrontaUloh::prikaz())
     ->withoutOverlapping(5, false)
     ->runInBackground()
     ->when(fn () => FrontaUloh::maPraci());
+
+// Oznámení: naplánovaná odeslat, zaseknutá rozeslat znovu – jen když je co (maPraci jen čte).
+Schedule::call(fn () => app(Odeslani::class)->naplanovana())
+    ->everyMinute()
+    ->name('oznameni-naplanovana')
+    ->withoutOverlapping(5, false)
+    ->when(fn () => Odeslani::maPraci());
 
 // Provozní logy. withoutOverlapping(minuty, false): druhý parametr vypíná
 // pcntl_signal(), který Hestia zakazuje; platnost zámku podle doby běhu,

@@ -9,6 +9,9 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -59,5 +62,23 @@ class User extends Authenticatable implements FilamentUser, HasName
     public function jeSpravce(): bool
     {
         return in_array($this->role, ['superadmin', 'admin'], true);
+    }
+
+    /** Oznámení, která uživatel dostal (centrum – přečteno, prokliknuto, archiv). */
+    public function oznameni(): HasMany
+    {
+        return $this->hasMany(OznameniPrijemce::class);
+    }
+
+    /** Co chce dostávat (druh × kanál) – App\Support\Oznameni\Predvolby. */
+    public function oznameniPredvolby(): HasOne
+    {
+        return $this->hasOne(OznameniPredvolby::class);
+    }
+
+    /** Skupiny příjemců oznámení, do kterých patří. */
+    public function oznameniSkupiny(): BelongsToMany
+    {
+        return $this->belongsToMany(OznameniSkupina::class, 'oznameni_skupiny_clenove', 'user_id', 'skupina_id');
     }
 }

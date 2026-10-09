@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Enums\StavWebu;
 use App\Models\Nastaveni;
+use App\Models\Oznameni;
 use App\Models\User;
 use App\Services\AuditLogger;
 use Illuminate\Database\Eloquent\Model;
@@ -29,6 +30,8 @@ class AuditableObserver
     public const WATCHED = [
         User::class => ['email', 'jmeno', 'prijmeni', 'role'],
         Nastaveni::class => ['klic', 'hodnota'],
+        // Kdo oznámení napsal, změnil, naplánoval a odeslal (stav), komu (cílení).
+        Oznameni::class => ['titulek', 'druh', 'kanaly', 'cileni', 'stav', 'naplanovano_na', 'pruh_do'],
     ];
 
     public function created(Model $model): void
@@ -104,7 +107,7 @@ class AuditableObserver
 
         $nazev = $model instanceof User
             ? $model->getFilamentName()
-            : ($model->getAttribute('klic') ?? '#'.$model->getKey());
+            : ($model->getAttribute('klic') ?? $model->getAttribute('titulek') ?? '#'.$model->getKey());
 
         return $label.': '.class_basename($model).' – '.$nazev;
     }

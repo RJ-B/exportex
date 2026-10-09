@@ -18,6 +18,10 @@ Při změně `style.css` nebo `main.js` se verze v adrese počítá sama (čas s
   Do produkce jen přes CRM/portál. Nic na server ručně – jen git. Postup: `NASAZENI.md`.
 - `.env` se do repa nedává. Testovací seeder (`DatabaseSeeder`) na serveru odmítne běžet
   a nikdy se tam nespouští.
+- **Oznámení lidem aplikace jen přes modul Oznámení** (docs/oznameni.md): z kódu `App\Support\Oznameni\Oznam`,
+  odesílá jen `Odeslani` (stav ručně neměnit, do `oznameni_*` nezapisovat mimo něj). Novinky a nabídky e-mailem/pushem
+  jen se souhlasem (`Predvolby`), každá změna souhlasu do `oznameni_souhlasy`. Nový layout webu: `@include('oznameni.pruh')`
+  za `<body>` a `@include('oznameni.zvonecek')` do hlavičky. Superadmini nikdy v hromadném cílení ani v číslech.
 - **Čas:** aplikace i databáze v `Europe/Prague` (`APP_TIMEZONE`), v databázi místní čas bez pásma.
   Ven (API, webhooky, JSON, shim) jen ISO 8601 s posunem (`toIso8601String()`), nikdy holé
   `Y-m-d H:i:s`. Čas zvenku převádí `App\Support\CasAplikace::zVenku()` (zobrazení, dotazy);

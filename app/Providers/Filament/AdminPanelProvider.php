@@ -2,20 +2,25 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\MojeOznameni;
+use App\Filament\Pages\Prehled;
+use App\Filament\Widgets\StavAplikace;
+use App\Http\Middleware\BezpecnostniHlavicky;
+use App\Http\Middleware\KanonickaDomena;
+use App\Support\IkonaWebu;
+use App\Support\ZakladniUdaje;
+use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use App\Filament\Pages\Prehled;
 use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
 use Filament\Support\Icons\Heroicon;
-use App\Support\ZakladniUdaje;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
-use App\Filament\Widgets\StavAplikace;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -62,6 +67,17 @@ class AdminPanelProvider extends PanelProvider
             ])
             // Vlastní vzhled – Tailwind třídy ve vlastních šablonách nefungují.
             ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => view('filament.styly'))
+            // Oznámení (docs/oznameni.md): pruh nahoře (odstávky, výpadky) a zvoneček
+            // vedle uživatele – stejné jako na webu, „Zobrazit všechna“ vede na Moje oznámení.
+            ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => view('oznameni._zdroje'))
+            ->renderHook(PanelsRenderHook::BODY_START, fn () => view('oznameni.pruh'))
+            ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn () => view('oznameni.zvonecek', ['vse' => MojeOznameni::getUrl()]))
+            ->userMenuItems([
+                Action::make('moje-oznameni')
+                    ->label('Moje oznámení')
+                    ->icon(Heroicon::OutlinedBell)
+                    ->url(fn () => MojeOznameni::getUrl()),
+            ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
                 Prehled::class,

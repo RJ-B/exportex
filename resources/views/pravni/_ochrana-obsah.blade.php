@@ -19,6 +19,8 @@
     $cookies = \Illuminate\Support\Facades\Route::has('cookies') ? route('cookies') : null;
     $ucinnost = $g['ucinnost_od'] ? \Illuminate\Support\Carbon::parse($g['ucinnost_od'])->format('j. n. Y') : null;
     $kontakt = fn () => $email ? '<a href="mailto:'.e($email).'">'.e($email).'</a>' : 'kontaktech uvedených výše';
+    // Oznámení (docs/oznameni.md) – část jen, když je aplikace opravdu posílá.
+    $oznameni = (bool) rescue(fn () => \App\Models\Oznameni::query()->exists() || \App\Models\OznameniSouhlas::query()->exists(), false, false);
     $n = 0;
 @endphp
 
@@ -66,6 +68,14 @@
 <p><strong>Účel:</strong> bezpečný a spolehlivý provoz webu, diagnostika problémů a odhalování útoků a zneužití.</p>
 <p><strong>Právní základ:</strong> náš oprávněný zájem podle čl. 6 odst. 1 písm. f) GDPR.</p>
 <p><strong>Doba uložení:</strong> zpravidla nejdéle 6 měsíců, pokud není delší uchování nezbytné k řešení bezpečnostního incidentu nebo ochraně našich práv.</p>
+
+@if ($oznameni)
+    <h3>{{ $n }}.{{ ++$m }}. Oznámení a novinky</h3>
+    <p><strong>Zpracovávané údaje:</strong> jméno a příjmení, e-mailová adresa, která oznámení jsme vám poslali, zda jste je přečetli nebo otevřeli odkaz v nich (zjišťujeme to jen v naší aplikaci – bez měřicích pixelů a bez sledování na jiných webech), vaše předvolby oznámení a u souhlasu s novinkami záznam o jeho udělení či odvolání (čas, znění souhlasu, IP adresa a prohlížeč).</p>
+    <p><strong>Účel:</strong> informovat vás o vašem účtu, objednávkách a provozu služby (odstávky, výpadky, důležité změny) a s vaším souhlasem také o novinkách@if (\App\Support\Oznameni\NastaveniOznameni::marketing()) a nabídkách@endif.</p>
+    <p><strong>Právní základ:</strong> provozní a servisní oznámení zasíláme na základě plnění smlouvy podle čl. 6 odst. 1 písm. b) GDPR a našeho oprávněného zájmu na řádném provozu služby podle čl. 6 odst. 1 písm. f) GDPR. Novinky@if (\App\Support\Oznameni\NastaveniOznameni::marketing()) a nabídky@endif e-mailem posíláme jen s vaším souhlasem podle čl. 6 odst. 1 písm. a) GDPR a zákona č. 480/2004 Sb.; souhlas můžete kdykoli odvolat odkazem v každém e-mailu nebo v předvolbách oznámení, odvolání nemá vliv na zákonnost zasílání před ním.</p>
+    <p><strong>Doba uložení:</strong> po dobu trvání vašeho účtu.</p>
+@endif
 
 @if ($analytika)
     <h3>{{ $n }}.{{ ++$m }}. Analytika a marketing</h3>
