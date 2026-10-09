@@ -25,6 +25,9 @@ Při změně `style.css` nebo `main.js` se verze v adrese počítá sama (čas s
   čas (GitHub „18:24Z“ by jinak bylo 18:24 místo 20:24). Pozor na Carbon 3: `createFromTimestamp()`
   vrací UTC. V JS a mobilu čas z API vždy převést na místní (`new Date(iso)`, Dart `.toLocal()`).
   Test `CasVPasmuAplikaceTest`.
+- **Verze se vydávají jen v portálu** (projekt → Verze → Vydat) – nikdy `gh release create`
+  ani `git tag vX.Y.Z` + push (ani v agentech). Vydání mimo portál přeskočí přepočet instalací
+  a portál ho hlásí jako incident.
 
 ## Obsah webu
 
