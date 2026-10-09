@@ -32,4 +32,16 @@ return [
      * přihlásí a pošle sem. null = administrace (Filament).
      */
     'po_nastaveni_hesla' => null,
+
+    /*
+     * Volitelné doplňky šablony (v CRM se volí v okně „Realizace: projekt a web“,
+     * popis v .simren/sablona.yml). Zapíná se tady (commit), ne v .env –
+     * je to vlastnost projektu. Vypnutý doplněk aplikace nemá: nenačte jeho
+     * routy, migrace, administraci ani plánovač. Env jen pro testy.
+     *
+     *   platby – platební brána (Comgate, Mo.one), docs/platby.md
+     */
+    'doplnky' => [
+        'platby' => (bool) env('SABLONA_DOPLNEK_PLATBY', false),
+    ],
 ];

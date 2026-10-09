@@ -21,6 +21,9 @@
     $kontakt = fn () => $email ? '<a href="mailto:'.e($email).'">'.e($email).'</a>' : 'kontaktech uvedených výše';
     // Oznámení (docs/oznameni.md) – část jen, když je aplikace opravdu posílá.
     $oznameni = (bool) rescue(fn () => \App\Models\Oznameni::query()->exists() || \App\Models\OznameniSouhlas::query()->exists(), false, false);
+    // Doplněk Platby (docs/platby.md) – část jen se zapnutým doplňkem; brána podle Nastavení → Platební brána.
+    $platby = (bool) config('sablona.doplnky.platby');
+    $branaPlateb = $platby ? (\App\Platby\NastaveniPlateb::BRANY[\App\Platby\NastaveniPlateb::brana() ?? ''] ?? null) : null;
     $n = 0;
 @endphp
 
@@ -64,6 +67,14 @@
 @endif
 
 <h3>{{ $n }}.{{ ++$m }}. Provoz a zabezpečení webu</h3>
+@if ($platby)
+    <h3>{{ $n }}.{{ ++$m }}. Platby</h3>
+    <p><strong>Zpracovávané údaje:</strong> jméno a příjmení, e-mailová adresa, částka, za co platíte, čas a výsledek platby, číslo platby u platební brány, IP adresa. Údaje o platební kartě ani přihlašovací údaje do banky nezpracováváme – zadáváte je přímo platební bráně{{ $branaPlateb ? ' '.$branaPlateb : '' }}.</p>
+    <p><strong>Účel:</strong> přijetí platby, potvrzení o zaplacení, případné vrácení peněz a řešení reklamací plateb.</p>
+    <p><strong>Právní základ:</strong> plnění smlouvy podle čl. 6 odst. 1 písm. b) GDPR a plnění zákonných povinností (účetních a daňových) podle čl. 6 odst. 1 písm. c) GDPR.</p>
+    <p><strong>Doba uložení:</strong> po dobu stanovenou účetními a daňovými předpisy, jinak po dobu trvání smluvního vztahu a promlčecí lhůty.</p>
+@endif
+
 <p><strong>Zpracovávané údaje:</strong> IP adresa, typ prohlížeče, čas přístupu, navštívené adresy a další technické informace v serverových protokolech.</p>
 <p><strong>Účel:</strong> bezpečný a spolehlivý provoz webu, diagnostika problémů a odhalování útoků a zneužití.</p>
 <p><strong>Právní základ:</strong> náš oprávněný zájem podle čl. 6 odst. 1 písm. f) GDPR.</p>
@@ -100,6 +111,7 @@
     <li>poskytovatelé serverů a hostingu;</li>
     <li>poskytovatelé e-mailových služeb;</li>
     <li>poskytovatelé IT služeb a správy webu;</li>
+    @if ($platby)<li>provozovatel platební brány{{ $branaPlateb ? ' '.$branaPlateb : '' }} (zpracování plateb);</li>@endif
     @if ($smlouvy)<li>účetní, daňoví a právní poradci;</li>@endif
     @if ($google)<li>Google Ireland Limited (analytika a reklama), pokud jste udělili souhlas;</li>@endif
     @if ($seznam)<li>Seznam.cz, a.s. (měření a reklama), pokud jste udělili souhlas;</li>@endif

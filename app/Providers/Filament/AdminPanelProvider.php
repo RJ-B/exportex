@@ -6,8 +6,7 @@ use App\Filament\Pages\MojeOznameni;
 use App\Filament\Pages\Prehled;
 use App\Filament\Widgets\StavAplikace;
 use App\Http\Middleware\BezpecnostniHlavicky;
-use App\Http\Middleware\KanonickaDomena;
-use App\Support\IkonaWebu;
+use App\Platby\PlatbyServiceProvider;
 use App\Support\ZakladniUdaje;
 use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
@@ -16,10 +15,10 @@ use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationGroup;
 use Filament\Navigation\NavigationItem;
-use Filament\Support\Icons\Heroicon;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Icons\Heroicon;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -82,6 +81,8 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Prehled::class,
             ])
+            // Doplněk Platby (docs/platby.md): Platby, Nastavení → Platební brána, štítek TESTOVACÍ PLATBY.
+            ->when(PlatbyServiceProvider::zapnuto(), fn (Panel $panel) => PlatbyServiceProvider::panel($panel))
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 StavAplikace::class,
@@ -96,7 +97,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
-                \App\Http\Middleware\BezpecnostniHlavicky::class,
+                BezpecnostniHlavicky::class,
             ])
             ->authMiddleware([
                 Authenticate::class,

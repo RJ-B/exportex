@@ -97,3 +97,7 @@ a domény měřicích nástrojů (cookie lišta šablony). Do veřejných strán
   `Preklad::attr()` (escapuje dvakrát), nikdy rovnou `{!! !!}`.
 - Sekce mají shodné výšky na pixel s původním statickým webem – při zásahu do rozvržení
   porovnej screenshoty před a po (desktop i mobil, CZ i EN).
+- **Doplněk Platby** (docs/platby.md, `config/sablona.php` → `doplnky.platby`, výchozí vypnuto): stav platby mění
+  jen `Platby::prejdi()`, stavu z webhooku ani návratu se nevěří (vždy `overStav()` dotazem), částky v haléřích
+  (`Platby::halere`), test nikdy neplatí ostře a ostrý režim bez ověřených údajů platby zastaví – nikdy tiše
+  nepřepínat na jinou bránu. Údaje bran do `.env` jen testovací Sim&Ren (portál), klienta jen šifrovaně v administraci.

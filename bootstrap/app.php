@@ -24,7 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Veřejné routy vypínatelné sekce webu: ->middleware('sekce:sluzby').
-        $middleware->alias(['sekce' => \App\Http\Middleware\SekceWebuMiddleware::class]);
+        $middleware->alias(['sekce' => SekceWebuMiddleware::class]);
         // www.exportex.cz trvale na exportex.cz a bezpečnostní hlavičky na celém
         // webu (administrace je má v AdminPanelProvider).
         // Odhlášení z oznámení jedním kliknutím z poštovního programu (RFC 8058):

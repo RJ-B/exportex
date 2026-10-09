@@ -66,7 +66,7 @@ class AuditableObserver
         $sledovane = array_intersect_key($attributes, array_flip($keys));
 
         // Hesla, tokeny a tajemství (i zašifrované) do Aktivity nepatří – jen že se změnily.
-        if ($model instanceof Nastaveni && preg_match('/\.(heslo|token|webhook_tajemstvi(_predchozi)?)$/', (string) $model->getAttribute('klic')) && array_key_exists('hodnota', $sledovane)) {
+        if ($model instanceof Nastaveni && preg_match('/\.(heslo|token|secret|client_secret|webhook_tajemstvi(_predchozi)?)$/', (string) $model->getAttribute('klic')) && array_key_exists('hodnota', $sledovane)) {
             $sledovane['hodnota'] = $sledovane['hodnota'] === null ? null : '(heslo skryto)';
         }
 

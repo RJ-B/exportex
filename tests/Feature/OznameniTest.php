@@ -29,6 +29,7 @@ use App\Support\Oznameni\Pruh;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -212,7 +213,7 @@ class OznameniTest extends TestCase
 
         // Nepřihlášený na stránce oznámení → přihlášení.
         auth()->logout();
-        $this->get(route('oznameni.stranka'))->assertRedirect('/admin/login');
+        $this->get(route('oznameni.stranka'))->assertRedirect(Route::has('login') ? route('login') : '/admin/login');
     }
 
     public function test_pruh_pro_vsechny_vidi_i_neprihlaseny_cileny_jen_prijemce(): void
@@ -233,7 +234,7 @@ class OznameniTest extends TestCase
         Oznam::servisni('Výpadek platební brány')->komu($jana)->kanaly(KanalOznameni::Pruh)->zavaznost(ZavaznostOznameni::Kriticke)->posli();
 
         $this->get('/')->assertOk()->assertSee('V noci na neděli bude web 30 minut nedostupný')->assertSee('data-ozn-od', false)->assertDontSee('Výpadek platební brány');
-        $this->get('/kontakt')->assertSee('V noci na neděli');   // podruhé z mezipaměti
+        $this->get('/')   /* /kontakt jen přesměruje na kotvu úvodu */ ->assertSee('V noci na neděli');   // podruhé z mezipaměti
 
         $this->actingAs($petr)->get('/')->assertDontSee('Výpadek platební brány');
         $this->actingAs($jana)->get('/admin')->assertOk()->assertSee('Výpadek platební brány')->assertSee('V noci na neděli');
@@ -387,9 +388,9 @@ class OznameniTest extends TestCase
             ->assertSee('ozn-zvonecek', false)
             ->assertSee('js/oznameni.js', false)
             ->assertSee(MojeOznameni::getUrl(), false);
-        $this->actingAs($jana)->get('/kontakt')->assertSee('ozn-zvonecek', false);
+        $this->actingAs($jana)->get('/')   /* /kontakt jen přesměruje na kotvu úvodu */ ->assertSee('ozn-zvonecek', false);
         auth()->logout();
-        $this->get('/kontakt')->assertDontSee('ozn-zvonecek', false);
+        $this->get('/')   /* /kontakt jen přesměruje na kotvu úvodu */ ->assertDontSee('ozn-zvonecek', false);
 
         $this->actingAs($jana);
         Livewire::test(MojeOznameni::class)
@@ -404,6 +405,14 @@ class OznameniTest extends TestCase
 
     public function test_ochrana_osobnich_udaju_popise_oznameni_az_kdyz_se_pouzivaji(): void
     {
+        if (! Route::has('ochrana-udaju')) {
+            $this->markTestSkipped('Projekt nemá stránku Ochrana osobních údajů ze šablony.');
+        }
+
+        if (! Route::has('ochrana-udaju')) {
+            $this->markTestSkipped('Projekt nemá stránku Ochrana osobních údajů ze šablony.');
+        }
+
         $this->get('/ochrana-osobnich-udaju')->assertDontSee('Oznámení a novinky');
 
         Oznam::provozni('Účet založen')->komu($this->ucet('klient'))->kanaly(KanalOznameni::Centrum)->posli();

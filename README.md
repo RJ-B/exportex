@@ -108,3 +108,4 @@ Ochrana proti spamu: skryté pole a podepsaná časová past (`OchranaFormulare`
   `Oznam::provozni('…')->komu($user)->klic('…')->posli()`. Předvolby druh × kanál, novinky e-mailem jen se souhlasem
   (záznam v `oznameni_souhlasy`), odhlášení jedním kliknutím (List-Unsubscribe-Post), marketing ve výchozím stavu
   vypnutý (Oznámení → Nastavení, superadmin). E-maily po dávkách ve frontě. Web push a mobil – krok 3.
+- **Doplněk Platby** ([docs/platby.md](docs/platby.md)) – volitelná platební brána (Comgate REST 2.0, Mo.one, lokálně simulace), ve výchozím stavu vypnutá (`config/sablona.php` → `doplnky.platby`). Test platí vždy testovací bránou Sim&Ren (Mo.one test), produkce ostře jen s ověřenými údaji klienta; štítek „TESTOVACÍ PLATBY“, stav vždy ověřený dotazem na bránu, idempotence a zámky proti dvojímu zaplacení, historie stavů, vrácení, Platby a Nastavení → Platební brána v administraci.

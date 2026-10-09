@@ -2,10 +2,10 @@
 
 namespace App\Providers;
 
-use App\Support\CasAplikace;
 use App\Mail\LoggingMailManager;
 use App\Observers\AuditableObserver;
 use App\Services\UdrzbaDoAktivity;
+use App\Support\CasAplikace;
 use App\Support\Posta\Propojeni as Posta;
 use App\Support\SekceWebu;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -37,8 +37,21 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Odkazy (i v e-mailech z fronty) přes https, když web na https běží –
+     * za proxy Hestie by jinak vedly na http.
+     */
+    public static function https(): void
+    {
+        if (str_starts_with((string) config('app.url'), 'https://')) {
+            URL::forceScheme('https');
+        }
+    }
+
     public function boot(): void
     {
+        self::https();
+
         // Pravidlo času: čas zvenku (API, webhooky, shim) se ukládá v pásmu aplikace, ne v UTC.
         CasAplikace::zapni();
 

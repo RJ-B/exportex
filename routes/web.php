@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\KontaktController;
 use App\Http\Controllers\NastaveniHeslaController;
-use App\Http\Controllers\MapaWebuController;
 use App\Http\Controllers\OznameniController;
 use App\Http\Middleware\StavWebuMiddleware;
 use Illuminate\Support\Facades\Route;
