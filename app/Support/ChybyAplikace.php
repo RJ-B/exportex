@@ -38,7 +38,7 @@ class ChybyAplikace
      */
     public static function vypis(?int $od = null): array
     {
-        $odCas = $od !== null ? Carbon::createFromTimestamp($od) : now()->subDays(7);
+        $odCas = $od !== null ? CasAplikace::zVenku((int) $od) : now()->subDays(7);
 
         // Změněné = výskyt, vyřešení nebo vrácení (updated_at); tabulka bez něj podle časů výskytu a vyřešení.
         $zmena = Schema::hasColumn('error_logs', 'updated_at') ? ['updated_at'] : ['last_seen_at', 'resolved_at'];

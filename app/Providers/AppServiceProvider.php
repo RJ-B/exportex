@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\CasAplikace;
 use App\Mail\LoggingMailManager;
 use App\Observers\AuditableObserver;
 use App\Services\UdrzbaDoAktivity;
@@ -38,6 +39,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Pravidlo času: čas zvenku (API, webhooky, shim) se ukládá v pásmu aplikace, ne v UTC.
+        CasAplikace::zapni();
+
         // Veřejné formuláře: 3 odeslání za minutu a 20 za den z jedné IP. Při
         // překročení vrátí stránku s chybou formuláře (ne holou 429).
         RateLimiter::for('formular', function (Request $request) {

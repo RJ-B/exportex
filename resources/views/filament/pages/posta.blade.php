@@ -57,8 +57,8 @@
                         <span class="posta-slabe">žádné adresy – přiděl je v Poště a dej Ověřit</span>
                     @endforelse
                 </dd>
-                @if ($propojeni['kdy'])<dt>Propojeno</dt><dd>{{ \Illuminate\Support\Carbon::parse($propojeni['kdy'])->format('j. n. Y H:i') }}</dd>@endif
-                @if ($propojeni['token_plati_do'])<dt>Klíč platí do</dt><dd>{{ \Illuminate\Support\Carbon::parse($propojeni['token_plati_do'])->format('j. n. Y') }} <span class="posta-slabe">(obnovuje se sám)</span></dd>@endif
+                @if ($propojeni['kdy'])<dt>Propojeno</dt><dd>{{ \App\Support\CasAplikace::zVenku($propojeni['kdy'])?->format('j. n. Y H:i') }}</dd>@endif
+                @if ($propojeni['token_plati_do'])<dt>Klíč platí do</dt><dd>{{ \App\Support\CasAplikace::zVenku($propojeni['token_plati_do'])?->format('j. n. Y') }} <span class="posta-slabe">(obnovuje se sám)</span></dd>@endif
                 <dt>Odchozí fronta</dt><dd>{{ $fronta ? $fronta.' zpráv čeká na Poštu – předají se samy' : 'prázdná' }}</dd>
             </dl>
             <p class="posta-slabe" style="margin-top: .75rem;">Schránky, DNS domény (SPF, DKIM, DMARC) a opakování při chybě řeší Pošta. Co odešlo a co ne: Provoz → Logy → E-maily.</p>

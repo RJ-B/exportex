@@ -18,6 +18,13 @@ Při změně `style.css` nebo `main.js` se verze v adrese počítá sama (čas s
   Do produkce jen přes CRM/portál. Nic na server ručně – jen git. Postup: `NASAZENI.md`.
 - `.env` se do repa nedává. Testovací seeder (`DatabaseSeeder`) na serveru odmítne běžet
   a nikdy se tam nespouští.
+- **Čas:** aplikace i databáze v `Europe/Prague` (`APP_TIMEZONE`), v databázi místní čas bez pásma.
+  Ven (API, webhooky, JSON, shim) jen ISO 8601 s posunem (`toIso8601String()`), nikdy holé
+  `Y-m-d H:i:s`. Čas zvenku převádí `App\Support\CasAplikace::zVenku()` (zobrazení, dotazy);
+  `CasAplikace::zapni()` v `AppServiceProvider` je pojistka, aby Eloquent neuložil UTC jako místní
+  čas (GitHub „18:24Z“ by jinak bylo 18:24 místo 20:24). Pozor na Carbon 3: `createFromTimestamp()`
+  vrací UTC. V JS a mobilu čas z API vždy převést na místní (`new Date(iso)`, Dart `.toLocal()`).
+  Test `CasVPasmuAplikaceTest`.
 
 ## Obsah webu
 

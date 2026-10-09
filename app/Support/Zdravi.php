@@ -113,7 +113,7 @@ final class Zdravi
         $cas = is_file($soubor) ? (int) @file_get_contents($soubor) : 0;
 
         return [
-            'naposledy' => $cas > 0 ? Carbon::createFromTimestamp($cas)->toIso8601String() : null,
+            'naposledy' => $cas > 0 ? CasAplikace::zVenku($cas)?->toIso8601String() : null,
             'pred_s' => $cas > 0 ? max(0, time() - $cas) : null,
         ];
     }

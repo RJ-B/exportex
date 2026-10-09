@@ -2,6 +2,7 @@
 
 namespace App\Support\Posta;
 
+use App\Support\CasAplikace;
 use App\Models\MailLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -60,7 +61,7 @@ class Webhook
         match ($zprava['stav'] ?? null) {
             'odeslano' => $log->update([
                 'status' => MailLog::STATUS_SENT,
-                'sent_at' => isset($zprava['odeslano']) ? now()->parse($zprava['odeslano']) : now(),
+                'sent_at' => CasAplikace::zVenku($zprava['odeslano'] ?? null) ?? now(),
                 'attempts' => max(1, (int) ($zprava['pokusu'] ?? 1)),
                 'posta_kontrola_at' => now(),
             ]),
