@@ -60,6 +60,12 @@ class BezpecnostniHlavicky
             ])), false);
         }
 
+        // Testovací web (*.test.simren.cz) do vyhledávačů nepatří – klientský web by
+        // tam byl dvakrát. Administrace a nastavení hesla nikde.
+        if (! app()->isProduction() || $request->is('admin', 'admin/*', 'nastaveni-hesla*')) {
+            $h->set('X-Robots-Tag', 'noindex, nofollow', false);
+        }
+
         // HSTS jen na produkci přes HTTPS – lokálně by prohlížeč zablokoval http.
         if ($request->isSecure() && app()->isProduction()) {
             $h->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains', false);
