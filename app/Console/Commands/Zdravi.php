@@ -33,6 +33,10 @@ class Zdravi extends Command
         $this->line('fronta    čeká '.($d['fronta']['cekajici'] ?? '–').', selhalo '.($d['fronta']['selhane'] ?? '–'));
         $this->line('chyby     '.$d['chyby']['za_hodinu'].' za hodinu'.($d['chyby']['posledni'] ? ' – '.$d['chyby']['posledni']['zprava'] : ''));
         $this->line('disk      volno '.($d['disk']['volne_procent'] ?? '–').' %');
+        $this->line('údržba    '.collect([
+            $d['udrzba']['artisan']['zapnuta'] ? 'artisan down od '.$d['udrzba']['artisan']['od'] : null,
+            ($d['udrzba']['stav_webu']['zapnuta'] ?? false) ? 'Stav webu '.$d['udrzba']['stav_webu']['nazev'].' od '.($d['udrzba']['stav_webu']['od'] ?? '–') : null,
+        ])->filter()->implode(', ') ?: 'ne');
 
         return $d['ok'] ? self::SUCCESS : self::FAILURE;
     }

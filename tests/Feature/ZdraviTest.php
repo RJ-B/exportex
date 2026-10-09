@@ -2,9 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Enums\StavWebu;
 use App\Models\ErrorLog;
+use App\Models\Nastaveni;
 use App\Support\Zdravi;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 /**
@@ -98,5 +101,36 @@ class ZdraviTest extends TestCase
         $this->assertSame(0, $chyby, 'boti na /careers nesmí v portálu otevřít „Chyby v aplikaci“');
         $this->assertStringNotContainsString('NotFoundHttpException', $log);
         $this->assertSame(0, ErrorLog::query()->count());
+    }
+
+    public function test_udrzba_pro_portal_artisan_i_stav_webu(): void
+    {
+        $storage = sys_get_temp_dir().'/zdravi-udrzba-'.uniqid();
+        mkdir($storage.'/framework', 0777, true);
+        $this->app->useStoragePath($storage);
+
+        try {
+            $bez = Zdravi::diagnostika()['udrzba'];
+
+            file_put_contents($storage.'/framework/down', '{}');
+            $cas = now()->subMinutes(90)->getTimestamp();
+            touch($storage.'/framework/down', $cas);
+            Nastaveni::nastav(StavWebu::KLIC, StavWebu::Udrzba->value);
+            $s = Zdravi::diagnostika()['udrzba'];
+        } finally {
+            @unlink($storage.'/framework/down');
+            @rmdir($storage.'/framework');
+            @rmdir($storage);
+        }
+
+        $this->assertFalse($bez['artisan']['zapnuta']);
+        $this->assertNull($bez['artisan']['od']);
+        $this->assertSame(['stav' => 'online', 'nazev' => 'Online', 'zapnuta' => false, 'od' => null], $bez['stav_webu']);
+
+        $this->assertTrue($s['artisan']['zapnuta']);
+        $this->assertSame($cas, Carbon::parse($s['artisan']['od'])->getTimestamp());
+        $this->assertSame('udrzba', $s['stav_webu']['stav']);
+        $this->assertTrue($s['stav_webu']['zapnuta']);
+        $this->assertNotNull($s['stav_webu']['od']);
     }
 }

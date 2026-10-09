@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Enums\StavWebu;
+use App\Models\Nastaveni;
 use App\Support\Posta\StavPosty;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -103,6 +105,44 @@ final class Zdravi
             'posta' => rescue(fn () => StavPosty::proZdravi(), null, false),
             'prostredi' => app()->environment(),
             'ladeni' => (bool) config('app.debug'),
+            // Údržba: `artisan down` i Stav webu v administraci. Portál ukáže štítek
+            // „V údržbě od …“ a údržbu produkce delší než hodinu připomene.
+            'udrzba' => self::udrzba(),
+        ];
+    }
+
+    /**
+     * Údržba dvojího druhu: `artisan down` (soubor storage/framework/down, web
+     * vrací 503 všem) a Stav webu v administraci (Údržba / Připravujeme – vidí
+     * ho jen nepřihlášení). Od kdy = čas souboru, u Stavu webu poslední změna
+     * nastavení. Stav webu mění klient v administraci, portál ho jen ukazuje.
+     *
+     * @return array{artisan: array{zapnuta: bool, od: ?string}, stav_webu: ?array{stav: string, nazev: string, zapnuta: bool, od: ?string}}
+     */
+    public static function udrzba(): array
+    {
+        $soubor = storage_path('framework/down');
+        $artisan = is_file($soubor);
+        $cas = $artisan ? @filemtime($soubor) : false;
+
+        return [
+            'artisan' => [
+                'zapnuta' => $artisan,
+                'od' => $cas ? CasAplikace::zVenku((int) $cas)?->toIso8601String() : null,
+            ],
+            'stav_webu' => rescue(function () {
+                $stav = StavWebu::aktualni();
+                $zmena = $stav === StavWebu::Online
+                    ? null
+                    : Nastaveni::query()->whereKey(StavWebu::KLIC)->value('updated_at');
+
+                return [
+                    'stav' => $stav->value,
+                    'nazev' => $stav->nazev(),
+                    'zapnuta' => $stav !== StavWebu::Online,
+                    'od' => CasAplikace::zVenku($zmena)?->toIso8601String(),
+                ];
+            }, null, false),
         ];
     }
 
