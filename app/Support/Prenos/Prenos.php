@@ -52,7 +52,7 @@ class Prenos
     /**
      * Všechny části do adresáře: data.json a soubory/<disk>/<cesta>.
      *
-     * @return array{casti: array<string, int>, soubory: int}
+     * @return array{casti: array<string, int>, soubory: int, sifrovane_vynechane: array<string, int>}
      */
     public function export(string $adresar): array
     {
@@ -64,6 +64,7 @@ class Prenos
         $data = ['format' => self::FORMAT, 'aplikace' => config('app.name'), 'vytvoreno' => now()->toIso8601String(), 'casti' => []];
         $soubory = [];
         $pocty = [];
+        $vynechane = [];
 
         foreach (Casti::vse() as $klic => $cast) {
             $pocty[$klic] = 0;
@@ -73,8 +74,12 @@ class Prenos
                     continue;
                 }
 
+                // Šifrované hodnoty (APP_KEY) se neposílají – na cíli by byly nečitelné
+                // a čitelně ze serveru ven nesmí. Výsledek řekne, co se vynechalo.
                 $radky = DB::table($tabulka)->get()
-                    ->map(fn ($r) => Casti::bezTajnych($tabulka, (array) $r))
+                    ->map(function ($r) use ($tabulka, &$vynechane) {
+                        return Sifrovane::bez($tabulka, Casti::bezTajnych($tabulka, (array) $r), $vynechane);
+                    })
                     ->filter(fn (array $r) => Casti::patri($tabulka, $def, $r))
                     ->values()->all();
 
@@ -95,14 +100,15 @@ class Prenos
             File::put($cil, Storage::disk($s['disk'])->get($s['cesta']));
         }
 
+        $data['sifrovane_vynechane'] = $vynechane;
         File::put($adresar.'/data.json', json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
 
-        return ['casti' => $pocty, 'soubory' => count($soubory)];
+        return ['casti' => $pocty, 'soubory' => count($soubory), 'sifrovane_vynechane' => $vynechane];
     }
 
     /**
      * @param  array<string, string>  $volby  část => režim (Casti::volby)
-     * @return array{nanecisto: bool, casti: array<string, array<string, mixed>>, soubory: int}
+     * @return array{nanecisto: bool, casti: array<string, array<string, mixed>>, soubory: int, sifrovane_vynechane: array<string, int>}
      */
     public function import(string $adresar, array $volby, bool $nanecisto): array
     {
@@ -144,7 +150,7 @@ class Prenos
             if ($nanecisto) {
                 DB::rollBack();
 
-                return ['nanecisto' => true, 'casti' => $vysledek, 'soubory' => $soubory];
+                return ['nanecisto' => true, 'casti' => $vysledek, 'soubory' => $soubory, 'sifrovane_vynechane' => (array) ($data['sifrovane_vynechane'] ?? [])];
             }
 
             DB::commit();
@@ -160,10 +166,10 @@ class Prenos
         AuditLogger::record(
             event: 'data.prevzata',
             summary: 'Převzata data z jiného webu ('.collect($vysledek)->map(fn ($v) => $v['nazev'].' – '.$v['rezim'])->implode(', ').')',
-            new: ['zdroj' => $data['aplikace'] ?? null, 'export' => $data['vytvoreno'] ?? null, 'casti' => $vysledek, 'soubory' => $soubory],
+            new: ['zdroj' => $data['aplikace'] ?? null, 'export' => $data['vytvoreno'] ?? null, 'casti' => $vysledek, 'soubory' => $soubory, 'sifrovane_vynechane' => (array) ($data['sifrovane_vynechane'] ?? [])],
         );
 
-        return ['nanecisto' => false, 'casti' => $vysledek, 'soubory' => $soubory];
+        return ['nanecisto' => false, 'casti' => $vysledek, 'soubory' => $soubory, 'sifrovane_vynechane' => (array) ($data['sifrovane_vynechane'] ?? [])];
     }
 
     /** @return array<string, int> */

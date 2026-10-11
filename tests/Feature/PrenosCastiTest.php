@@ -4,11 +4,13 @@ namespace Tests\Feature;
 
 use App\Models\AuditLog;
 use App\Models\Nastaveni;
+use App\Models\User;
 use App\Support\Prenos\Casti;
 use App\Support\Prenos\Prenos;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
@@ -242,5 +244,29 @@ class PrenosCastiTest extends TestCase
 
         $this->expectException(\InvalidArgumentException::class);
         Casti::vse();
+    }
+
+    public function test_sifrovane_hodnoty_se_vynechaji_a_vysledek_to_rekne(): void
+    {
+        // Tajemství Authenticatoru je zašifrované APP_KEY testu – v produkci (jiný klíč)
+        // by bylo nečitelné a přihlášení by spadlo. Čitelně ze serveru ven nesmí.
+        config(['prenos.casti.uzivatele.vychozi' => true]);
+        $jana = User::factory()->create(['email' => 'jana@pekarna.cz', 'name' => 'Jana']);
+        DB::table('users')->where('id', $jana->id)->update(['remember_token' => Crypt::encryptString('tajemstvi-testu')]);
+
+        $export = $this->prikaz(['akce' => 'export', 'id' => $this->id]);
+
+        $this->assertSame(['users.remember_token' => 1], $export['sifrovane_vynechane']);
+        $balik = File::get(Prenos::adresar($this->id).'/data.json');
+        $this->assertStringNotContainsString('eyJpdiI6', $balik);
+        $this->assertStringContainsString('jana@pekarna.cz', $balik);
+
+        // Na cíli se šifrovaná hodnota nepřepíše (zůstane jeho vlastní).
+        DB::table('users')->where('id', $jana->id)->update(['remember_token' => 'token-produkce', 'name' => 'Jana z produkce']);
+        $v = $this->prikaz(['akce' => 'import', 'id' => $this->id, '--volby' => 'uzivatele:aktualizovat']);
+
+        $this->assertSame(['users.remember_token' => 1], $v['sifrovane_vynechane']);
+        $this->assertSame('token-produkce', DB::table('users')->where('id', $jana->id)->value('remember_token'));
+        $this->assertSame('Jana', DB::table('users')->where('id', $jana->id)->value('name'));
     }
 }

@@ -29,6 +29,9 @@ class Casti
         'password_reset_tokens', 'audit_logs', 'mail_logs', 'error_logs', 'posta_odchozi',
         // Passkey patří doméně webu – na jiném webu nefunguje.
         'passkeys', 'parovani_zarizeni',
+        // Tokeny API a zařízení pro push: testovací přihlášení nesmí platit v produkci
+        // a push nesmí jít na telefony z druhého prostředí. Platby jsou peníze jednoho webu.
+        'personal_access_tokens', 'zarizeni', 'push_odeslani', 'platby', 'platby_udalosti',
     ];
 
     /**
