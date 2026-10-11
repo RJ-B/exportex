@@ -109,3 +109,19 @@ Ochrana proti spamu: skryté pole a podepsaná časová past (`OchranaFormulare`
   (záznam v `oznameni_souhlasy`), odhlášení jedním kliknutím (List-Unsubscribe-Post), marketing ve výchozím stavu
   vypnutý (Oznámení → Nastavení, superadmin). E-maily po dávkách ve frontě. Web push a mobil – krok 3.
 - **Doplněk Platby** ([docs/platby.md](docs/platby.md)) – volitelná platební brána (Comgate REST 2.0, Mo.one, lokálně simulace), ve výchozím stavu vypnutá (`config/sablona.php` → `doplnky.platby`). Test platí vždy testovací bránou Sim&Ren (Mo.one test), produkce ostře jen s ověřenými údaji klienta; štítek „TESTOVACÍ PLATBY“, stav vždy ověřený dotazem na bránu, idempotence a zámky proti dvojímu zaplacení, historie stavů, vrácení, Platby a Nastavení → Platební brána v administraci.
+
+## Přenos dat mezi weby (test → produkce)
+
+V portálu u produkčního webu **Přenést data z testu**: vybrat části a u každé režim, portál
+nejdřív ukáže náhled (co přibude, změní se, smaže), po potvrzení přenese. Shim přitom
+spouští `php artisan simren:prenos casti|export|import|uklid` (`App\Support\Prenos`).
+
+- **Části** jsou v `config/prenos.php` – šablona má Údaje firmy, Nastavení webu a Uživatele
+  (výchozí vypnuto, jen doplnit/aktualizovat). **Nová tabulka s obsahem = nová část nebo
+  tabulka v části**, jinak ji přenos nevidí. Řádky se párují podle `klic` (slug, e-mail…), vazby
+  na id se přečíslují (`vazby`), fotky a soubory, na které řádky odkazují, jdou s nimi.
+- **Režimy:** *doplnit* (jen chybějící, nic existujícího nemění), *aktualizovat* (chybějící přidá,
+  existující přepíše, co je jen v cíli, nechá), *nahradit* (část v cíli smaže a nahradí kopií).
+- Nikdy se nepřenáší logy, fronta, sezení ani klíče Pošty a platební brány a stav webu.
+- Databáze v jedné transakci, před importem záloha (shim), záznam do Aktivity `data.prevzata`.
+

@@ -101,3 +101,5 @@ a domény měřicích nástrojů (cookie lišta šablony). Do veřejných strán
   jen `Platby::prejdi()`, stavu z webhooku ani návratu se nevěří (vždy `overStav()` dotazem), částky v haléřích
   (`Platby::halere`), test nikdy neplatí ostře a ostrý režim bez ověřených údajů platby zastaví – nikdy tiše
   nepřepínat na jinou bránu. Údaje bran do `.env` jen testovací Sim&Ren (portál), klienta jen šifrovaně v administraci.
+- **Přenos dat test → produkce** (portál, `App\Support\Prenos`, README): každá nová tabulka s obsahem
+  patří do části v `config/prenos.php` (párovací `klic`, `vazby`), jinak ji přenos z testu nepřenese.
