@@ -86,7 +86,7 @@ class MoOne implements Brana
             stav: self::stavZ($odpoved['Status'] ?? null),
             castka: is_numeric($odpoved['Amount'] ?? null) ? (int) round(((float) $odpoved['Amount']) * 100) : null,
             metoda: null,
-            poznamka: ($odpoved['Status'] ?? null) === 'InvestigationNeeded' ? 'Mo.one platbu prověřuje (InvestigationNeeded).' : null,
+            poznamka: ucfirst((string) ($odpoved['Status'] ?? '')) === 'InvestigationNeeded' ? 'Mo.one platbu prověřuje (InvestigationNeeded).' : null,
             data: $odpoved,
         );
     }
@@ -136,7 +136,7 @@ class MoOne implements Brana
 
     public static function stavZ(?string $stav): StavPlatby
     {
-        return match ($stav) {
+        return match ($stav === null ? null : ucfirst($stav)) {
             'Success' => StavPlatby::Zaplacena,
             'Fail' => StavPlatby::Zamitnuta,
             'Cancelled' => StavPlatby::Zrusena,
@@ -165,7 +165,23 @@ class MoOne implements Brana
             throw new ChybaBrany('Mo.one: '.$co.' selhalo (HTTP '.$odpoved->status().')'.self::duvod($odpoved).'.');
         }
 
-        return (array) $odpoved->json();
+        return self::klice((array) $odpoved->json());
+    }
+
+    /**
+     * Klíče odpovědi s velkým prvním písmenem: Mo.one (ASP.NET) posílá camelCase
+     * (`accessToken`, `transaction.publicID`), dokumentace PascalCase – kód čte
+     * PascalCase a platí obojí.
+     */
+    private static function klice(array $data): array
+    {
+        $vysledek = [];
+
+        foreach ($data as $klic => $hodnota) {
+            $vysledek[is_string($klic) ? ucfirst($klic) : $klic] = is_array($hodnota) ? self::klice($hodnota) : $hodnota;
+        }
+
+        return $vysledek;
     }
 
     private function token(): string
@@ -199,14 +215,15 @@ class MoOne implements Brana
                 throw new ChybaBrany('Mo.one: příliš mnoho přihlášení za minutu – zkus to za chvíli.');
             }
 
-            $token = $odpoved->json('AccessToken');
+            $data = self::klice((array) $odpoved->json());
+            $token = $data['AccessToken'] ?? null;
 
             if (! $odpoved->successful() || blank($token)) {
                 throw new ChybaBrany('Mo.one: přihlášení selhalo (HTTP '.$odpoved->status().')'.self::duvod($odpoved).'.');
             }
 
             // Platí hodinu; obnoví se o dvě minuty dřív.
-            Cache::put($klic, $token, max(60, (int) ($odpoved->json('ExpiresIn') ?? 3600) - 120));
+            Cache::put($klic, $token, max(60, (int) ($data['ExpiresIn'] ?? 3600) - 120));
 
             return $token;
         });

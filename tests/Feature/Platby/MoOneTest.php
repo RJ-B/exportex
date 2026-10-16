@@ -48,7 +48,8 @@ class MoOneTest extends TestCase
 
         Http::fake(function (Request $r) {
             return match (true) {
-                $r->url() === self::URL.'/payment/api/auth/token' => Http::response(['AccessToken' => $this->token, 'TokenType' => 'Bearer', 'ExpiresIn' => 3600]),
+                // Skutečné Mo.one posílá camelCase (ověřeno 16. 10. 2026 na api.znpay.tech).
+                $r->url() === self::URL.'/payment/api/auth/token' => Http::response(['accessToken' => $this->token, 'tokenType' => 'Bearer', 'expiresIn' => 3600]),
                 $r->url() === self::URL.'/payment/api/transactions/initiate' => Http::response(['Transaction' => [
                     'PublicID' => $id = $this->dalsiId++, 'Amount' => 1250.50, 'TipAmount' => 0, 'CurrencyCode' => 'CZK',
                     'PayPointPublicID' => null, 'RedirectUrl' => 'https://app.mo.one/pay/'.$id,
