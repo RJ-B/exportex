@@ -32,6 +32,12 @@ class NastaveniPlateb
 
     public const REZIM_OSTRY = 'ostry';
 
+    /**
+     * Metody Comgate, které se zákazníkovi nenabízí, dokud je klient v administraci
+     * nezapne: QR / převod pro klienty jiných bank a Cvak (Air Bank).
+     */
+    public const COMGATE_VYPNUTE_VYCHOZI = ['BANK_CZ_OTHER', 'BANK_CZ_AB_CVAK'];
+
     /** @var array{rezim: ?Rezim, brana: ?string, popis: string, chyba: ?string}|null */
     private static ?array $prehled = null;
 
@@ -86,6 +92,10 @@ class NastaveniPlateb
             self::zapis('brana', array_key_exists((string) $data['brana'], self::BRANY) ? $data['brana'] : null);
         }
 
+        if (array_key_exists('comgate_vypnute', $data)) {
+            self::zapis('comgate.vypnute', json_encode(array_values(array_unique(array_map('strval', (array) $data['comgate_vypnute'])))));
+        }
+
         if (array_key_exists('rezim', $data)) {
             self::zapis('rezim', $data['rezim'] === self::REZIM_OSTRY ? self::REZIM_OSTRY : self::REZIM_TEST);
         }
@@ -103,6 +113,19 @@ class NastaveniPlateb
         }
 
         self::$prehled = null;
+    }
+
+    /**
+     * Metody Comgate vypnuté v administraci (při platbě se odeberou z výběru).
+     * Bez volby výchozí COMGATE_VYPNUTE_VYCHOZI.
+     *
+     * @return list<string>
+     */
+    public static function comgateVypnute(): array
+    {
+        $ulozene = json_decode((string) self::cti('comgate.vypnute'), true);
+
+        return is_array($ulozene) ? array_values(array_map('strval', $ulozene)) : self::COMGATE_VYPNUTE_VYCHOZI;
     }
 
     /** Otisk aktuálních údajů brány – ověření platí jen pro ně. */
@@ -211,7 +234,7 @@ class NastaveniPlateb
         $udaje ??= self::udajeKlienta($brana);
 
         return match ($brana) {
-            'comgate' => new Comgate((string) $udaje['id'], (string) $udaje['tajemstvi'], $rezim),
+            'comgate' => new Comgate((string) $udaje['id'], (string) $udaje['tajemstvi'], $rezim, self::comgateVypnute()),
             'moone' => new MoOne((string) $udaje['id'], (string) $udaje['tajemstvi'], (string) config('platby.moone.url'), $rezim),
             default => throw new PlatbyNedostupne('Neznámá brána „'.$brana.'“.'),
         };

@@ -116,7 +116,7 @@ class TestAProdukceTest extends TestCase
     {
         $this->produkce();
         $this->testovaciUdaje();
-        Http::fake(['https://payments.comgate.cz/v2.0/method.json*' => Http::response(['code' => 0, 'message' => 'OK', 'methods' => [['id' => 'ALL']]])]);
+        Http::fake(['https://payments.comgate.cz/v2.0/method.json*' => Http::response(['methods' => [['id' => 'ALL']]])]);
         $admin = $this->spravce();
 
         // Ostrý bez ověření nejde.

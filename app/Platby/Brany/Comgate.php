@@ -10,6 +10,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -32,6 +33,8 @@ class Comgate implements Brana
         private readonly string $merchant,
         private readonly string $heslo,
         private readonly Rezim $rezim = Rezim::Ostry,
+        /** @var list<string> metody obchodu, které se zákazníkovi nenabízí (NastaveniPlateb::comgateVypnute) */
+        private readonly array $vypnute = [],
     ) {}
 
     public function kod(): string
@@ -65,7 +68,8 @@ class Comgate implements Brana
             // Comgate: 1–16 znaků, ukáže se zákazníkovi a ve výpisu.
             'label' => Str::limit(Str::ascii($platba->popis) ?: 'Platba', 16, ''),
             'refId' => $platba->reference ?: $platba->verejne_id,
-            'method' => 'ALL',
+            // Výběr metod bez metod vypnutých v administraci.
+            'method' => self::vyraz($this->vypnute),
             'email' => $platba->email,
             'fullName' => $platba->celeJmeno() ?: $platba->email,
             'country' => 'CZ',
@@ -103,6 +107,59 @@ class Comgate implements Brana
             poznamka: filled($odpoved['paymentErrorReason'] ?? null) ? 'Důvod: '.$odpoved['paymentErrorReason'] : null,
             data: self::bezTajemstvi($odpoved),
         );
+    }
+
+    /**
+     * Metody, které má obchod v Comgate povolené (method.json): kód → název a skupina.
+     * Null = Comgate teď neodpovídá. Výpis se drží 10 minut, chyba minutu –
+     * aplikace se ptá často a brána nesmí čekat.
+     *
+     * @return array<string, array{nazev: string, skupina: string}>|null
+     */
+    public function metody(): ?array
+    {
+        $klic = 'platby:comgate:metody:'.hash('sha256', $this->merchant.'|'.$this->heslo.'|'.$this->rezim->value);
+
+        if (is_array($ulozene = Cache::get($klic))) {
+            return $ulozene['metody'];
+        }
+
+        try {
+            $odpoved = $this->json(fn (PendingRequest $h) => $h->get('method.json', ['lang' => 'cs', 'curr' => 'CZK', 'country' => 'CZ']), 'výpis metod');
+        } catch (ChybaBrany) {
+            Cache::put($klic, ['metody' => null], now()->addMinute());
+
+            return null;
+        }
+
+        $metody = collect((array) ($odpoved['methods'] ?? []))
+            ->mapWithKeys(function ($m) {
+                $kod = strtoupper((string) (is_array($m) ? ($m['id'] ?? '') : $m));
+
+                return $kod === '' ? [] : [$kod => [
+                    'nazev' => (string) (is_array($m) ? ($m['name'] ?? $kod) : $kod),
+                    'skupina' => (string) (is_array($m) ? ($m['groupLabel'] ?? $m['group'] ?? '') : ''),
+                ]];
+            })
+            ->all();
+
+        Cache::put($klic, ['metody' => $metody], now()->addMinutes(10));
+
+        return $metody;
+    }
+
+    /**
+     * Výraz pro `method` (https://apidoc.comgate.cz/en/metody-platebni-brany):
+     * „ALL-KOD-KOD“ = vše povolené u obchodu kromě vypnutých.
+     *
+     * @param  list<string>  $vypnute
+     */
+    public static function vyraz(array $vypnute): string
+    {
+        $kody = array_values(array_unique(array_filter(array_map(
+            fn ($k) => preg_replace('/[^A-Z0-9_]/', '', strtoupper((string) $k)), $vypnute))));
+
+        return implode('-', ['ALL', ...$kody]);
     }
 
     public function umiZrusit(): bool
@@ -165,7 +222,11 @@ class Comgate implements Brana
             ->connectTimeout(5);
     }
 
-    /** Odpověď → pole; HTTP chyba nebo `code` ≠ 0 = ChybaBrany s čitelným důvodem. */
+    /**
+     * Odpověď → pole; HTTP chyba nebo `code` ≠ 0 = ChybaBrany s čitelným důvodem.
+     * Výpis metod (method.json) vrací jen `methods` bez `code` – chybějící kód
+     * u úspěšné HTTP odpovědi je v pořádku.
+     */
     private function json(\Closure $pozadavek, string $co): array
     {
         try {
@@ -181,7 +242,7 @@ class Comgate implements Brana
 
         $data = (array) $odpoved->json();
 
-        if (! $odpoved->successful() || (int) ($data['code'] ?? -1) !== 0) {
+        if (! $odpoved->successful() || (isset($data['code']) && (int) $data['code'] !== 0)) {
             throw new ChybaBrany('Comgate: '.$co.' selhalo (HTTP '.$odpoved->status()
                 .(isset($data['code']) ? ', kód '.$data['code'] : '').')'
                 .(filled($data['message'] ?? null) ? ' – '.$data['message'] : '').'.');

@@ -6,7 +6,9 @@ use App\Platby\NastaveniPlateb;
 use App\Platby\Rezim;
 use App\Services\AuditLogger;
 use BackedEnum;
+use App\Platby\Brany\Comgate;
 use Filament\Actions\Action;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Notifications\Notification;
@@ -57,6 +59,7 @@ class PlatebniBrana extends Page
             'rezim' => NastaveniPlateb::rezimVolba(),
             'comgate_merchant' => NastaveniPlateb::udajeKlienta('comgate')['id'],
             'moone_client_id' => NastaveniPlateb::udajeKlienta('moone')['id'],
+            'comgate_metody' => array_values(array_diff(array_keys(self::metodyComgate() ?? []), NastaveniPlateb::comgateVypnute())),
         ]);
     }
 
@@ -98,6 +101,22 @@ class PlatebniBrana extends Page
                             ->visible(fn ($get) => $get('brana') === 'moone')
                             ->columnSpanFull(),
                         Html::make(fn ($get) => self::stavOvereni((string) $get('brana')))->columnSpanFull(),
+                    ]),
+                Section::make('Způsoby platby u Comgate')
+                    ->description('Co Comgate zákazníkovi nabídne. Seznam je z Comgate – metody, které má obchod povolené. Odškrtnuté se při platbě nenabídnou; nové metody od Comgate se nabízí, dokud je tu neodškrtneš.')
+                    ->visible(fn ($get) => $get('brana') === 'comgate')
+                    ->schema([
+                        CheckboxList::make('comgate_metody')->label('Nabízet')
+                            ->options(fn () => collect(self::metodyComgate() ?? [])
+                                ->map(fn (array $m) => filled($m['skupina']) && $m['skupina'] !== $m['nazev'] ? $m['skupina'].' – '.$m['nazev'] : $m['nazev'])
+                                ->all())
+                            ->columns(2)
+                            ->bulkToggleable()
+                            ->visible(fn () => self::metodyComgate() !== null)
+                            ->rule(fn () => fn (string $attribute, $value, \Closure $fail) => blank($value) ? $fail('Nech zapnutou aspoň jednu metodu (třeba platbu kartou).') : null),
+                        Html::make(fn () => new HtmlString('<p style="font-size: .875rem; opacity: .8;">Seznam metod se ukáže po ověření spojení s Comgate. Zatím se nenabízí '
+                            .e(implode(', ', NastaveniPlateb::comgateVypnute()) ?: 'nic navíc').' – ostatní ano.</p>'))
+                            ->visible(fn () => self::metodyComgate() === null),
                     ]),
                 Section::make('Režim')
                     ->schema([
@@ -149,6 +168,9 @@ class PlatebniBrana extends Page
         NastaveniPlateb::oznacOvereno($brana);
         $this->vycistitTajemstvi();
 
+        // Po prvním ověření se ukáže seznam metod – předvyplnit podle uložené volby.
+        $this->data['comgate_metody'] = array_values(array_diff(array_keys(self::metodyComgate() ?? []), NastaveniPlateb::comgateVypnute()));
+
         AuditLogger::record('platby.overeno', null, 'Platební brána '.NastaveniPlateb::BRANY[$brana].': spojení ověřeno');
         Notification::make()->title('Spojení funguje')->body($zprava)->success()->send();
     }
@@ -171,6 +193,12 @@ class PlatebniBrana extends Page
         }
 
         NastaveniPlateb::uloz(array_intersect_key($data, array_flip(['brana', 'comgate_merchant', 'comgate_secret', 'moone_client_id', 'moone_client_secret'])));
+
+        if (array_key_exists('comgate_metody', $data) && ($metody = self::metodyComgate()) !== null) {
+            // Vypnuté = nabízené Comgatem a odškrtnuté; dřív vypnuté, které Comgate teď nehlásí, zůstanou vypnuté.
+            $nehlasene = array_diff(NastaveniPlateb::comgateVypnute(), array_keys($metody));
+            NastaveniPlateb::uloz(['comgate_vypnute' => [...$nehlasene, ...array_diff(array_keys($metody), (array) $data['comgate_metody'])]]);
+        }
 
         if ($rezim === NastaveniPlateb::REZIM_OSTRY && ($duvod = NastaveniPlateb::procNeOstre())) {
             throw ValidationException::withMessages(['data.rezim' => 'Ostrý režim nejde zapnout: '.$duvod]);
@@ -204,6 +232,23 @@ class PlatebniBrana extends Page
         $this->data['comgate_secret'] = null;
         $this->data['moone_client_secret'] = null;
         NastaveniPlateb::zapomen();
+    }
+
+    /**
+     * Metody, které má obchod klienta povolené v Comgate (uložené ověřené údaje).
+     * Null = údaje chybí / nejsou ověřené / Comgate neodpovídá.
+     *
+     * @return array<string, array{nazev: string, skupina: string}>|null
+     */
+    private static function metodyComgate(): ?array
+    {
+        if (! NastaveniPlateb::overeno('comgate')) {
+            return null;
+        }
+
+        $brana = NastaveniPlateb::branaKlienta('comgate');
+
+        return $brana instanceof Comgate ? $brana->metody() : null;
     }
 
     private static function stavOvereni(string $brana): HtmlString

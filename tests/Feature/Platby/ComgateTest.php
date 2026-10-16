@@ -40,7 +40,7 @@ class ComgateTest extends TestCase
             ]),
             $r->url() === self::URL.'/payment/transId/AB12-CD34-EF56.json' && $r->method() === 'DELETE' => Http::response(['code' => 0, 'message' => 'OK']),
             $r->url() === self::URL.'/refund.json' => Http::response(['code' => 0, 'message' => 'OK']),
-            str_starts_with($r->url(), self::URL.'/method.json') => Http::response(['code' => 0, 'message' => 'OK', 'methods' => [['id' => 'CARD_CZ_CSOB_2'], ['id' => 'BANK_CZ_RB']]]),
+            str_starts_with($r->url(), self::URL.'/method.json') => Http::response(['methods' => [['id' => 'CARD_CZ_CSOB_2'], ['id' => 'BANK_CZ_RB']]]),
             default => Http::response(['code' => 1400, 'message' => 'Bad request'], 400),
         });
     }
@@ -104,5 +104,17 @@ class ComgateTest extends TestCase
 
         $this->assertSame(StavPlatby::Chyba, Platba::query()->first()->stav);
         $this->assertDatabaseHas('error_logs', ['exception' => ChybaBrany::class]);
+    }
+
+    public function test_zpusoby_platby_vypnute_se_pri_platbe_odeberou(): void
+    {
+        $this->platby()->zaloz($this->pozadavek());
+        Http::assertSent(fn (Request $r) => $r->url() === self::URL.'/payment.json' && $r['method'] === 'ALL-BANK_CZ_OTHER-BANK_CZ_AB_CVAK');
+
+        NastaveniPlateb::uloz(['comgate_vypnute' => ['LATER_TWISTO']]);
+        $this->assertSame(['LATER_TWISTO'], NastaveniPlateb::comgateVypnute());
+        $this->assertSame('ALL-LATER_TWISTO', \App\Platby\Brany\Comgate::vyraz(NastaveniPlateb::comgateVypnute()));
+
+        $this->assertSame(['CARD_CZ_CSOB_2', 'BANK_CZ_RB'], array_keys(NastaveniPlateb::branaKlienta('comgate')->metody()));
     }
 }

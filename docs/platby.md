@@ -114,6 +114,15 @@ Jednotné rozhraní `App\Platby\Brany\Brana`: `zaloz`, `stav`, `zrus`, `vrat`, `
 Návratové adresy (`url_paid`, `url_cancelled`, `url_pending`) jdou s každou platbou. **URL pro předání
 výsledku platby** se nastavuje v Klientském portálu Comgate (Integrace → Nastavení obchodu) na
 `https://<doména>/platby/webhook/comgate` – administrace ji ukazuje. Oznámení se špatným heslem = 403.
+`method.json` vrací jen `methods` (bez `code`) – chybějící `code` u úspěšné odpovědi je v pořádku.
+
+**Způsoby platby u Comgate** (administrace → Platební brána): seznam metod, které má obchod v Comgate
+povolené (`method.json`: `id`, `name`, `groupLabel`), jako přepínače. Portál Comgate metody jen
+vypisuje, vypnout je tam nejde (jen přes podporu) – proto se vypnuté odeberou při každé platbě
+výrazem `method=ALL-KOD-KOD` (https://apidoc.comgate.cz/en/metody-platebni-brany). Ukládá se seznam
+**vypnutých** (`platby.comgate.vypnute`), takže nová metoda od Comgate se nabízí, dokud ji klient
+nevypne. Výchozí vypnuté (`NastaveniPlateb::COMGATE_VYPNUTE_VYCHOZI`): `BANK_CZ_OTHER` (QR platba /
+převod pro klienty jiných bank) a `BANK_CZ_AB_CVAK` (Cvak – Air Bank).
 
 **Mo.one** (ZNPay, integrační dokumentace ZS-548): `POST /payment/api/auth/token` (ClientID, ClientSecret
 → JWT na hodinu, cache – limit 10 požadavků za minutu), `POST /payment/api/transactions/initiate`
