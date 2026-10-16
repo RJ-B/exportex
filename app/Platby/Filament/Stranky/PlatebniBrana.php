@@ -56,6 +56,7 @@ class PlatebniBrana extends Page
     {
         $this->form->fill([
             'brana' => NastaveniPlateb::brana() ?? 'comgate',
+            'nabizet' => NastaveniPlateb::nabizeneBrany() ?: [NastaveniPlateb::brana() ?? 'comgate'],
             'rezim' => NastaveniPlateb::rezimVolba(),
             'comgate_merchant' => NastaveniPlateb::udajeKlienta('comgate')['id'],
             'moone_client_id' => NastaveniPlateb::udajeKlienta('moone')['id'],
@@ -75,7 +76,12 @@ class PlatebniBrana extends Page
                     ->description('Přes ni jdou ostré platby na produkci – peníze na účet klienta. Údaje se ukládají šifrovaně a tajný klíč se sem už nevrací.')
                     ->columns(2)
                     ->schema([
-                        ToggleButtons::make('brana')->label('Platební brána')->inline()->live()->required()
+                        CheckboxList::make('nabizet')->label('Nabízet zákazníkům')->required()
+                            ->options(NastaveniPlateb::BRANY)
+                            ->helperText('Zapnuté brány si zákazník vybere při platbě (Comgate jako platbu kartou, Mo.one zvlášť). V ostrém režimu musí mít každá ověřené údaje.')
+                            ->columns(2)
+                            ->columnSpanFull(),
+                        ToggleButtons::make('brana')->label('Údaje brány')->inline()->live()->required()
                             ->options(NastaveniPlateb::BRANY)
                             ->columnSpanFull(),
                         TextInput::make('comgate_merchant')->label('Identifikátor obchodu (merchant)')->maxLength(40)
@@ -190,9 +196,16 @@ class PlatebniBrana extends Page
             if ($noveTajemstvi || $id !== NastaveniPlateb::udajeKlienta($brana)['id']) {
                 throw ValidationException::withMessages(['data.rezim' => 'Nové údaje nejdřív ověř tlačítkem Ověřit spojení, pak přepni na ostrý režim.']);
             }
+
+            // Každá nabízená brána musí být ověřená – jinak by zákazník vybral nefunkční.
+            foreach ((array) ($data['nabizet'] ?? []) as $nabizena) {
+                if (app()->isProduction() && ($duvod = NastaveniPlateb::procNeOstre($nabizena))) {
+                    throw ValidationException::withMessages(['data.nabizet' => 'Brána '.NastaveniPlateb::BRANY[$nabizena].' nejde nabízet ostře: '.$duvod]);
+                }
+            }
         }
 
-        NastaveniPlateb::uloz(array_intersect_key($data, array_flip(['brana', 'comgate_merchant', 'comgate_secret', 'moone_client_id', 'moone_client_secret'])));
+        NastaveniPlateb::uloz(array_intersect_key($data, array_flip(['brana', 'nabizet', 'comgate_merchant', 'comgate_secret', 'moone_client_id', 'moone_client_secret'])));
 
         if (array_key_exists('comgate_metody', $data) && ($metody = self::metodyComgate()) !== null) {
             // Vypnuté = nabízené Comgatem a odškrtnuté; dřív vypnuté, které Comgate teď nehlásí, zůstanou vypnuté.
@@ -209,7 +222,7 @@ class PlatebniBrana extends Page
 
         if ($rezim !== $predtim) {
             AuditLogger::record('platby.rezim', null, $rezim === NastaveniPlateb::REZIM_OSTRY
-                ? 'Platby přepnuty na OSTRÝ režim ('.NastaveniPlateb::BRANY[$brana].')'
+                ? 'Platby přepnuty na OSTRÝ režim ('.implode(', ', array_map(fn (string $b) => NastaveniPlateb::BRANY[$b], NastaveniPlateb::nabizeneBrany())).')'
                 : 'Platby přepnuty na testovací režim', ['rezim' => $predtim], ['rezim' => $rezim]);
         }
 

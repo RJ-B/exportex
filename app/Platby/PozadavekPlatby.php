@@ -32,6 +32,9 @@ final class PozadavekPlatby
         public readonly ?string $klic = null,
         public readonly ?string $navratUrl = null,
         public readonly string $mena = 'CZK',
+        // Brána zvolená zákazníkem (comgate / moone), když jich klient nabízí víc;
+        // null = první nabízená (NastaveniPlateb::aktivni).
+        public readonly ?string $brana = null,
     ) {
         if ($castka < 100) {
             throw new InvalidArgumentException('Nejmenší platba je 1 Kč.');

@@ -108,6 +108,13 @@ než má platba, se nepřijme (historie + Chyby).
 Jednotné rozhraní `App\Platby\Brany\Brana`: `zaloz`, `stav`, `zrus`, `vrat`, `overSpojeni`,
 `webhookPravy`, `zWebhooku`. Nová brána = nová třída + řádek v `NastaveniPlateb`.
 
+**Víc bran naráz** (administrace → Platební brána → *Nabízet zákazníkům*): klient může nabízet
+Comgate i Mo.one zároveň (`NastaveniPlateb::nabizeneBrany`, uloženo `platby.brany`; bez volby jen
+zvolená `brana`). Projekt nabídne zákazníkovi volbu (Comgate jako „Kartou online“, Mo.one zvlášť) a
+pošle ji v `PozadavekPlatby::brana` (`comgate` / `moone`); `NastaveniPlateb::aktivni($brana)` ostře
+vrátí jen nabízenou a ověřenou bránu, jinak `PlatbyNedostupne`. Ostrý režim jde uložit, jen když je
+každá nabízená brána ověřená. Mimo ostrý režim platí každá volba testovací bránou.
+
 **Comgate** – REST API 2.0 (`https://payments.comgate.cz/v2.0`, Basic merchant:heslo, JSON, haléře):
 `POST payment.json` → `transId`, `redirect`; `GET payment/transId/{id}.json` (PENDING/PAID/CANCELLED);
 `DELETE` tamtéž = zrušení; `POST refund.json` = vrácení (i částečné); `GET method.json` = Ověřit spojení.

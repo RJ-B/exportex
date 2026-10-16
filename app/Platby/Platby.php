@@ -67,7 +67,7 @@ class Platby
      */
     public function zaloz(PozadavekPlatby $pozadavek): Platba
     {
-        $brana = NastaveniPlateb::aktivni();
+        $brana = NastaveniPlateb::aktivni($pozadavek->brana);
         $klic = $pozadavek->klic();
 
         return Cache::lock('platby:zalozeni:'.($klic ? hash('sha256', $klic) : Str::uuid()), 60)

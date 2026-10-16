@@ -117,4 +117,28 @@ class ComgateTest extends TestCase
 
         $this->assertSame(['CARD_CZ_CSOB_2', 'BANK_CZ_RB'], array_keys(NastaveniPlateb::branaKlienta('comgate')->metody()));
     }
+
+    public function test_vic_bran_naraz_ostre_jen_nabizena_a_overena(): void
+    {
+        // Bez volby jen zvolená brána (starší nastavení).
+        $this->assertSame(['comgate'], NastaveniPlateb::nabizeneBrany());
+
+        NastaveniPlateb::uloz(['nabizet' => ['moone', 'comgate']]);
+        $this->assertSame(['comgate', 'moone'], NastaveniPlateb::nabizeneBrany());
+        $this->assertSame('comgate', NastaveniPlateb::aktivni('comgate')->kod());
+
+        // Mo.one nabízená, ale bez ověřených údajů – ostře nejde a nespadne do Comgate.
+        try {
+            NastaveniPlateb::aktivni('moone');
+            $this->fail('Neověřená brána nesmí platit ostře.');
+        } catch (\App\Platby\PlatbyNedostupne) {
+        }
+
+        $this->assertNotNull(NastaveniPlateb::procNeOstre());
+
+        // Nenabízená brána se nepoužije, i když má údaje.
+        NastaveniPlateb::uloz(['nabizet' => ['comgate']]);
+        $this->expectException(\App\Platby\PlatbyNedostupne::class);
+        NastaveniPlateb::aktivni('moone');
+    }
 }

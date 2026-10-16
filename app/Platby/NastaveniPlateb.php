@@ -50,6 +50,20 @@ class NastaveniPlateb
         return array_key_exists((string) $brana, self::BRANY) ? $brana : null;
     }
 
+    /**
+     * Brány klienta nabízené zákazníkům (může jich být víc – zákazník si vybere).
+     * Bez volby jen brána zvolená v administraci (starší nastavení s jednou bránou).
+     *
+     * @return list<string>
+     */
+    public static function nabizeneBrany(): array
+    {
+        $ulozene = json_decode((string) self::cti('brany'), true);
+        $brany = is_array($ulozene) ? $ulozene : array_filter([self::brana()]);
+
+        return array_values(array_filter(array_keys(self::BRANY), fn (string $b) => in_array($b, $brany, true)));
+    }
+
     public static function rezimVolba(): string
     {
         return self::cti('rezim') === self::REZIM_OSTRY ? self::REZIM_OSTRY : self::REZIM_TEST;
@@ -94,6 +108,10 @@ class NastaveniPlateb
 
         if (array_key_exists('comgate_vypnute', $data)) {
             self::zapis('comgate.vypnute', json_encode(array_values(array_unique(array_map('strval', (array) $data['comgate_vypnute'])))));
+        }
+
+        if (array_key_exists('nabizet', $data)) {
+            self::zapis('brany', json_encode(array_values(array_intersect(array_keys(self::BRANY), (array) $data['nabizet']))));
         }
 
         if (array_key_exists('rezim', $data)) {
@@ -161,10 +179,26 @@ class NastaveniPlateb
         self::$prehled = null;
     }
 
-    /** Proč ostrý režim nejde (null = jde). */
-    public static function procNeOstre(): ?string
+    /** Proč ostrý režim nejde (null = jde) – pro bránu, jinak pro všechny nabízené. */
+    public static function procNeOstre(?string $brana = null): ?string
     {
-        $brana = self::brana();
+        if ($brana === null && app()->isProduction()) {
+            $nabizene = self::nabizeneBrany();
+
+            if ($nabizene === []) {
+                return 'není vybraná žádná brána, kterou nabízet zákazníkům.';
+            }
+
+            foreach ($nabizene as $nabizena) {
+                if ($duvod = self::procNeOstre($nabizena)) {
+                    return $duvod;
+                }
+            }
+
+            return null;
+        }
+
+        $brana ??= self::brana();
 
         return match (true) {
             ! app()->isProduction() => 'ostré platby jsou jen na produkci (testovací web platí vždy testovací bránou).',
@@ -183,11 +217,12 @@ class NastaveniPlateb
     }
 
     /**
-     * Brána pro NOVOU platbu.
+     * Brána pro NOVOU platbu: zvolená zákazníkem (comgate / moone), jinak první
+     * nabízená. Mimo ostrý režim vždy testovací brána / simulace.
      *
      * @throws PlatbyNedostupne
      */
-    public static function aktivni(): Brana
+    public static function aktivni(?string $volba = null): Brana
     {
         if (! app()->isProduction()) {
             if (self::simulaceDovolena()) {
@@ -199,11 +234,17 @@ class NastaveniPlateb
         }
 
         if (self::rezimVolba() === self::REZIM_OSTRY) {
-            if ($duvod = self::procNeOstre()) {
+            $brana = $volba ?? (self::nabizeneBrany()[0] ?? self::brana());
+
+            if ($brana === null || ! in_array($brana, self::nabizeneBrany(), true)) {
+                throw new PlatbyNedostupne('Brána '.(self::BRANY[$brana] ?? $brana ?? '–').' se zákazníkům nenabízí (Nastavení → Platební brána).');
+            }
+
+            if ($duvod = self::procNeOstre($brana)) {
                 throw new PlatbyNedostupne('Ostrý režim plateb je zapnutý, ale '.$duvod.' Platby stojí – na testovací bránu se nepřepíná.');
             }
 
-            return self::branaKlienta((string) self::brana(), Rezim::Ostry);
+            return self::branaKlienta($brana, Rezim::Ostry);
         }
 
         return self::testovaciBrana()
@@ -266,7 +307,7 @@ class NastaveniPlateb
                     'rezim' => $brana->rezim(),
                     'brana' => $brana->nazev(),
                     'popis' => match ($brana->rezim()) {
-                        Rezim::Ostry => 'Ostré platby přes bránu '.$brana->nazev().' – peníze jdou na účet klienta.',
+                        Rezim::Ostry => 'Ostré platby přes '.(count($nazvy = array_map(fn (string $b) => self::BRANY[$b], self::nabizeneBrany())) > 1 ? 'brány '.implode(' a ', $nazvy) : 'bránu '.$brana->nazev()).' – peníze jdou na účet klienta.',
                         Rezim::Testovaci => 'Testovací platby přes testovací bránu Sim&Ren (Mo.one test) – nic se nestrhne.',
                         Rezim::Simulace => 'Simulace – místo banky stránka s tlačítky Zaplatit / Zamítnout (jen lokálně).',
                     },
