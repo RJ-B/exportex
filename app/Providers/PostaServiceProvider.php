@@ -58,7 +58,8 @@ class PostaServiceProvider extends ServiceProvider
             $schedule->call(function (): void {
                 $this->app->make(Propojeni::class)->obnovToken(false);
             })
-                ->dailyAt('04:20')
+                ->dailyAt('04:00')
+                ->rozlozit()
                 ->name('posta-obnov-token')
                 ->withoutOverlapping(10, false)
                 ->when(fn () => Propojeni::propojeno());

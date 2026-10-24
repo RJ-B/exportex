@@ -44,4 +44,11 @@ return [
     'doplnky' => [
         'platby' => (bool) env('SABLONA_DOPLNEK_PLATBY', false),
     ],
+
+    /*
+     * Posun plánovaných úloh v hodině (0–59 min, App\Support\Rozvrh). Zapisuje ho
+     * portál po serverech, ať údržba všech aplikací serveru nestartuje naráz.
+     * Bez hodnoty se spočítá z adresy webu.
+     */
+    'rozvrh_posun' => env('SIMREN_ROZVRH_POSUN'),
 ];
