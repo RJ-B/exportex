@@ -29,7 +29,12 @@ Schedule::call(fn () => app(Odeslani::class)->naplanovana())
 // ne na den – po pádu by se úloha do vypršení zámku ani nezkusila.
 // Pošta (posta:fronta, posta:obnov-token) se plánuje v PostaServiceProvider;
 // opakování a kontrolu schránek dělá Pošta sama.
-Schedule::command('logs:prune')->dailyAt('03:30')->withoutOverlapping(60, false);
+Schedule::command('logs:prune')->dailyAt('01:00')->rozlozit()->withoutOverlapping(60, false);
+
+// Provozní tabulky, které Laravel sám nečistí (selhané úlohy, dávky, obnova hesla, prošlá cache).
+Schedule::call(function (): void {
+    \App\Support\UdrzbaDatabaze::spust();
+})->dailyAt('00:00')->rozlozit()->name('udrzba-databaze')->withoutOverlapping(30, false);
 
 // Značka pro portál, že plánovač běží (App\Support\Zdravi).
 Schedule::call(fn () => Zdravi::znackaPlanovace())->everyMinute()->name('zdravi-planovac');

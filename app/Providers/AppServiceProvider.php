@@ -50,6 +50,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // ->rozlozit() u plánovaných úloh: posun aplikace v hodině (portál, jinak z adresy webu).
+        \App\Support\Rozvrh::zapni();
+
         self::https();
 
         // Pravidlo času: čas zvenku (API, webhooky, shim) se ukládá v pásmu aplikace, ne v UTC.
