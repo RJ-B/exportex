@@ -15,9 +15,11 @@ use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\HtmlString;
 
 /**
@@ -34,9 +36,15 @@ class OchranaOsobnichUdaju extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
 
-    protected static ?string $navigationLabel = 'Ochrana osobních údajů';
+    public static function getNavigationLabel(): string
+    {
+        return __('pravni.ochrana_osobnich_udaju.ochrana_osobnich_udaju');
+    }
 
-    protected static ?string $title = 'Ochrana osobních údajů';
+    public function getTitle(): string|Htmlable
+    {
+        return __('pravni.ochrana_osobnich_udaju.ochrana_osobnich_udaju');
+    }
 
     protected static ?string $slug = 'ochrana-osobnich-udaju';
 
@@ -69,44 +77,44 @@ class OchranaOsobnichUdaju extends Page
         return $schema
             ->statePath('data')
             ->components([
-                Section::make('Co ještě chybí')
+                Section::make(__('pravni.ochrana_osobnich_udaju.co_jeste_chybi'))
                     ->visible(fn () => OchranaUdaju::chybejici() !== [])
                     ->schema([
-                        \Filament\Schemas\Components\Text::make(fn () => new HtmlString(
-                            'Text ochrany osobních údajů není úplný. Doplňte: <strong>'.e(implode(', ', OchranaUdaju::chybejici())).'</strong>.'
+                        Text::make(fn () => new HtmlString(
+                            __('pravni.ochrana_osobnich_udaju.text_ochrany_osobnich_udaju_neni_uplny', ['chybejici' => e(implode(', ', OchranaUdaju::chybejici()))])
                         ))->color('warning'),
                     ]),
-                Section::make('Platnost')
-                    ->description('Správce (firma, sídlo, IČO, kontakty) se bere z Hlavičky a patičky.')
+                Section::make(__('pravni.ochrana_osobnich_udaju.platnost'))
+                    ->description(__('pravni.ochrana_osobnich_udaju.spravce_firma_sidlo_ico_kontakty_se'))
                     ->columns(2)
                     ->schema([
-                        DatePicker::make('ucinnost_od')->label('Účinné od')->native(false)->displayFormat('j. n. Y'),
-                        TextInput::make('poverenec')->label('Pověřenec pro ochranu osobních údajů')
-                            ->placeholder('nejmenovali jsme')
-                            ->helperText('Jen když ho firma má (povinně např. úřady, nemocnice).'),
+                        DatePicker::make('ucinnost_od')->label(__('pravni.ochrana_osobnich_udaju.ucinne_od'))->native(false)->displayFormat(__('formaty.datum')),
+                        TextInput::make('poverenec')->label(__('pravni.ochrana_osobnich_udaju.poverenec_pro_ochranu_osobnich_udaju'))
+                            ->placeholder(__('pravni.ochrana_osobnich_udaju.nejmenovali_jsme'))
+                            ->helperText(__('pravni.ochrana_osobnich_udaju.jen_kdyz_ho_firma_ma_povinne')),
                     ]),
-                Section::make('Kontaktní formulář')
-                    ->description(fn () => SekceWebu::zapnuta('formular') ? 'Na webu je – do textu se tahle část zařadí.' : 'Formulář je vypnutý – tahle část se na webu nezobrazí.')
+                Section::make(__('pravni.ochrana_osobnich_udaju.kontaktni_formular'))
+                    ->description(fn () => SekceWebu::zapnuta('formular') ? __('pravni.ochrana_osobnich_udaju.na_webu_je_do_textu_se') : __('pravni.ochrana_osobnich_udaju.formular_je_vypnuty_tahle_cast_se'))
                     ->columns(2)
                     ->schema([
-                        Textarea::make('formular_udaje')->label('Jaké údaje formulář sbírá')->rows(2)->columnSpanFull()
-                            ->helperText('IP adresa a čas odeslání se doplní samy.'),
-                        TextInput::make('formular_doba')->label('Jak dlouho zprávy uchováváte'),
+                        Textarea::make('formular_udaje')->label(__('pravni.ochrana_osobnich_udaju.jake_udaje_formular_sbira'))->rows(2)->columnSpanFull()
+                            ->helperText(__('pravni.ochrana_osobnich_udaju.ip_adresa_a_cas_odeslani_se')),
+                        TextInput::make('formular_doba')->label(__('pravni.ochrana_osobnich_udaju.jak_dlouho_zpravy_uchovavate')),
                     ]),
-                Section::make('Smlouvy a zákazníci')
+                Section::make(__('pravni.ochrana_osobnich_udaju.smlouvy_a_zakaznici'))
                     ->columns(2)
                     ->schema([
-                        Toggle::make('smlouvy')->label('Přes web nebo po něm uzavíráme smlouvy (objednávky, zakázky)')->live()->columnSpanFull(),
-                        TextInput::make('smlouvy_doba')->label('Jak dlouho údaje ze smluv uchováváte')->columnSpanFull()
+                        Toggle::make('smlouvy')->label(__('pravni.ochrana_osobnich_udaju.pres_web_nebo_po_nem_uzavirame'))->live()->columnSpanFull(),
+                        TextInput::make('smlouvy_doba')->label(__('pravni.ochrana_osobnich_udaju.jak_dlouho_udaje_ze_smluv_uchovavate'))->columnSpanFull()
                             ->visible(fn (Get $get) => (bool) $get('smlouvy')),
                     ]),
-                Section::make('Další příjemci a doplňky')
-                    ->description('Hosting, e-mail, IT a měření (podle SEO a měření) jsou v textu vždy. Sem patří, co je navíc.')
+                Section::make(__('pravni.ochrana_osobnich_udaju.dalsi_prijemci_a_doplnky'))
+                    ->description(__('pravni.ochrana_osobnich_udaju.hosting_e_mail_it_a_mereni'))
                     ->schema([
-                        Textarea::make('dalsi_prijemci')->label('Další příjemci – každý na řádek')->rows(3)
-                            ->placeholder("platební brána Comgate, a.s.\nrezervační systém …"),
-                        RichEditor::make('doplnek')->label('Vlastní doplněk textu')
-                            ->helperText('Další zpracování, které web dělá (např. rezervace, věrnostní program). Vloží se za ostatní účely.'),
+                        Textarea::make('dalsi_prijemci')->label(__('pravni.ochrana_osobnich_udaju.dalsi_prijemci_kazdy_na_radek'))->rows(3)
+                            ->placeholder(__('pravni.ochrana_osobnich_udaju.platebni_brana_comgate_a_s_rezervacni')),
+                        RichEditor::make('doplnek')->label(__('pravni.ochrana_osobnich_udaju.vlastni_doplnek_textu'))
+                            ->helperText(__('pravni.ochrana_osobnich_udaju.dalsi_zpracovani_ktere_web_dela_napr')),
                     ]),
             ]);
     }
@@ -115,7 +123,7 @@ class OchranaOsobnichUdaju extends Page
     {
         return [
             Action::make('zobrazit')
-                ->label('Zobrazit na webu')
+                ->label(__('pravni.ochrana_osobnich_udaju.zobrazit_na_webu'))
                 ->icon('heroicon-o-arrow-top-right-on-square')
                 ->color('gray')
                 ->url(fn () => route('ochrana-udaju'), shouldOpenInNewTab: true),
@@ -126,6 +134,6 @@ class OchranaOsobnichUdaju extends Page
     {
         OchranaUdaju::uloz($this->form->getState());
 
-        Notification::make()->title('Uloženo')->success()->send();
+        Notification::make()->title(__('pravni.ochrana_osobnich_udaju.ulozeno'))->success()->send();
     }
 }

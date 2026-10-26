@@ -10,8 +10,11 @@ use App\Support\Posta\OdchoziFronta;
 use App\Support\Posta\PostaTransport;
 use App\Support\Posta\PrikazZPortalu;
 use App\Support\Posta\Propojeni;
+use App\Support\Posta\UcelZpravy;
 use App\Support\Posta\Webhook;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Mail\Events\MessageSending;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -33,6 +36,9 @@ class PostaServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Účel zprávy (formuláře, účty, doklady…) – podle něj Pošta vybere schránku firmy.
+        Event::listen(MessageSending::class, UcelZpravy::class);
+
         // Webhook bez session a CSRF – pravost dává podpis V2.
         Route::post('/posta/webhook', Webhook::class)->middleware('throttle:240,1')->name('posta.webhook');
         Route::get('/posta/propojeni/navrat', NavratZPosty::class)->middleware('web')->name('posta.propojeni.navrat');

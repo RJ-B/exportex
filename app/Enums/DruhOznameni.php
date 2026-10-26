@@ -29,20 +29,20 @@ enum DruhOznameni: string
     public function nazev(): string
     {
         return match ($this) {
-            self::Provozni => 'Provozní',
-            self::Servisni => 'Servisní',
-            self::Novinky => 'Novinky',
-            self::Marketing => 'Nabídky a akce',
+            self::Provozni => __('modely.druh_oznameni.provozni'),
+            self::Servisni => __('modely.druh_oznameni.servisni'),
+            self::Novinky => __('modely.druh_oznameni.novinky'),
+            self::Marketing => __('modely.druh_oznameni.nabidky_a_akce'),
         };
     }
 
     public function popis(): string
     {
         return match ($this) {
-            self::Provozni => 'Týká se vašeho účtu nebo objednávky (třeba „objednávka odeslána“).',
-            self::Servisni => 'Plánované odstávky, výpadky a důležité změny služby.',
-            self::Novinky => 'Nové funkce a změny v nabídce.',
-            self::Marketing => 'Akce, slevy a nabídky.',
+            self::Provozni => __('modely.druh_oznameni.tyka_se_vaseho_uctu_nebo_objednavky'),
+            self::Servisni => __('modely.druh_oznameni.planovane_odstavky_vypadky_a_dulezite'),
+            self::Novinky => __('modely.druh_oznameni.nove_funkce_a_zmeny_v_nabidce'),
+            self::Marketing => __('modely.druh_oznameni.akce_slevy_a_nabidky'),
         };
     }
 

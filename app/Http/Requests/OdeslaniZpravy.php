@@ -45,16 +45,16 @@ class OdeslaniZpravy extends FormRequest
     public function messages(): array
     {
         return [
-            'jmeno.required' => 'Vyplňte jméno.',
-            'prijmeni.required' => 'Vyplňte příjmení.',
-            'firma.required' => 'Vyplňte firmu.',
-            'email.required' => 'Vyplňte e-mail, ať vám můžeme odpovědět.',
-            'email.email' => 'Tohle nevypadá jako e-mailová adresa.',
-            'telefon.regex' => 'Telefon může obsahovat jen číslice, mezery a znaky + ( ) / -.',
-            'zprava.required' => 'Napište, s čím vám můžeme pomoct.',
-            'zprava.min' => 'Zpráva je moc krátká – napište aspoň pár slov.',
-            'zprava.max' => 'Zpráva je moc dlouhá (nejvýš 5000 znaků).',
-            '*.max' => 'Text je moc dlouhý.',
+            'jmeno.required' => __('web.odeslani_zpravy.vyplnte_jmeno'),
+            'prijmeni.required' => __('web.odeslani_zpravy.vyplnte_prijmeni'),
+            'firma.required' => __('web.odeslani_zpravy.vyplnte_firmu'),
+            'email.required' => __('web.odeslani_zpravy.vyplnte_e_mail_at_vam_muzeme'),
+            'email.email' => __('web.odeslani_zpravy.tohle_nevypada_jako_e_mailova_adresa'),
+            'telefon.regex' => __('web.odeslani_zpravy.telefon_muze_obsahovat_jen_cislice'),
+            'zprava.required' => __('web.odeslani_zpravy.napiste_s_cim_vam_muzeme_pomoct'),
+            'zprava.min' => __('web.odeslani_zpravy.zprava_je_moc_kratka_napiste_aspon'),
+            'zprava.max' => __('web.odeslani_zpravy.zprava_je_moc_dlouha_nejvys_5000'),
+            '*.max' => __('web.odeslani_zpravy.text_je_moc_dlouhy'),
         ];
     }
 }

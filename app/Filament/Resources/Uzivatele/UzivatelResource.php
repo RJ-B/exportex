@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Uzivatele;
 
+use App\Bezpecnost\DruhyKrok;
+use App\Filament\Navigace;
 use App\Filament\Resources\Uzivatele\Pages\CreateUzivatel;
 use App\Filament\Resources\Uzivatele\Pages\EditUzivatel;
 use App\Filament\Resources\Uzivatele\Pages\ListUzivatele;
@@ -39,15 +41,27 @@ class UzivatelResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Nastavení';
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return Navigace::nastaveni();
+    }
 
     protected static ?int $navigationSort = 90;
 
-    protected static ?string $navigationLabel = 'Uživatelé';
+    public static function getNavigationLabel(): string
+    {
+        return __('administrace.uzivatel_resource.uzivatele');
+    }
 
-    protected static ?string $modelLabel = 'uživatel';
+    public static function getModelLabel(): string
+    {
+        return __('administrace.uzivatel_resource.uzivatel');
+    }
 
-    protected static ?string $pluralModelLabel = 'uživatelé';
+    public static function getPluralModelLabel(): string
+    {
+        return __('administrace.uzivatel_resource.uzivatele_2');
+    }
 
     public static function canAccess(): bool
     {
@@ -83,7 +97,7 @@ class UzivatelResource extends Resource
     /** Role, které smí přihlášený přidělit. Superadmina jen superadmin. */
     public static function nabidkaRoli(): array
     {
-        $role = User::ROLE_POPISKY;
+        $role = User::popiskyRoli();
 
         if (! auth()->user()?->jeSuperadmin()) {
             unset($role['superadmin']);
@@ -95,16 +109,16 @@ class UzivatelResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('jmeno')->label('Jméno')->required()->maxLength(60),
-            TextInput::make('prijmeni')->label('Příjmení')->required()->maxLength(60),
+            TextInput::make('jmeno')->label(__('administrace.uzivatel_resource.jmeno'))->required()->maxLength(60),
+            TextInput::make('prijmeni')->label(__('administrace.uzivatel_resource.prijmeni'))->required()->maxLength(60),
             TextInput::make('email')
-                ->label('E-mail')
+                ->label(__('administrace.uzivatel_resource.e_mail'))
                 ->email()
                 ->required()
                 ->maxLength(255)
                 ->unique(ignoreRecord: true),
             Select::make('role')
-                ->label('Role')
+                ->label(__('administrace.uzivatel_resource.role'))
                 ->options(fn () => static::nabidkaRoli())
                 ->default('klient')
                 ->required()
@@ -112,7 +126,7 @@ class UzivatelResource extends Resource
                 // Vlastní roli si nikdo nezmění – jinak by se šlo odříznout od administrace.
                 ->disabled(fn (?User $record) => $record?->getKey() === auth()->id())
                 ->dehydrated(fn (?User $record) => $record?->getKey() !== auth()->id())
-                ->helperText('Admin spravuje aplikaci a vidí všechno kromě provozních logů. Klient do administrace nesmí.'),
+                ->helperText(__('administrace.uzivatel_resource.admin_spravuje_aplikaci_a_vidi_vsechno')),
         ]);
     }
 
@@ -123,41 +137,59 @@ class UzivatelResource extends Resource
             ->paginated([25, 50, 100])
             ->columns([
                 TextColumn::make('prijmeni')
-                    ->label('Jméno')
+                    ->label(__('administrace.uzivatel_resource.jmeno'))
                     ->getStateUsing(fn (User $record) => $record->getFilamentName())
                     ->sortable()
                     ->searchable(['jmeno', 'prijmeni']),
-                TextColumn::make('email')->label('E-mail')->searchable(),
+                TextColumn::make('email')->label(__('administrace.uzivatel_resource.e_mail'))->searchable(),
                 TextColumn::make('role')
-                    ->label('Role')
+                    ->label(__('administrace.uzivatel_resource.role'))
                     ->badge()
-                    ->formatStateUsing(fn (string $state) => User::ROLE_POPISKY[$state] ?? $state)
+                    ->formatStateUsing(fn (string $state) => User::popiskyRoli()[$state] ?? $state)
                     ->color(fn (string $state) => match ($state) {
                         'superadmin' => 'danger',
                         'admin' => 'warning',
                         default => 'gray',
                     }),
                 TextColumn::make('heslo')
-                    ->label('Heslo')
-                    ->getStateUsing(fn (User $record) => $record->password ? 'nastavené' : 'čeká na nastavení')
-                    ->color(fn (string $state) => $state === 'nastavené' ? null : 'warning'),
-                TextColumn::make('created_at')->label('Založen')->date('j. n. Y')->sortable(),
+                    ->label(__('administrace.uzivatel_resource.heslo'))
+                    ->getStateUsing(fn (User $record) => $record->password ? __('administrace.uzivatel_resource.nastavene') : __('administrace.uzivatel_resource.ceka_na_nastaveni'))
+                    ->color(fn (string $state) => $state === __('administrace.uzivatel_resource.nastavene') ? null : 'warning'),
+                TextColumn::make('druhy_krok')
+                    ->label(__('administrace.uzivatel_resource.druhy_krok'))
+                    ->getStateUsing(fn (User $record) => DruhyKrok::popis($record))
+                    ->color(fn (string $state) => $state === __('administrace.druhy_krok.jen_heslo') ? 'gray' : 'success'),
+                TextColumn::make('created_at')->label(__('administrace.uzivatel_resource.zalozen'))->date(__('formaty.datum'))->sortable(),
             ])
             ->filters([
-                SelectFilter::make('role')->label('Role')->options(fn () => static::nabidkaRoli()),
+                SelectFilter::make('role')->label(__('administrace.uzivatel_resource.role'))->options(fn () => static::nabidkaRoli()),
             ])
             ->recordActions([
                 Action::make('odkaz')
-                    ->label('Poslat odkaz na heslo')
+                    ->label(__('administrace.uzivatel_resource.poslat_odkaz_na_heslo'))
                     ->icon('heroicon-o-envelope')
                     ->color('gray')
                     ->requiresConfirmation()
-                    ->modalDescription(fn (User $record) => 'Na '.$record->email.' přijde odkaz, kterým si nastaví nové heslo. Dosavadní heslo platí, dokud ho nezmění.')
+                    ->modalDescription(fn (User $record) => __('administrace.uzivatel_resource.na_prijde_odkaz_kterym_si_nastavi', ['email' => $record->email]))
                     ->visible(fn (User $record) => $record->jeSpravce() && static::smiSpravovat($record))
                     ->action(function (User $record) {
                         static::posliOdkaz($record);
 
-                        Notification::make()->title('Odkaz odešel na '.$record->email.'.')->success()->send();
+                        Notification::make()->title(__('administrace.uzivatel_resource.odkaz_odesel_na', ['email' => $record->email]))->success()->send();
+                    }),
+                // Kdo přišel o telefon i obnovovací kódy: správce mu druhý krok zruší
+                // a člověk si ho po přihlášení heslem nastaví znovu v Zabezpečení.
+                Action::make('zrusitDruhyKrok')
+                    ->label(__('administrace.uzivatel_resource.zrusit_druhy_krok'))
+                    ->icon('heroicon-o-finger-print')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalDescription(fn (User $record) => __('administrace.uzivatel_resource.se_pak_prihlasi_jen_heslem_a', ['get_filament_name' => $record->getFilamentName()]))
+                    ->visible(fn (User $record) => DruhyKrok::zapnuty($record) && $record->getKey() !== auth()->id() && static::smiSpravovat($record))
+                    ->action(function (User $record) {
+                        DruhyKrok::zrus($record);
+
+                        Notification::make()->title(__('administrace.uzivatel_resource.druhy_krok_zrusen'))->body($record->getFilamentName())->success()->send();
                     }),
                 EditAction::make(),
                 DeleteAction::make(),

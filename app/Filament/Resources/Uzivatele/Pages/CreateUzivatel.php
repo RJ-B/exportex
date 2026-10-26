@@ -31,7 +31,7 @@ class CreateUzivatel extends CreateRecord
             UzivatelResource::posliOdkaz($this->record);
 
             Notification::make()
-                ->title('Na '.$this->record->email.' odešel odkaz na nastavení hesla.')
+                ->title(__('administrace.create_uzivatel.na_odesel_odkaz_na_nastaveni_hesla', ['email' => $this->record->email]))
                 ->success()
                 ->send();
         }

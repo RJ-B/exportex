@@ -15,7 +15,10 @@ use Illuminate\Support\Facades\Crypt;
  *
  *  - lokálně a v testech: simulace (PLATBY_SIMULACE=true, výchozí), jinak testovací brána,
  *  - testovací web (APP_ENV=staging): VŽDY testovací brána Sim&Ren – Mo.one na
- *    api-test.znpay.tech s údaji z .env (PLATBY_TEST_MOONE_*, zakládá portál), nikdy ostře,
+ *    PLATBY_TEST_MOONE_URL s údaji z .env (PLATBY_TEST_MOONE_*, zakládá portál), nikdy přes
+ *    bránu klienta. Výchozí api-test.znpay.tech nestrhne nic; portál ale může zapsat OSTRÝ
+ *    PayPoint Sim&Ren (api.znpay.tech) – pak jsou platby skutečné (peníze se vrací ručně
+ *    v aplikaci Mo.one) a štítek to říká (testovaciBranaOstra()),
  *  - produkce: Testovací režim = totéž; Ostrý režim = brána klienta (Comgate nebo
  *    Mo.one, údaje z administrace šifrovaně) – jen s vyplněnými a ověřenými údaji
  *    (Ověřit spojení; změna údajů ověření zruší).
@@ -38,7 +41,7 @@ class NastaveniPlateb
      */
     public const COMGATE_VYPNUTE_VYCHOZI = ['BANK_CZ_OTHER', 'BANK_CZ_AB_CVAK'];
 
-    /** @var array{rezim: ?Rezim, brana: ?string, popis: string, chyba: ?string}|null */
+    /** @var array{rezim: ?Rezim, brana: ?string, popis: string, skutecna: bool, chyba: ?string}|null */
     private static ?array $prehled = null;
 
     // ---- Volby z administrace ----
@@ -106,6 +109,12 @@ class NastaveniPlateb
             self::zapis('brana', array_key_exists((string) $data['brana'], self::BRANY) ? $data['brana'] : null);
         }
 
+        foreach (MetodaPlatby::cases() as $metoda) {
+            if (array_key_exists($metoda->value, $data)) {
+                self::zapis('predvolba.'.$metoda->value, $data[$metoda->value] ? '1' : '0');
+            }
+        }
+
         if (array_key_exists('comgate_vypnute', $data)) {
             self::zapis('comgate.vypnute', json_encode(array_values(array_unique(array_map('strval', (array) $data['comgate_vypnute'])))));
         }
@@ -144,6 +153,49 @@ class NastaveniPlateb
         $ulozene = json_decode((string) self::cti('comgate.vypnute'), true);
 
         return is_array($ulozene) ? array_values(array_map('strval', $ulozene)) : self::COMGATE_VYPNUTE_VYCHOZI;
+    }
+
+    /**
+     * Nabízet Apple Pay / Google Pay (předvolba na platební stránce brány)?
+     * Volba v administraci, výchozí zapnuto – rozhoduje pak i brána (predvolby()).
+     */
+    public static function predvolbaZapnuta(MetodaPlatby $metoda): bool
+    {
+        return self::cti('predvolba.'.$metoda->value) !== '0';
+    }
+
+    /** Jde metodu teď předvolit? Zapnutá v administraci a brána ji má. */
+    public static function nabizi(MetodaPlatby $metoda, ?Brana $brana = null): bool
+    {
+        if (! self::predvolbaZapnuta($metoda)) {
+            return false;
+        }
+
+        try {
+            $brana ??= self::aktivni();
+        } catch (PlatbyNedostupne) {
+            return false;
+        }
+
+        return in_array($metoda, rescue(fn () => $brana->predvolby(), [], false), true);
+    }
+
+    /**
+     * Čím jde teď platit – pro aplikaci (GET /api/v1/platby/metody): karta =
+     * platby fungují; apple_pay / google_pay = jde je předvolit (aplikace pak
+     * ukáže tlačítko na iOS, resp. Androidu).
+     *
+     * @return array{karta: bool, apple_pay: bool, google_pay: bool}
+     */
+    public static function metody(): array
+    {
+        try {
+            $brana = self::aktivni();
+        } catch (PlatbyNedostupne) {
+            return ['karta' => false, 'apple_pay' => false, 'google_pay' => false];
+        }
+
+        return ['karta' => true, 'apple_pay' => self::nabizi(MetodaPlatby::ApplePay, $brana), 'google_pay' => self::nabizi(MetodaPlatby::GooglePay, $brana)];
     }
 
     /** Otisk aktuálních údajů brány – ověření platí jen pro ně. */
@@ -186,7 +238,7 @@ class NastaveniPlateb
             $nabizene = self::nabizeneBrany();
 
             if ($nabizene === []) {
-                return 'není vybraná žádná brána, kterou nabízet zákazníkům.';
+                return __('platby.nastaveni_plateb.neni_vybrana_zadna_brana_kterou_nabizet');
             }
 
             foreach ($nabizene as $nabizena) {
@@ -201,10 +253,10 @@ class NastaveniPlateb
         $brana ??= self::brana();
 
         return match (true) {
-            ! app()->isProduction() => 'ostré platby jsou jen na produkci (testovací web platí vždy testovací bránou).',
-            $brana === null => 'není vybraná brána klienta.',
-            ! self::vyplneno($brana) => 'chybí přístupové údaje brány '.self::BRANY[$brana].'.',
-            ! self::overeno($brana) => 'přístupové údaje brány '.self::BRANY[$brana].' nejsou ověřené (Ověřit spojení).',
+            ! app()->isProduction() => __('platby.nastaveni_plateb.ostre_platby_jsou_jen_na_produkci'),
+            $brana === null => __('platby.nastaveni_plateb.neni_vybrana_brana_klienta'),
+            ! self::vyplneno($brana) => __('platby.nastaveni_plateb.chybi_pristupove_udaje_brany', ['hodnota' => self::BRANY[$brana]]),
+            ! self::overeno($brana) => __('platby.nastaveni_plateb.pristupove_udaje_brany_nejsou_overene', ['hodnota' => self::BRANY[$brana]]),
             default => null,
         };
     }
@@ -230,25 +282,25 @@ class NastaveniPlateb
             }
 
             return self::testovaciBrana()
-                ?? throw new PlatbyNedostupne('Na testovacím webu se platí testovací bránou Sim&Ren (Mo.one), ale v .env chybí její přístupové údaje (PLATBY_TEST_MOONE_CLIENT_ID a PLATBY_TEST_MOONE_CLIENT_SECRET).');
+                ?? throw new PlatbyNedostupne(__('platby.nastaveni_plateb.na_testovacim_webu_se_plati_testovaci'));
         }
 
         if (self::rezimVolba() === self::REZIM_OSTRY) {
             $brana = $volba ?? (self::nabizeneBrany()[0] ?? self::brana());
 
             if ($brana === null || ! in_array($brana, self::nabizeneBrany(), true)) {
-                throw new PlatbyNedostupne('Brána '.(self::BRANY[$brana] ?? $brana ?? '–').' se zákazníkům nenabízí (Nastavení → Platební brána).');
+                throw new PlatbyNedostupne(__('platby.nastaveni_plateb.brana_se_zakaznikum_nenabizi_nastaveni', ['hodnota' => (self::BRANY[$brana] ?? $brana ?? '–')]));
             }
 
             if ($duvod = self::procNeOstre($brana)) {
-                throw new PlatbyNedostupne('Ostrý režim plateb je zapnutý, ale '.$duvod.' Platby stojí – na testovací bránu se nepřepíná.');
+                throw new PlatbyNedostupne(__('platby.nastaveni_plateb.ostry_rezim_plateb_je_zapnuty_ale', ['duvod' => $duvod]));
             }
 
             return self::branaKlienta($brana, Rezim::Ostry);
         }
 
         return self::testovaciBrana()
-            ?? throw new PlatbyNedostupne('Testovací režim plateb: v .env chybí přístupové údaje testovací brány Sim&Ren (PLATBY_TEST_MOONE_*). Pro ostré platby přepni v Nastavení → Platební brána na bránu klienta.');
+            ?? throw new PlatbyNedostupne(__('platby.nastaveni_plateb.testovaci_rezim_plateb_v_env_chybi'));
     }
 
     /**
@@ -262,10 +314,10 @@ class NastaveniPlateb
         return match ($platba->rezim) {
             Rezim::Simulace => new Simulace,
             Rezim::Testovaci => self::testovaciBrana()
-                ?? throw new PlatbyNedostupne('Chybí přístupové údaje testovací brány Sim&Ren (PLATBY_TEST_MOONE_*).'),
+                ?? throw new PlatbyNedostupne(__('platby.nastaveni_plateb.chybi_pristupove_udaje_testovaci_brany')),
             Rezim::Ostry => self::vyplneno($platba->brana)
                 ? self::branaKlienta($platba->brana, Rezim::Ostry)
-                : throw new PlatbyNedostupne('Chybí přístupové údaje brány '.(self::BRANY[$platba->brana] ?? $platba->brana).'.'),
+                : throw new PlatbyNedostupne(__('platby.nastaveni_plateb.chybi_pristupove_udaje_brany_2', ['hodnota' => (self::BRANY[$platba->brana] ?? $platba->brana)])),
         };
     }
 
@@ -277,7 +329,7 @@ class NastaveniPlateb
         return match ($brana) {
             'comgate' => new Comgate((string) $udaje['id'], (string) $udaje['tajemstvi'], $rezim, self::comgateVypnute()),
             'moone' => new MoOne((string) $udaje['id'], (string) $udaje['tajemstvi'], (string) config('platby.moone.url'), $rezim),
-            default => throw new PlatbyNedostupne('Neznámá brána „'.$brana.'“.'),
+            default => throw new PlatbyNedostupne(__('platby.nastaveni_plateb.neznama_brana', ['brana' => $brana])),
         };
     }
 
@@ -295,31 +347,79 @@ class NastaveniPlateb
     /**
      * Jak teď platby běží – pro administraci a štítek „TESTOVACÍ PLATBY“.
      *
-     * @return array{rezim: ?Rezim, brana: ?string, popis: string, chyba: ?string}
+     * @return array{rezim: ?Rezim, brana: ?string, popis: string, skutecna: bool, chyba: ?string}
      */
     public static function prehled(): array
     {
         return self::$prehled ??= (function () {
             try {
                 $brana = self::aktivni();
+                $skutecna = $brana instanceof MoOne && $brana->rezim() === Rezim::Testovaci && self::testovaciBranaOstra();
 
                 return [
                     'rezim' => $brana->rezim(),
                     'brana' => $brana->nazev(),
                     'popis' => match ($brana->rezim()) {
-                        Rezim::Ostry => 'Ostré platby přes '.(count($nazvy = array_map(fn (string $b) => self::BRANY[$b], self::nabizeneBrany())) > 1 ? 'brány '.implode(' a ', $nazvy) : 'bránu '.$brana->nazev()).' – peníze jdou na účet klienta.',
-                        Rezim::Testovaci => 'Testovací platby přes testovací bránu Sim&Ren (Mo.one test) – nic se nestrhne.',
-                        Rezim::Simulace => 'Simulace – místo banky stránka s tlačítky Zaplatit / Zamítnout (jen lokálně).',
+                        Rezim::Ostry => __('platby.nastaveni_plateb.ostre_platby_pres_penize_jdou_na', ['nabizene_brany' => (count($nazvy = array_map(fn (string $b) => self::BRANY[$b], self::nabizeneBrany())) > 1 ? __('platby.nastaveni_plateb.brany', ['implode' => implode(' a ', $nazvy)]) : __('platby.nastaveni_plateb.branu', ['nazev' => $brana->nazev()]))]),
+                        Rezim::Testovaci => $skutecna
+                            ? __('platby.nastaveni_plateb.platby_pres_testovaci_branu_sim_ren')
+                            : __('platby.nastaveni_plateb.testovaci_platby_pres_testovaci_branu'),
+                        Rezim::Simulace => __('platby.nastaveni_plateb.simulace_misto_banky_stranka_s_tlacitky'),
                     },
+                    'skutecna' => $skutecna,
                     'chyba' => null,
                 ];
             } catch (PlatbyNedostupne $e) {
-                return ['rezim' => null, 'brana' => null, 'popis' => 'Platby teď nefungují.', 'chyba' => $e->getMessage()];
+                return ['rezim' => null, 'brana' => null, 'popis' => __('platby.nastaveni_plateb.platby_ted_nefunguji'), 'skutecna' => false, 'chyba' => $e->getMessage()];
             }
         })();
     }
 
-    /** Ukázat štítek „TESTOVACÍ PLATBY“? (platí se, ale ne ostře) */
+    /** Je testovací brána Sim&Ren ostrá (api.znpay.tech místo api-test.znpay.tech)? Pak se platí skutečnými penězi. */
+    public static function testovaciBranaOstra(): bool
+    {
+        return strtolower((string) parse_url((string) config('platby.test.moone.url'), PHP_URL_HOST)) === 'api.znpay.tech';
+    }
+
+    /** Text štítku na webu i v administraci. */
+    public static function stitekText(): string
+    {
+        return self::prehled()['skutecna'] ? __('platby.nastaveni_plateb.skutecna_platba_testovaci_brana') : __('platby.nastaveni_plateb.testovaci_platby');
+    }
+
+    /**
+     * Která brána se má na webu a stránkách plateb ukázat (loga, text o bráně): kód brány, která se
+     * SKUTEČNĚ použije pro novou platbu (comgate | moone | simulace). Na testu a v testovacím režimu je to
+     * testovací brána Sim&Ren (moone), ne brána klienta. null = platby teď nejdou.
+     */
+    public static function kodBrany(): ?string
+    {
+        try {
+            return self::aktivni()->kod();
+        } catch (PlatbyNedostupne) {
+            return null;
+        }
+    }
+
+    /**
+     * Co ukázat v logách plateb pro bránu `$kod`: brána (comgate | moone | null = bez loga brány, např. simulace)
+     * a peněženky. Apple Pay a Google Pay jen při zapnuté předvolbě a bráně, která platbu kartou s peněženkami
+     * nabízí (Comgate; Mo.one je neumí). Bez dotazu na bránu – patička se renderuje na každé stránce.
+     *
+     * @return array{brana: ?string, apple_pay: bool, google_pay: bool}
+     */
+    public static function logaPlateb(string $kod): array
+    {
+        $penezenky = in_array($kod, ['comgate', 'simulace'], true);
+
+        return [
+            'brana' => in_array($kod, ['comgate', 'moone'], true) ? $kod : null,
+            'apple_pay' => $penezenky && self::predvolbaZapnuta(MetodaPlatby::ApplePay),
+            'google_pay' => $penezenky && self::predvolbaZapnuta(MetodaPlatby::GooglePay),
+        ];
+    }
+
+    /** Ukázat štítek „TESTOVACÍ PLATBY“ / „SKUTEČNÁ PLATBA – TESTOVACÍ BRÁNA“? (platí se, ale ne přes bránu klienta) */
     public static function stitek(): bool
     {
         return in_array(self::prehled()['rezim'], [Rezim::Testovaci, Rezim::Simulace], true);

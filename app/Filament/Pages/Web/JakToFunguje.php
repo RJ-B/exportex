@@ -15,9 +15,15 @@ class JakToFunguje extends StrankaSekceWebu
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedListBullet;
 
-    protected static ?string $navigationLabel = 'Jak to funguje';
+    public static function getNavigationLabel(): string
+    {
+        return __('administrace.jak_to_funguje.jak_to_funguje');
+    }
 
-    protected static ?string $title = 'Jak to funguje';
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return __('administrace.jak_to_funguje.jak_to_funguje');
+    }
 
     protected static ?string $slug = 'web/jak-to-funguje';
 
@@ -44,15 +50,15 @@ class JakToFunguje extends StrankaSekceWebu
             ->statePath('data')
             ->components([
                 self::nadpisSekce(),
-                Section::make('Kroky')
-                    ->description('Čísla 01, 02… doplní web podle pořadí.')
+                Section::make(__('administrace.jak_to_funguje.kroky'))
+                    ->description(__('administrace.jak_to_funguje.cisla_01_02_doplni_web_podle'))
                     ->schema([
                         Repeater::make('kroky')->hiddenLabel()
                             ->columns(2)
                             ->reorderableWithDragAndDrop()
                             ->collapsible()
                             ->itemLabel(fn (array $state) => $state['nazev'] ?? null)
-                            ->addActionLabel('Přidat krok')
+                            ->addActionLabel(__('administrace.jak_to_funguje.pridat_krok'))
                             ->schema(self::karta()),
                     ]),
             ]);
@@ -62,7 +68,7 @@ class JakToFunguje extends StrankaSekceWebu
     public static function karta(): array
     {
         return [
-            ...self::text('nazev', 'Název', 80),
+            ...self::text('nazev', __('administrace.jak_to_funguje.nazev'), 80),
             ...self::dvojice('popis', 'Popis', fn (string $n) => Textarea::make($n)->rows(3)->maxLength(400)->required()),
         ];
     }
@@ -71,8 +77,8 @@ class JakToFunguje extends StrankaSekceWebu
     public static function kartaSeStitkem(): array
     {
         return [
-            TextInput::make('stitek')->label('Štítek')->required()->maxLength(30)->columnSpanFull()
-                ->helperText('Stejný v obou jazycích (např. GSP+, HORECA).'),
+            TextInput::make('stitek')->label(__('administrace.jak_to_funguje.stitek'))->required()->maxLength(30)->columnSpanFull()
+                ->helperText(__('administrace.jak_to_funguje.stejny_v_obou_jazycich_napr_gsp')),
             ...self::karta(),
         ];
     }

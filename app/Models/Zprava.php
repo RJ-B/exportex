@@ -25,7 +25,7 @@ class Zprava extends Model
     /** Jazyk webu, ve kterém návštěvník psal – pro člověka. */
     public function popisJazyka(): ?string
     {
-        return ['cs' => 'čeština', 'en' => 'angličtina'][$this->jazyk] ?? null;
+        return ['cs' => __('modely.zprava.cestina'), 'en' => __('modely.zprava.anglictina')][$this->jazyk] ?? null;
     }
 
     public function celeJmeno(): string

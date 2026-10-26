@@ -26,7 +26,7 @@ class OznameniMail extends Mailable
         $oznameni = $this->prijemce->oznameni;
 
         return new Envelope(
-            subject: ($this->zkouska ? '[Zkouška] ' : '').$oznameni->titulek,
+            subject: ($this->zkouska ? __('maily.oznameni_mail.zkouska') : '').$oznameni->titulek,
             tags: ['oznameni', 'oznameni-'.$oznameni->druh->value],
             metadata: array_filter(['oznameni' => $oznameni->uuid]),
         );

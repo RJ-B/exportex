@@ -7,22 +7,34 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Alternativní domény (www.exportex.cz) přesměruje trvale na kanonickou
- * exportex.cz (config web.alternativni_domeny). Drží SEO sílu na jedné doméně
- * a brání duplicitnímu obsahu — dřív to dělal GitHub Pages sám.
+ * Web běží na jedné doméně – té z APP_URL. `www.` (Hestia ho zakládá ke každé
+ * doméně jako alias) a další domény webu (`sablona.dalsi_domeny`) přesměruje
+ * trvale na ni: jinak je web ve vyhledávačích dvakrát a přihlášení platí jen
+ * na jedné z adres. Lokálně a v testech nic nedělá.
  */
 class KanonickaDomena
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $domena = $request->getHost();
-
-        if (in_array($domena, config('web.alternativni_domeny', []), true)) {
-            $cil = rtrim(config('web.url'), '/').'/'.ltrim($request->getRequestUri(), '/');
-
-            return redirect()->away($cil, 301);
+        if (app()->environment('local', 'testing')) {
+            return $next($request);
         }
 
-        return $next($request);
+        $kanonicka = strtolower((string) parse_url((string) config('app.url'), PHP_URL_HOST));
+        $host = strtolower($request->getHost());
+
+        if ($kanonicka === '' || $host === $kanonicka) {
+            return $next($request);
+        }
+
+        $presmerovat = $host === 'www.'.$kanonicka
+            || $kanonicka === 'www.'.$host
+            || in_array($host, array_map('strtolower', (array) config('sablona.dalsi_domeny', [])), true);
+
+        if (! $presmerovat) {
+            return $next($request);
+        }
+
+        return redirect()->away(rtrim((string) config('app.url'), '/').$request->getRequestUri(), 301);
     }
 }

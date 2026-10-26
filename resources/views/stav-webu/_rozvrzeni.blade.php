@@ -2,12 +2,13 @@
      Soběstačná – bez CSS frameworku, aby fungovala v každém projektu.
      Vzhled si projekt může přepsat ve vlastní šabloně. --}}
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
     <title>{{ $udaje['nazev'] }} – {{ $nadpis }}</title>
+    {{ \App\Support\IkonaWebu::html() }}
     <style>
         :root { --pozadi: #f5f6f8; --karta: #ffffff; --text: #16181c; --slabe: #6b7280; --akcent: #2563eb; --okraj: #e5e7eb; }
         @media (prefers-color-scheme: dark) { :root { --pozadi: #0f1115; --karta: #171a21; --text: #eceef1; --slabe: #9aa1ab; --akcent: #60a5fa; --okraj: #2a2f38; } }
@@ -19,6 +20,7 @@
         .nazev { font-size: 14px; letter-spacing: .06em; text-transform: uppercase; color: var(--slabe); margin: 0 0 6px; }
         h1 { font-size: 26px; line-height: 1.25; margin: 0 0 12px; }
         p { margin: 0; color: var(--slabe); }
+        .konec { margin-top: 12px; color: var(--text); font-weight: 600; }
         .kontakt { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--okraj); font-size: 15px; display: flex; flex-direction: column; gap: 4px; }
         .kontakt a { color: var(--akcent); text-decoration: none; }
         .provozovatel { margin-top: 16px; font-size: 13px; color: var(--slabe); }
@@ -33,6 +35,9 @@
         <p class="nazev">{{ $udaje['nazev'] }}</p>
         <h1>{{ $nadpis }}</h1>
         <p>{{ $text }}</p>
+        @if (! empty($konec))
+            <p class="konec">{{ $konec }}</p>
+        @endif
 
         @if ($udaje['email'] || $udaje['telefon'])
             <div class="kontakt">
@@ -41,10 +46,10 @@
             </div>
         @endif
 
-        <p class="provozovatel"><a href="{{ route('ochrana-udaju') }}" style="color: inherit;">Ochrana osobních údajů</a></p>
+        <p class="provozovatel"><a href="{{ route('ochrana-udaju') }}" style="color: inherit;">{{ __('web.rozvrzeni.ochrana_osobnich_udaju') }}</a></p>
 
         @if ($udaje['firma'])
-            <p class="provozovatel">{{ $udaje['firma'] }}@if ($udaje['ico']) · IČO {{ $udaje['ico'] }}@endif</p>
+            <p class="provozovatel">{{ $udaje['firma'] }}@if ($udaje['ico']) {{ __('web.rozvrzeni.ico', ['ico' => $udaje['ico']]) }}@endif</p>
         @endif
     </main>
 </body>

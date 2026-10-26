@@ -1,10 +1,9 @@
-@if ($platba->testovaci())TESTOVACÍ PLATBA – nic se nevrací, jen zkouška platební brány.
+@if ($platba->testovaci()){!! __('platby.vracena.testovaci_platba_nic_se_nevraci_jen') !!}
 
 @endif
-Dobrý den{{ $platba->jmeno ? ' '.$platba->jmeno : '' }},
+{!! __('platby.vracena.dobry_den', ['platba' => $platba->jmeno ? ' '.$platba->jmeno : '']) !!}
 
-posíláme vám zpět {{ \App\Platby\Platba::kc($castka, $platba->mena) }} za „{{ $platba->popis }}“@if ($platba->reference) (č. {{ $platba->reference }})@endif.
-Peníze dorazí stejnou cestou, jakou jste platili – podle banky zpravidla do několika pracovních dnů.
+{!! __('platby.vracena.posilame_vam_zpet_za', ['kc' => \App\Platby\Platba::kc($castka, $platba->mena), 'popis' => $platba->popis]) !!}@if ($platba->reference) {!! __('platby.vracena.c', ['reference' => $platba->reference]) !!}@endif{!! __('platby.vracena.penize_dorazi_stejnou_cestou_jakou_jste') !!}
 
 {{ \App\Support\ZakladniUdaje::get('nazev') }}
 @if (\App\Support\ZakladniUdaje::get('email')){{ \App\Support\ZakladniUdaje::get('email') }}

@@ -75,7 +75,7 @@ class AuditableObserver
 
     private function write(Model $model, string $action, ?array $old, ?array $new): void
     {
-        // Stav webu (Provoz → Stav webu) jako vlastní čitelná událost.
+        // Stav webu (Správa aplikace → Stav webu) jako vlastní čitelná událost.
         if ($model instanceof Nastaveni && $model->getAttribute('klic') === StavWebu::KLIC && $action !== 'deleted') {
             AuditLogger::record(
                 event: 'stav_webu.zmenen',
@@ -100,9 +100,9 @@ class AuditableObserver
     private function describe(Model $model, string $action): string
     {
         $label = match ($action) {
-            'created' => 'Vytvořeno',
-            'deleted' => 'Smazáno',
-            default => 'Změněno',
+            'created' => __('obecne.auditable_observer.vytvoreno'),
+            'deleted' => __('obecne.auditable_observer.smazano'),
+            default => __('obecne.auditable_observer.zmeneno'),
         };
 
         $nazev = $model instanceof User

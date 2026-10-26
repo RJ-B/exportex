@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
  * Čísla jednoho oznámení: komu přišlo, kolik si ho přečetlo a prokliklo,
  * jak dopadly e-maily. Jen z vlastních dat aplikace (proklik přes vlastní
  * odkaz, doručení z Pošty) – žádné měřicí pixely ani sledování napříč weby.
- * Superadmini (vývojáři) se nepočítají.
+ * Superadmini (vývojáři) a účet pro kontrolu obchodu se nepočítají.
  */
 class Statistika
 {
@@ -22,7 +22,7 @@ class Statistika
     {
         $prijemci = fn (): Builder => OznameniPrijemce::query()
             ->where('oznameni_id', $oznameni->getKey())
-            ->whereHas('user', fn (Builder $query) => $query->where('role', '!=', 'superadmin'));
+            ->whereHas('user', fn (Builder $query) => $query->bezSuperadminu());
 
         $cisla = [
             'prijemcu' => $prijemci()->count(),

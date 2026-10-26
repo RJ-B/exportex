@@ -14,7 +14,8 @@ return [
 
     /*
      * Testovací brána Sim&Ren – Mo.one na testovacím prostředí. Platí přes ni
-     * testovací web a produkce v Testovacím režimu; peníze se nestrhnou.
+     * testovací web a produkce v Testovacím režimu. URL z .env zapisuje portál: api-test
+     * nestrhne nic, ostrý api.znpay.tech strhne skutečné peníze (vrací se ručně v Mo.one).
      * Údaje dává do .env portál (nikdy do repa).
      */
     'test' => [

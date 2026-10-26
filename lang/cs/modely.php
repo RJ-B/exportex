@@ -1,0 +1,66 @@
+<?php
+
+return [
+    'stav_webu' => [
+        'udrzba_zapnuta' => 'Údržba zapnuta',
+        'udrzba_vypnuta' => 'Údržba vypnuta → :nazev',
+        'pripravujeme' => 'Připravujeme',
+        'udrzba' => 'Údržba',
+        'web_je_verejny_a_funguje_cely' => 'Web je veřejný a funguje celý.',
+        'navstevnici_vidi_pripravujeme_pro_web' => 'Návštěvníci vidí „Připravujeme“. Pro web, který ještě nebyl spuštěný.',
+        'navstevnici_vidi_web_se_prave_upravuje' => 'Návštěvníci vidí „Web se právě upravuje“ (HTTP 503 – vyhledávače ho z indexu nevyhodí). Na chvíli, když se něco opravuje.',
+        'online' => 'Online',
+    ],
+    'mail_log' => [
+        'neznamy' => '(neznámý)',
+        'a_dalsi' => ':prvni a :dalsi další',
+        'odeslano_po_chybe' => 'Odesláno po chybě',
+        'odeslano' => 'Odesláno',
+        've_fronte_posty' => 'Ve frontě Pošty',
+        'zadrzeno_test' => 'Zadrženo (test)',
+        'odesila_se' => 'Odesílá se',
+        'selhalo' => 'Selhalo',
+    ],
+    'user' => [
+        'superadmin' => 'Superadmin',
+        'admin' => 'Admin',
+        'klient' => 'Klient',
+    ],
+    'druh_oznameni' => [
+        'provozni' => 'Provozní',
+        'servisni' => 'Servisní',
+        'novinky' => 'Novinky',
+        'nabidky_a_akce' => 'Nabídky a akce',
+        'tyka_se_vaseho_uctu_nebo_objednavky' => 'Týká se vašeho účtu nebo objednávky (třeba „objednávka odeslána“).',
+        'planovane_odstavky_vypadky_a_dulezite' => 'Plánované odstávky, výpadky a důležité změny služby.',
+        'nove_funkce_a_zmeny_v_nabidce' => 'Nové funkce a změny v nabídce.',
+        'akce_slevy_a_nabidky' => 'Akce, slevy a nabídky.',
+    ],
+    'kanal_oznameni' => [
+        'centrum_oznameni' => 'Centrum oznámení',
+        'pruh_pres_web' => 'Pruh přes web',
+        'e_mail' => 'E-mail',
+        'upozorneni_v_prohlizeci' => 'Upozornění v prohlížeči',
+        'mobilni_aplikace' => 'Mobilní aplikace',
+        'zvonecek_na_webu_i_v_administraci' => 'Zvoneček na webu i v administraci, nepřečtené s počtem.',
+        'pruh_nahore_na_kazde_strance_odstavky' => 'Pruh nahoře na každé stránce – odstávky a výpadky. Pro všechny ho vidí i nepřihlášení.',
+        'pres_postu_novinky_a_nabidky_jen' => 'Přes Poštu; novinky a nabídky jen těm, kdo s nimi souhlasili.',
+        'pripravujeme' => 'Připravujeme.',
+    ],
+    'stav_oznameni' => [
+        'koncept' => 'Koncept',
+        'naplanovano' => 'Naplánováno',
+        'odesila_se' => 'Odesílá se',
+        'odeslano' => 'Odesláno',
+    ],
+    'zavaznost_oznameni' => [
+        'informace' => 'Informace',
+        'upozorneni' => 'Upozornění',
+        'vazne' => 'Vážné',
+        'vyreseno' => 'Vyřešeno',
+    ],
+    'zprava' => [
+        'cestina' => 'čeština',
+        'anglictina' => 'angličtina',
+    ],
+];

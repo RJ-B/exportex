@@ -24,11 +24,20 @@ class ZpravaResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedInbox;
 
-    protected static ?string $navigationLabel = 'Zprávy z webu';
+    public static function getNavigationLabel(): string
+    {
+        return __('administrace.zprava_resource.zpravy_z_webu');
+    }
 
-    protected static ?string $modelLabel = 'zpráva';
+    public static function getModelLabel(): string
+    {
+        return __('administrace.zprava_resource.zprava');
+    }
 
-    protected static ?string $pluralModelLabel = 'zprávy z webu';
+    public static function getPluralModelLabel(): string
+    {
+        return __('administrace.zprava_resource.zpravy_z_webu_2');
+    }
 
     protected static ?string $slug = 'zpravy';
 
@@ -57,44 +66,44 @@ class ZpravaResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->recordClasses(fn (Zprava $z) => $z->precteno_at ? null : 'font-semibold')
             ->columns([
-                TextColumn::make('created_at')->label('Přišlo')->dateTime('j. n. Y H:i')->sortable(),
-                TextColumn::make('jmeno')->label('Od')
+                TextColumn::make('created_at')->label(__('administrace.zprava_resource.prislo'))->dateTime(__('formaty.datum_cas'))->sortable(),
+                TextColumn::make('jmeno')->label(__('administrace.zprava_resource.od'))
                     ->getStateUsing(fn (Zprava $z) => $z->celeJmeno())
                     ->description(fn (Zprava $z) => $z->email)
                     ->searchable(['jmeno', 'prijmeni', 'email']),
                 // Exportex: poptávky jsou B2B – firma a jazyk webu (anglická = odpovědět anglicky).
-                TextColumn::make('firma')->label('Firma')->searchable()->wrap(),
-                TextColumn::make('jazyk')->label('Jazyk')->badge()->color(fn (?string $state) => $state === 'en' ? 'info' : 'gray')
+                TextColumn::make('firma')->label(__('administrace.zprava_resource.firma'))->searchable()->wrap(),
+                TextColumn::make('jazyk')->label(__('administrace.zprava_resource.jazyk'))->badge()->color(fn (?string $state) => $state === 'en' ? 'info' : 'gray')
                     ->formatStateUsing(fn (?string $state) => strtoupper((string) $state)),
-                TextColumn::make('zprava')->label('Zpráva')->limit(80)->wrap()->searchable(),
-                TextColumn::make('stav')->label('Stav')->badge()
-                    ->getStateUsing(fn (Zprava $z) => $z->precteno_at ? 'přečteno' : 'nové')
-                    ->color(fn (string $state) => $state === 'nové' ? 'warning' : 'gray'),
+                TextColumn::make('zprava')->label(__('administrace.zprava_resource.zprava_2'))->limit(80)->wrap()->searchable(),
+                TextColumn::make('stav')->label(__('administrace.zprava_resource.stav'))->badge()
+                    ->getStateUsing(fn (Zprava $z) => $z->precteno_at ? __('administrace.zprava_resource.precteno') : __('administrace.zprava_resource.nove'))
+                    ->color(fn (string $state) => $state === __('administrace.zprava_resource.nove') ? 'warning' : 'gray'),
             ])
             ->filters([
-                TernaryFilter::make('precteno_at')->label('Přečtené')->nullable()
-                    ->trueLabel('Přečtené')->falseLabel('Nové'),
+                TernaryFilter::make('precteno_at')->label(__('administrace.zprava_resource.prectene'))->nullable()
+                    ->trueLabel(__('administrace.zprava_resource.prectene'))->falseLabel(__('administrace.zprava_resource.nove_2')),
             ])
             ->recordActions([
-                Action::make('detail')->label('Otevřít')->icon('heroicon-o-envelope-open')
+                Action::make('detail')->label(__('administrace.zprava_resource.otevrit'))->icon('heroicon-o-envelope-open')
                     ->modalHeading(fn (Zprava $z) => $z->celeJmeno())
-                    ->modalDescription(fn (Zprava $z) => collect([$z->firma, $z->popisJazyka() ? 'psáno '.($z->jazyk === 'en' ? 'anglicky' : 'česky') : null])->filter()->join(' · '))
+                    ->modalDescription(fn (Zprava $z) => collect([$z->firma, $z->popisJazyka() ? __('administrace.zprava_resource.psano', ['hodnota' => ($z->jazyk === 'en' ? 'anglicky' : __('administrace.zprava_resource.cesky'))]) : null])->filter()->join(' · '))
                     ->modalContent(fn (Zprava $z) => new HtmlString(
                         '<p><a href="mailto:'.e($z->email).'" style="text-decoration: underline;">'.e($z->email).'</a>'
                         .($z->telefon ? ' · '.e($z->telefon) : '').'</p>'
-                        .'<p style="color: var(--gray-500); font-size: .85rem;">'.$z->created_at->format('j. n. Y H:i').'</p>'
+                        .'<p style="color: var(--gray-500); font-size: .85rem;">'.$z->created_at->format(__('formaty.datum_cas')).'</p>'
                         .'<p style="white-space: pre-line; margin-top: 1rem;">'.e($z->zprava).'</p>'
                     ))
                     ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Zavřít')
+                    ->modalCancelActionLabel(__('administrace.zprava_resource.zavrit'))
                     ->mountUsing(fn (Zprava $z) => $z->precteno_at ?: $z->forceFill(['precteno_at' => now()])->save()),
-                Action::make('neprecteno')->label('Označit jako nové')->icon('heroicon-o-envelope')->color('gray')
+                Action::make('neprecteno')->label(__('administrace.zprava_resource.oznacit_jako_nove'))->icon('heroicon-o-envelope')->color('gray')
                     ->visible(fn (Zprava $z) => (bool) $z->precteno_at)
                     ->action(fn (Zprava $z) => $z->forceFill(['precteno_at' => null])->save()),
                 DeleteAction::make(),
             ])
-            ->emptyStateHeading('Zatím žádné zprávy')
-            ->emptyStateDescription('Zprávy z kontaktního formuláře na webu se objeví tady.');
+            ->emptyStateHeading(__('administrace.zprava_resource.zatim_zadne_zpravy'))
+            ->emptyStateDescription(__('administrace.zprava_resource.zpravy_z_kontaktniho_formulare_na_webu'));
     }
 
     public static function getPages(): array

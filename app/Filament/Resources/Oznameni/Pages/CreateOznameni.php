@@ -15,7 +15,7 @@ class CreateOznameni extends CreateRecord
 
     public function getTitle(): string
     {
-        return 'Napsat oznámení';
+        return __('administrace.create_oznameni.napsat_oznameni');
     }
 
     protected function getRedirectUrl(): string
@@ -25,11 +25,11 @@ class CreateOznameni extends CreateRecord
 
     protected function getCreatedNotificationTitle(): ?string
     {
-        return 'Koncept uložen – teď ho můžete prohlédnout, vyzkoušet a odeslat';
+        return __('administrace.create_oznameni.koncept_ulozen_ted_ho_muzete_prohlednout');
     }
 
     protected function getCreateFormAction(): Action
     {
-        return parent::getCreateFormAction()->label('Uložit koncept');
+        return parent::getCreateFormAction()->label(__('administrace.create_oznameni.ulozit_koncept'));
     }
 }

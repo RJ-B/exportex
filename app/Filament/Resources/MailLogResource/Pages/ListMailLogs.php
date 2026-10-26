@@ -11,6 +11,6 @@ class ListMailLogs extends ListRecords
 
     public function getTitle(): string
     {
-        return 'E-maily';
+        return __('administrace.list_mail_logs.e_maily');
     }
 }

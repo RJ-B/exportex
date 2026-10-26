@@ -45,31 +45,31 @@ class ViewOznameni extends ViewRecord
         return [
             $this->nahledAction(),
             Action::make('zrusitPlan')
-                ->label('Zrušit plán')
+                ->label(__('administrace.view_oznameni.zrusit_plan'))
                 ->icon('heroicon-o-x-circle')
                 ->color('gray')
                 ->visible(fn () => $this->record->stav === StavOznameni::Naplanovano)
                 ->requiresConfirmation()
-                ->modalDescription('Oznámení se vrátí do konceptu a neodejde, dokud ho znovu neodešlete.')
+                ->modalDescription(__('administrace.view_oznameni.oznameni_se_vrati_do_konceptu_a'))
                 ->action(function () {
                     app(Odeslani::class)->zrusitPlan($this->record);
                     $this->redirect(OznameniResource::getUrl('edit', ['record' => $this->record]));
                 }),
             Action::make('ukoncitPruh')
-                ->label('Ukončit pruh')
+                ->label(__('administrace.view_oznameni.ukoncit_pruh'))
                 ->icon('heroicon-o-eye-slash')
                 ->color('warning')
                 ->visible(fn () => $this->record->maKanal(KanalOznameni::Pruh)
                     && Oznameni::query()->pruhPlati()->whereKey($this->record->getKey())->exists())
                 ->requiresConfirmation()
-                ->modalDescription('Pruh z webu i administrace hned zmizí. V centru oznámení zůstane.')
+                ->modalDescription(__('administrace.view_oznameni.pruh_z_webu_i_administrace_hned'))
                 ->action(function () {
                     $this->record->forceFill(['pruh_do' => now()])->save();
                     Pruh::zapomen();
-                    Notification::make()->title('Pruh ukončen')->success()->send();
+                    Notification::make()->title(__('administrace.view_oznameni.pruh_ukoncen'))->success()->send();
                 }),
             Action::make('znovu')
-                ->label('Použít znovu')
+                ->label(__('administrace.view_oznameni.pouzit_znovu'))
                 ->icon('heroicon-o-document-duplicate')
                 ->color('gray')
                 ->visible(fn () => $this->record->zdroj === 'administrace')

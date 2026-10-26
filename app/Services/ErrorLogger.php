@@ -7,6 +7,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Session\TokenMismatchException;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Psy\Exception\Exception;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -123,13 +124,31 @@ class ErrorLogger
                 // protože Laravel i pro artisan sestaví Request ze serverových proměnných.
                 'ip' => $this->console() ? null : request()?->ip(),
                 'trace' => $this->trace($e),
-                // Chyba se vrátila → znovu ji vytáhneme mezi nevyřešené.
+                // Chyba se vrátila → znovu ji vytáhneme mezi nevyřešené (portál
+                // Sim&Ren ji při dalším čtení simren:chyby otevře taky).
                 'resolved_at' => null,
+                'resolved_by' => null,
+                ...$this->bezReseni(),
             ]);
         } catch (Throwable) {
             // Schválně naprázdno: logování chyb nesmí být zdrojem chyb. Výjimka
             // stejně doputuje do laravel.log standardní cestou.
         }
+    }
+
+    /**
+     * Poznámka a jméno z vyřešení patří starému výskytu. Sloupce přidala až
+     * migrace chyby_reseni – dokud v projektu není, nesahat na ně (zápis by
+     * spadl a chyba by se ztratila).
+     *
+     * @return array<string, null>
+     */
+    private function bezReseni(): array
+    {
+        static $sloupce = null;
+        $sloupce ??= Schema::hasColumn('error_logs', 'resolution_note');
+
+        return $sloupce ? ['resolved_by_name' => null, 'resolution_note' => null] : [];
     }
 
     private function shouldIgnore(Throwable $e): bool

@@ -13,10 +13,10 @@ enum StavOznameni: string
     public function nazev(): string
     {
         return match ($this) {
-            self::Koncept => 'Koncept',
-            self::Naplanovano => 'Naplánováno',
-            self::Odesila => 'Odesílá se',
-            self::Odeslano => 'Odesláno',
+            self::Koncept => __('modely.stav_oznameni.koncept'),
+            self::Naplanovano => __('modely.stav_oznameni.naplanovano'),
+            self::Odesila => __('modely.stav_oznameni.odesila_se'),
+            self::Odeslano => __('modely.stav_oznameni.odeslano'),
         };
     }
 

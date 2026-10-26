@@ -2,8 +2,8 @@
 
 namespace App\Support\Posta;
 
-use App\Support\CasAplikace;
 use App\Models\MailLog;
+use App\Support\CasAplikace;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -25,14 +25,14 @@ class Webhook
         $telo = $request->getContent();
 
         if (! self::podpisSedi((string) $request->header('X-Posta-Signature-V2'), $telo, Propojeni::webhookTajemstvi())) {
-            return response()->json(['message' => 'Neplatný podpis.'], 401);
+            return response()->json(['message' => __('posta.webhook.neplatny_podpis')], 401);
         }
 
         $doruceni = (string) $request->header('X-Posta-Delivery');
 
         // Každé doručení jednou (Pošta může stejné poslat znovu, když neodpovíme včas).
         if ($doruceni === '' || ! Cache::add('posta-webhook:'.sha1($doruceni), 1, now()->addDay())) {
-            return response()->json(['message' => 'Už zpracováno.']);
+            return response()->json(['message' => __('posta.webhook.uz_zpracovano')]);
         }
 
         $data = json_decode($telo, true);
@@ -43,7 +43,7 @@ class Webhook
         if (filled($zprava['id'] ?? null) && ! self::aktualizuj($zprava)) {
             Cache::forget('posta-webhook:'.sha1($doruceni));
 
-            return response()->json(['message' => 'Zprávu zatím neznáme – zkus to později.'], 409);
+            return response()->json(['message' => __('posta.webhook.zpravu_zatim_nezname_zkus_to_pozdeji')], 409);
         }
 
         return response()->json(['message' => 'OK']);
@@ -69,13 +69,13 @@ class Webhook
                 'status' => MailLog::STATUS_FAILED,
                 'failed_at' => now(),
                 'attempts' => max(1, (int) ($zprava['pokusu'] ?? 1)),
-                'error' => mb_substr((string) ($zprava['chyba'] ?? 'Nedoručeno.'), 0, 2000),
+                'error' => mb_substr((string) ($zprava['chyba'] ?? __('posta.webhook.nedoruceno')), 0, 2000),
                 'posta_kontrola_at' => now(),
             ]),
             // Testovací režim Pošty: žádný příjemce nebyl interní – zpráva neodešla a odejít nemá.
             'zadrzeno' => $log->update([
                 'status' => MailLog::STATUS_HELD,
-                'error' => mb_substr((string) ($zprava['chyba'] ?? 'Zadrženo (test).'), 0, 2000),
+                'error' => mb_substr((string) ($zprava['chyba'] ?? __('posta.webhook.zadrzeno_test')), 0, 2000),
                 'posta_kontrola_at' => now(),
             ]),
             default => $log->update(['posta_kontrola_at' => now(), 'attempts' => max(1, (int) ($zprava['pokusu'] ?? 1))]),

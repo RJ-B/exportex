@@ -51,11 +51,20 @@ class OznameniResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMegaphone;
 
-    protected static ?string $navigationLabel = 'Oznámení';
+    public static function getNavigationLabel(): string
+    {
+        return __('administrace.oznameni_resource.oznameni');
+    }
 
-    protected static ?string $modelLabel = 'oznámení';
+    public static function getModelLabel(): string
+    {
+        return __('administrace.oznameni_resource.oznameni_2');
+    }
 
-    protected static ?string $pluralModelLabel = 'oznámení';
+    public static function getPluralModelLabel(): string
+    {
+        return __('administrace.oznameni_resource.oznameni_2');
+    }
 
     protected static ?int $navigationSort = 2;
 
@@ -82,37 +91,37 @@ class OznameniResource extends Resource
         $druh = fn (Get $get): ?DruhOznameni => DruhOznameni::tryFrom((string) $get('druh'));
 
         return $schema->columns(1)->components([
-            Section::make('Zpráva')->schema([
+            Section::make(__('administrace.oznameni_resource.zprava'))->schema([
                 ToggleButtons::make('druh')
-                    ->label('Druh')
+                    ->label(__('administrace.oznameni_resource.druh'))
                     ->options(fn () => collect(NastaveniOznameni::druhyZAdministrace())->mapWithKeys(fn (DruhOznameni $d) => [$d->value => $d->nazev()])->all())
                     ->inline()
                     ->required()
                     ->live()
                     ->default(DruhOznameni::Servisni->value)
                     ->helperText(fn (Get $get) => ($d = $druh($get))
-                        ? $d->popis().($d->vyzadujeSouhlas() ? ' E-mailem jen těm, kdo souhlasili; každý e-mail má odhlášení jedním kliknutím.' : '')
+                        ? $d->popis().($d->vyzadujeSouhlas() ? __('administrace.oznameni_resource.e_mailem_jen_tem_kdo_souhlasili') : '')
                         : null),
-                TextInput::make('titulek')->label('Titulek')->required()->maxLength(160),
+                TextInput::make('titulek')->label(__('administrace.oznameni_resource.titulek'))->required()->maxLength(160),
                 MarkdownEditor::make('text')
-                    ->label('Text')
+                    ->label(__('administrace.oznameni_resource.text'))
                     ->toolbarButtons([['bold', 'italic', 'link'], ['bulletList', 'orderedList'], ['undo', 'redo']])
                     ->maxLength(5000),
                 Grid::make(2)->schema([
                     TextInput::make('odkaz')
-                        ->label('Odkaz')
+                        ->label(__('administrace.oznameni_resource.odkaz'))
                         ->placeholder('/akce nebo https://…')
                         ->maxLength(500)
                         ->rule('regex:#^(/(?!/)|https?://)#')
-                        ->validationMessages(['regex' => 'Odkaz začíná lomítkem (stránka webu) nebo https://.'])
-                        ->helperText('Nepovinné. Kam tlačítko v oznámení vede.'),
-                    TextInput::make('odkaz_text')->label('Text tlačítka')->placeholder('Zobrazit')->maxLength(60),
+                        ->validationMessages(['regex' => __('administrace.oznameni_resource.odkaz_zacina_lomitkem_stranka_webu_nebo')])
+                        ->helperText(__('administrace.oznameni_resource.nepovinne_kam_tlacitko_v_oznameni_vede')),
+                    TextInput::make('odkaz_text')->label(__('administrace.oznameni_resource.text_tlacitka'))->placeholder(__('administrace.oznameni_resource.zobrazit'))->maxLength(60),
                 ]),
             ]),
 
-            Section::make('Kudy')->schema([
+            Section::make(__('administrace.oznameni_resource.kudy'))->schema([
                 CheckboxList::make('kanaly')
-                    ->label('Kanály')
+                    ->label(__('administrace.oznameni_resource.kanaly'))
                     ->options(collect(KanalOznameni::cases())->mapWithKeys(fn (KanalOznameni $k) => [$k->value => $k->nazev()])->all())
                     ->descriptions(collect(KanalOznameni::cases())->mapWithKeys(fn (KanalOznameni $k) => [$k->value => $k->popis()])->all())
                     ->disableOptionWhen(fn (string $value, Get $get) => ! KanalOznameni::from($value)->dostupny()
@@ -123,58 +132,58 @@ class OznameniResource extends Resource
                     ->default([KanalOznameni::Centrum->value, KanalOznameni::Email->value]),
                 Grid::make(2)->visible($pruh)->schema([
                     ToggleButtons::make('zavaznost')
-                        ->label('Barva pruhu')
+                        ->label(__('administrace.oznameni_resource.barva_pruhu'))
                         ->options(collect(ZavaznostOznameni::cases())->mapWithKeys(fn (ZavaznostOznameni $z) => [$z->value => $z->nazev()])->all())
                         ->colors(collect(ZavaznostOznameni::cases())->mapWithKeys(fn (ZavaznostOznameni $z) => [$z->value => $z->barva()])->all())
                         ->inline()
                         ->default(ZavaznostOznameni::Info->value)
                         ->required()
                         ->columnSpanFull(),
-                    DateTimePicker::make('pruh_od')->label('Pruh ukázat od')->seconds(false)->helperText('Prázdné = hned po odeslání.'),
-                    DateTimePicker::make('pruh_do')->label('Pruh schovat po')->seconds(false)->after('pruh_od')->helperText('Prázdné = dokud ho neukončíte.'),
+                    DateTimePicker::make('pruh_od')->label(__('administrace.oznameni_resource.pruh_ukazat_od'))->seconds(false)->helperText(__('administrace.oznameni_resource.prazdne_hned_po_odeslani')),
+                    DateTimePicker::make('pruh_do')->label(__('administrace.oznameni_resource.pruh_schovat_po'))->seconds(false)->after('pruh_od')->helperText(__('administrace.oznameni_resource.prazdne_dokud_ho_neukoncite')),
                 ]),
                 Grid::make(2)->visible(fn (Get $get) => $druh($get) === DruhOznameni::Servisni)->schema([
-                    DateTimePicker::make('udalost_od')->label('Odstávka od')->seconds(false)->helperText('Nepovinné. Pruh ukáže odpočet, e-mail termín.'),
-                    DateTimePicker::make('udalost_do')->label('Odstávka do')->seconds(false)->after('udalost_od'),
+                    DateTimePicker::make('udalost_od')->label(__('administrace.oznameni_resource.odstavka_od'))->seconds(false)->helperText(__('administrace.oznameni_resource.nepovinne_pruh_ukaze_odpocet_e_mail')),
+                    DateTimePicker::make('udalost_do')->label(__('administrace.oznameni_resource.odstavka_do'))->seconds(false)->after('udalost_od'),
                 ]),
             ]),
 
-            Section::make('Komu')->schema([
+            Section::make(__('administrace.oznameni_resource.komu'))->schema([
                 ToggleButtons::make('cileni.komu')
-                    ->label('Komu')
-                    ->options(['vsichni' => 'Všem', 'vybrani' => 'Vybraným'])
+                    ->label(__('administrace.oznameni_resource.komu'))
+                    ->options(['vsichni' => __('administrace.oznameni_resource.vsem'), 'vybrani' => __('administrace.oznameni_resource.vybranym')])
                     ->inline()
                     ->live()
                     ->required()
                     ->default('vsichni')
-                    ->helperText('Všem = správcům i klientům aplikace. Každý dostane oznámení jen jednou, i když spadá do víc výběrů.'),
+                    ->helperText(__('administrace.oznameni_resource.vsem_spravcum_i_klientum_aplikace_kazdy')),
                 CheckboxList::make('cileni.role')
-                    ->label('Role')
-                    ->options(Cileni::ROLE)
+                    ->label(__('administrace.oznameni_resource.role'))
+                    ->options(Cileni::role())
                     ->columns(2)
                     ->visible($vybrani),
                 Select::make('cileni.skupiny')
-                    ->label('Skupiny')
+                    ->label(__('administrace.oznameni_resource.skupiny'))
                     ->multiple()
                     ->options(fn () => OznameniSkupina::query()->orderBy('nazev')->pluck('nazev', 'id')->all())
                     ->visible(fn (Get $get) => $vybrani($get) && OznameniSkupina::query()->exists())
-                    ->helperText('Skupiny příjemců se spravují v Oznámení → Skupiny příjemců.'),
+                    ->helperText(__('administrace.oznameni_resource.skupiny_prijemcu_se_spravuji_v_oznameni')),
                 Select::make('cileni.uzivatele')
-                    ->label('Vybraní lidé')
+                    ->label(__('administrace.oznameni_resource.vybrani_lide'))
                     ->multiple()
                     ->searchable()
                     ->getSearchResultsUsing(fn (string $search) => static::hledejLidi($search))
                     ->getOptionLabelsUsing(fn (array $values) => static::popisyLidi($values))
                     ->visible($vybrani)
-                    ->helperText('Hledejte jménem, příjmením nebo e-mailem a vybírejte postupně – kolik chcete.'),
+                    ->helperText(__('administrace.oznameni_resource.hledejte_jmenem_prijmenim_nebo_e_mailem')),
             ]),
 
-            Section::make('Kdy')->schema([
+            Section::make(__('administrace.oznameni_resource.kdy'))->schema([
                 DateTimePicker::make('naplanovano_na')
-                    ->label('Naplánovat na')
+                    ->label(__('administrace.oznameni_resource.naplanovat_na'))
                     ->seconds(false)
                     ->minDate(fn (?Oznameni $record) => $record?->naplanovano_na?->isPast() ? null : now()->startOfMinute())
-                    ->helperText('Prázdné = odejde hned po kliknutí na Odeslat.'),
+                    ->helperText(__('administrace.oznameni_resource.prazdne_odejde_hned_po_kliknuti_na')),
             ]),
         ]);
     }
@@ -218,41 +227,41 @@ class OznameniResource extends Resource
                 : static::getUrl('view', ['record' => $record]))
             ->columns([
                 TextColumn::make('titulek')
-                    ->label('Oznámení')
+                    ->label(__('administrace.oznameni_resource.oznameni'))
                     ->searchable()
                     ->wrap()
                     ->description(fn (Oznameni $record) => Radky::pod($record->druh->nazev().' · '.Cileni::popis((array) $record->cileni))),
                 TextColumn::make('stav')
-                    ->label('Stav')
+                    ->label(__('administrace.oznameni_resource.stav'))
                     ->badge()
                     ->getStateUsing(fn (Oznameni $record) => $record->stav->nazev())
                     ->color(fn (Oznameni $record) => $record->stav->barva()),
                 TextColumn::make('kanaly')
-                    ->label('Kudy')
+                    ->label(__('administrace.oznameni_resource.kudy'))
                     ->badge()
                     ->color('gray')
                     ->getStateUsing(fn (Oznameni $record) => array_map(fn (KanalOznameni $k) => $k->nazev(), $record->kanalyEnum())),
                 TextColumn::make('kdy')
-                    ->label('Kdy')
+                    ->label(__('administrace.oznameni_resource.kdy'))
                     ->getStateUsing(fn (Oznameni $record) => match ($record->stav) {
-                        StavOznameni::Naplanovano => 'na '.$record->naplanovano_na?->format('j. n. Y H:i'),
-                        StavOznameni::Koncept => 'upraveno '.$record->updated_at?->format('j. n. Y H:i'),
-                        default => $record->odeslano_at?->format('j. n. Y H:i') ?? '–',
+                        StavOznameni::Naplanovano => __('administrace.oznameni_resource.naplanovano_na', ['kdy' => $record->naplanovano_na?->format(__('formaty.datum_cas'))]),
+                        StavOznameni::Koncept => __('administrace.oznameni_resource.upraveno', ['kdy' => $record->updated_at?->format(__('formaty.datum_cas'))]),
+                        default => $record->odeslano_at?->format(__('formaty.datum_cas')) ?? '–',
                     }),
                 TextColumn::make('pocet_prijemcu')
-                    ->label('Příjemců')
+                    ->label(__('administrace.oznameni_resource.prijemcu'))
                     ->getStateUsing(fn (Oznameni $record) => $record->pocet_prijemcu === null
-                        ? ($record->jeProVsechny() && $record->maKanal(KanalOznameni::Pruh) && $record->stav === StavOznameni::Odeslano ? 'všichni (pruh)' : '–')
+                        ? ($record->jeProVsechny() && $record->maKanal(KanalOznameni::Pruh) && $record->stav === StavOznameni::Odeslano ? __('administrace.oznameni_resource.vsichni_pruh') : '–')
                         : number_format($record->pocet_prijemcu, 0, ',', ' ')),
             ])
             ->filters([
-                SelectFilter::make('stav')->label('Stav')
+                SelectFilter::make('stav')->label(__('administrace.oznameni_resource.stav'))
                     ->options(collect(StavOznameni::cases())->mapWithKeys(fn (StavOznameni $s) => [$s->value => $s->nazev()])->all()),
-                SelectFilter::make('druh')->label('Druh')
+                SelectFilter::make('druh')->label(__('administrace.oznameni_resource.druh'))
                     ->options(collect(DruhOznameni::cases())->mapWithKeys(fn (DruhOznameni $d) => [$d->value => $d->nazev()])->all()),
             ])
-            ->emptyStateHeading('Zatím žádná oznámení')
-            ->emptyStateDescription('Napište lidem aplikace novinku nebo je upozorněte na odstávku – v centru oznámení, pruhem přes web nebo e-mailem.');
+            ->emptyStateHeading(__('administrace.oznameni_resource.zatim_zadna_oznameni'))
+            ->emptyStateDescription(__('administrace.oznameni_resource.napiste_lidem_aplikace_novinku_nebo_je'));
     }
 
     public static function getPages(): array

@@ -19,18 +19,31 @@
     $kotva = fn (string $id) => ($naUvodu ? '' : '/').'#'.$id;
     // Verze souboru v adrese – po změně se v prohlížeči neukáže stará z cache.
     $v = fn (string $cesta) => '/'.$cesta.'?v='.(@filemtime(public_path($cesta)) ?: '1');
+    // SEO ze šablony (App\Support\Seo): titulek, popis, robots (noindex mimo produkci), canonical,
+    // Open Graph, Twitter a JSON-LD – upravuje se v Obsah webu → SEO a měření. Provozovatel
+    // ze šablony doplněný o údaje Exportex (App\Support\StrukturovanaData), na úvodu i služba.
+    $titulekStranky = trim($__env->yieldContent('titulek'));
+    $seo = $naUvodu
+        ? \App\Support\Seo\Seo::uvod()
+        : \App\Support\Seo\Seo::stranka($titulekStranky ?: null, klic: trim($__env->yieldContent('seo_klic')) ?: null)->popis(trim($__env->yieldContent('popis')) ?: null);
+    $graf = \App\Support\StrukturovanaData::web()['@graph'];
+    $organizace = $graf[0];
+    unset($organizace['@id']);
+    $seo->obrazek(\App\Support\Seo\NastaveniSeo::get('obrazek') ? null : rtrim((string) config('web.url'), '/').'/assets/img/og.webp')
+        ->subjekt(array_merge($organizace, array_filter(\App\Support\Seo\StrukturovanaData::subjekt(), fn ($h) => $h !== null && $h !== [])));
+    if ($naUvodu) {
+        $seo->data($graf[2]);   // Service se sortimentem
+    }
     $telefon = $u['telefon'];
     $cislice = Preklad::cislice($telefon);
 @endphp
 <!DOCTYPE html>
-<html lang="cs" data-theme="light">
+<html lang="{{ app()->getLocale() }}" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-<title>@yield('titulek')</title>
-<meta name="description" content="@yield('popis')">
-<meta name="robots" content="@yield('robots', 'noindex, follow')">
+{{ $seo->html() }}
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="{{ config('web.barva') }}">
 <meta name="color-scheme" content="light dark">
@@ -59,22 +72,23 @@
 <body>
 {{-- Pruh oznámení (odstávka, výpadek) – docs/oznameni.md. --}}
 @include('oznameni.pruh')
+@includeWhen(config('sablona.doplnky.platby'), 'platby.stitek')
 
-<a href="#obsah" class="skip" data-cs="Přeskočit na obsah" data-en="Skip to content">Přeskočit na obsah</a>
+<a href="#obsah" class="skip" data-cs="{{ __('web.web.preskocit_na_obsah') }}" data-en="{{ __('web.web.preskocit_na_obsah', [], 'en') }}">{{ __('web.web.preskocit_na_obsah') }}</a>
 
 @if ($naUvodu)
-<!-- ===== Progress ===== -->
+{{-- ===== Progress ===== --}}
 <div class="progress" id="progress" role="presentation"></div>
 @endif
 
-<!-- ===== Header ===== -->
+{{-- ===== Header ===== --}}
 <header class="hdr" id="hdr">
   <div class="hdr__in">
-    <a href="{{ $naUvodu ? '#top' : '/' }}" class="logo" aria-label="{{ $u['nazev'] }} — úvod">
+    <a href="{{ $naUvodu ? '#top' : '/' }}" class="logo" aria-label="{{ __('web.web.uvod', ['nazev' => $u['nazev']]) }}">
       <img class="logo__mark" src="/assets/img/logo.webp" width="532" height="120" alt="{{ $u['nazev'] }}">
     </a>
 
-    <nav class="nav" aria-label="Hlavní navigace">
+    <nav class="nav" aria-label="{{ __('web.web.hlavni_navigace') }}">
       @foreach ($menu as $polozka)
       <a class="nav__link" href="{{ $kotva($polozka['kotva']) }}" {{ Preklad::attr($polozka['cs'], $polozka['en']) }}>{{ $polozka['cs'] }}</a>
       @endforeach
@@ -86,14 +100,14 @@
       </div>
 
       <button type="button" class="themebtn" id="themeBtn" aria-pressed="false"
-              data-cs-label="Přepnout na světlý režim" data-en-label="Switch to light mode"
-              aria-label="Přepnout na světlý režim" title="Přepnout na světlý režim">
+              data-cs-label="{{ __('web.web.prepnout_na_svetly_rezim') }}" data-en-label="Switch to light mode"
+              aria-label="{{ __('web.web.prepnout_na_svetly_rezim') }}" title="{{ __('web.web.prepnout_na_svetly_rezim') }}">
         <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
         <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2 12h2.4M19.6 12H22M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg>
       </button>
 
       @if ($formular)
-      <a href="{{ $kotva('kontakt') }}" class="btn btn--primary btn--sm btn--nav" data-cs="Poptávka" data-en="Enquiry">Poptávka</a>
+      <a href="{{ $kotva('kontakt') }}" class="btn btn--primary btn--sm btn--nav" data-cs="{{ __('web.web.poptavka') }}" data-en="{{ __('web.web.poptavka', [], 'en') }}">{{ __('web.web.poptavka') }}</a>
       @endif
 
       <button type="button" class="burger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="drawer">
@@ -104,16 +118,16 @@
   </div>
 </header>
 
-<!-- ===== Mobilní menu ===== -->
+{{-- ===== Mobilní menu ===== --}}
 <div class="drawer" id="drawer" aria-hidden="true">
-  <nav class="drawer__list" aria-label="Mobilní navigace">
+  <nav class="drawer__list" aria-label="{{ __('web.web.mobilni_navigace') }}">
     @foreach ($menu as $polozka)
     <a class="drawer__link" href="{{ $kotva($polozka['kotva']) }}"><span class="n">{{ $polozka['cislo'] }}</span><span {{ Preklad::attr($polozka['cs'], $polozka['en']) }}>{{ $polozka['cs'] }}</span></a>
     @endforeach
   </nav>
   <div class="drawer__foot">
     @if ($formular)
-    <a href="{{ $kotva('kontakt') }}" class="btn btn--primary btn--md" data-cs="Poslat poptávku" data-en="Send an enquiry">Poslat poptávku</a>
+    <a href="{{ $kotva('kontakt') }}" class="btn btn--primary btn--md" data-cs="{{ __('web.web.poslat_poptavku') }}" data-en="{{ __('web.web.poslat_poptavku', [], 'en') }}">{{ __('web.web.poslat_poptavku') }}</a>
     @endif
     @if ($telefon)
     <a href="tel:{{ Preklad::tel($telefon) }}" class="btn btn--glass btn--md">{{ $telefon }}</a>
@@ -123,7 +137,7 @@
 
 @yield('obsah')
 
-<!-- ===== Footer ===== -->
+{{-- ===== Footer ===== --}}
 <footer class="ftr">
   <div class="wrap">
     <div class="ftr__cols">
@@ -134,7 +148,7 @@
       </div>
 
       <nav class="ftr__col" aria-labelledby="ftr-nav">
-        <h2 class="ftr__h" id="ftr-nav" data-cs="Rychlé odkazy" data-en="Quick links">Rychlé odkazy</h2>
+        <h2 class="ftr__h" id="ftr-nav" data-cs="{{ __('web.web.rychle_odkazy') }}" data-en="{{ __('web.web.rychle_odkazy', [], 'en') }}">{{ __('web.web.rychle_odkazy') }}</h2>
         <ul>
           @foreach ($menu as $polozka)
           <li><a href="{{ $kotva($polozka['kotva']) }}" {{ Preklad::attr($polozka['cs'], $polozka['en']) }}>{{ $polozka['cs'] }}</a></li>
@@ -143,23 +157,23 @@
       </nav>
 
       <div class="ftr__col">
-        <h2 class="ftr__h" data-cs="Kontakt" data-en="Contact">Kontakt</h2>
+        <h2 class="ftr__h" data-cs="Kontakt" data-en="Contact">{{ __('web.web.kontakt') }}</h2>
         <ul>
           @if ($kontakt['osoba'])<li><span class="ftr__name">{{ $kontakt['osoba'] }}</span></li>@endif
           @if ($u['email'])<li><a href="mailto:{{ $u['email'] }}">{{ $u['email'] }}</a></li>@endif
           @if ($telefon)<li><a href="tel:{{ Preklad::tel($telefon) }}">{{ $telefon }}</a></li>@endif
-          @if ($telefon && $kontakt['whatsapp'])<li><a href="https://wa.me/{{ $cislice }}" target="_blank" rel="noopener noreferrer">WhatsApp</a></li>@endif
-          @if ($telefon && $kontakt['telegram'])<li><a href="https://t.me/+{{ $cislice }}" target="_blank" rel="noopener noreferrer">Telegram</a></li>@endif
+          @if ($telefon && $kontakt['whatsapp'])<li><a href="https://wa.me/{{ $cislice }}" target="_blank" rel="noopener noreferrer">{{ __('web.web.whatsapp') }}</a></li>@endif
+          @if ($telefon && $kontakt['telegram'])<li><a href="https://t.me/+{{ $cislice }}" target="_blank" rel="noopener noreferrer">{{ __('web.web.telegram') }}</a></li>@endif
         </ul>
       </div>
 
       <div class="ftr__col">
-        <h2 class="ftr__h" data-cs="Informace" data-en="Information">Informace</h2>
+        <h2 class="ftr__h" data-cs="Informace" data-en="Information">{{ __('web.web.informace') }}</h2>
         <ul>
-          <li><a href="{{ route('cookies') }}" data-cs="Cookies a úložiště" data-en="Cookies and storage">Cookies a úložiště</a></li>
-          <li><a href="{{ route('ochrana-udaju') }}" data-cs="Ochrana osobních údajů" data-en="Privacy notice">Ochrana osobních údajů</a></li>
+          <li><a href="{{ route('cookies') }}" data-cs="{{ __('web.web.cookies_a_uloziste') }}" data-en="{{ __('web.web.cookies_a_uloziste', [], 'en') }}">{{ __('web.web.cookies_a_uloziste') }}</a></li>
+          <li><a href="{{ route('ochrana-udaju') }}" data-cs="{{ __('web.web.ochrana_osobnich_udaju') }}" data-en="{{ __('web.web.ochrana_osobnich_udaju', [], 'en') }}">{{ __('web.web.ochrana_osobnich_udaju') }}</a></li>
           @if (\App\Support\NastaveniWebu::meri())
-          <li><button type="button" data-cc="open" data-cs="Nastavení cookies" data-en="Cookie settings">Nastavení cookies</button></li>
+          <li><button type="button" data-cc="open" data-cs="{{ __('web.web.nastaveni_cookies') }}" data-en="{{ __('web.web.nastaveni_cookies', [], 'en') }}">{{ __('web.web.nastaveni_cookies') }}</button></li>
           @endif
         </ul>
       </div>
@@ -173,8 +187,8 @@
       @php($adresa = str_replace("\n", ', ', $u['adresa']))
       <span {{ Preklad::attr($adresa, $paticka['adresa_en']) }}>{{ $adresa }}</span>
       @endif
-      @if ($u['ico'])<span>IČO {{ $u['ico'] }}</span>@endif
-      @if ($u['dic'])<span>DIČ {{ $u['dic'] }}</span>@endif
+      @if ($u['ico'])<span>{{ __('web.web.ico', ['ico' => $u['ico']]) }}</span>@endif
+      @if ($u['dic'])<span>{{ __('web.web.dic', ['dic' => $u['dic']]) }}</span>@endif
       @if ($u['rejstrik'])
       <span {{ Preklad::attr($u['rejstrik'], $paticka['rejstrik_en']) }}>{{ $u['rejstrik'] }}</span>
       @endif
@@ -184,7 +198,7 @@
       @php($cr = '© '.now()->year.' '.($u['firma'] ?: $u['nazev']).' — ')
       <span class="ftr__cr" {{ Preklad::attr($cr.$paticka['pruh'], $cr.$paticka['pruh_en']) }}>{{ $cr.$paticka['pruh'] }}</span>
       <span class="ftr__by">
-        <span data-cs="Web:" data-en="Website by:">Web:</span>
+        <span data-cs="Web:" data-en="Website by:">{{ __('web.web.web') }}</span>
         <a href="{{ config('web.autor_web') }}" target="_blank" rel="noopener noreferrer">{{ config('web.autor') }}</a>
       </span>
     </div>

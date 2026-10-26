@@ -1,0 +1,37 @@
+# Popis šablony pro katalog v CRM (verze 1).
+#
+# CRM ho čte z repa šablony (Nastavení firmy → Vývoj → Načíst popisy šablon)
+# a v okně „Realizace: projekt a web“ podle něj ukazuje kartu šablony – jen
+# u zakázek druhů z `druhy`. Co projekt potřebuje na serveru, je v projekt.yml.
+#
+# Klíče:
+#   nazev, popis   název a jedna věta na kartu
+#   druhy          NA_MIRU (vývoj na zakázku) | PRODUKT (SaaS) | INTERNI; prázdné = obecná
+#   obsahuje       web | administrace | firmy | api | mobil (štítky na kartě)
+#   test           má testovací prostředí (<název>.test.simren.cz)
+#   balicky        vydává instalační balíčky na download.simren.cz
+#   vzhledy        vzhled administrace (Filament, MoonShine…) – CRM ho při víc vzhledech nabídne
+#                  v okně Realizace; vzhled s `repo` je jiná šablona se stejným jádrem a projekt
+#                  vznikne z jeho repa (to má v sablona.yml `samostatna: false`)
+#   doplnky        volitelné doplňky, které šablona umí: platby – platební brána
+#                  (config/sablona.php → doplnky.platby, docs/platby.md); fakturace –
+#                  napojení na fakturace.simren.cz (klíče do .env zapíše portál: test
+#                  testovací, produkce ostré; docs/fakturace.md); sso – Sdílené
+#                  přihlášení (připravujeme)
+#   druhe_repo     druhé repo zakládané spolu s tímhle ({sablona, pripona, druh, nazev})
+#   samostatna     false = šablona se v okně nenabízí, jen jako druhé repo nebo vzhled jiné (výchozí true)
+
+verze: 1
+nazev: Web s administrací
+popis: Veřejný web s administrací obsahu, kontaktním formulářem, poštou přes Poštu a provozními logy.
+druhy: [NA_MIRU, INTERNI]
+obsahuje: [web, administrace]
+test: true
+balicky: false
+vzhledy:
+  - kod: filament
+    nazev: Filament
+  - kod: moonshine
+    nazev: MoonShine
+    repo: SimRen-sro/simren-moonshine-starter
+doplnky: [platby, fakturace]

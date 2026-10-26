@@ -38,7 +38,7 @@ class PostaTransport extends AbstractTransport
         $puvodni = $message->getOriginalMessage();
 
         if (! $puvodni instanceof Message) {
-            throw new TransportException('Syrovou zprávu (RawMessage) přes Poštu poslat nejde – pošli ji znovu z aplikace.');
+            throw new TransportException(__('posta.posta_transport.syrovou_zpravu_rawmessage_pres_postu'));
         }
 
         $email = $puvodni instanceof Email ? $puvodni : MessageConverter::toEmail($puvodni);
@@ -74,7 +74,7 @@ class PostaTransport extends AbstractTransport
             $log->update(['status' => MailLog::STATUS_QUEUED, 'posta_id' => substr($id, strlen(self::PREDPONA_ID))]);
         } elseif (str_starts_with($id, self::PREDPONA_FRONTA)) {
             Odchozi::query()->whereKey((int) substr($id, strlen(self::PREDPONA_FRONTA)))->update(['mail_log_id' => $log->id]);
-            $log->update(['status' => MailLog::STATUS_QUEUED, 'error' => 'Čeká na Poštu (nedostupná) – předá se automaticky.']);
+            $log->update(['status' => MailLog::STATUS_QUEUED, 'error' => __('posta.posta_transport.ceka_na_postu_nedostupna_preda_se')]);
         }
     }
 

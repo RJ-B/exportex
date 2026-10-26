@@ -24,13 +24,13 @@ class UdrzbaDoAktivity
     {
         Event::listen(MaintenanceModeEnabled::class, fn () => AuditLogger::record(
             event: 'udrzba.zapnuta',
-            summary: 'Údržba zapnuta',
+            summary: __('obecne.udrzba_do_aktivity.udrzba_zapnuta'),
             new: self::nastaveni(),
         ));
 
         Event::listen(MaintenanceModeDisabled::class, fn () => AuditLogger::record(
             event: 'udrzba.vypnuta',
-            summary: 'Údržba vypnuta',
+            summary: __('obecne.udrzba_do_aktivity.udrzba_vypnuta'),
             new: ['prikaz' => 'artisan up'],
         ));
     }

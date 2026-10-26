@@ -58,14 +58,62 @@ class Klient
         return $this->vysledek(fn () => $this->api()->post('/prevzeti-schranky', $schranka));
     }
 
+    /**
+     * Kopie do Odeslaných u přidělené adresy (Nastavení → Pošta). Nepovedené
+     * zapnutí (422) není výjimka – vrací se s důvodem v `kopie.zprava`.
+     *
+     * @return array{kopie: array{ok: bool, stav: string, zprava: string, zmena: bool}, aplikace: array}
+     */
+    public function kopie(string $adresa, bool $zapnout): array
+    {
+        try {
+            $odpoved = $this->api()->put('/schranky/'.rawurlencode($adresa).'/kopie', ['zapnuto' => $zapnout]);
+        } catch (ConnectionException) {
+            throw new \RuntimeException(__('posta.klient.posta_ted_neodpovida_zkus_to_za'), 503);
+        }
+
+        if ($odpoved->successful() || is_array($odpoved->json('kopie'))) {
+            return (array) $odpoved->json();
+        }
+
+        throw new \RuntimeException(mb_substr((string) ($odpoved->json('message') ?: __('posta.klient.posta_vratila_chybu', ['status' => $odpoved->status()])), 0, 500), $odpoved->status());
+    }
+
     public function odpoj(): void
     {
         $this->vysledek(fn () => $this->api()->delete('/propojeni'));
     }
 
+    /**
+     * Správa e-mailu firmy (Nastavení → E-mail, /api/v1/vlastnik…). Chyba = RuntimeException
+     * s hláškou Pošty pro člověka (kód = HTTP stav), ne PostaOdmitla – nejde o zprávu.
+     *
+     * @return array<string, mixed>
+     */
+    public function spravuj(string $metoda, string $cesta, array $data = []): array
+    {
+        try {
+            $odpoved = $this->api()->send($metoda, ltrim($cesta, '/'), $data === [] ? [] : ['json' => $data]);
+        } catch (ConnectionException) {
+            throw new \RuntimeException(__('posta.klient.sluzba_pro_odesilani_e_mailu_ted_2'), 503);
+        }
+
+        if ($odpoved->successful()) {
+            return (array) $odpoved->json();
+        }
+
+        $chyby = collect((array) $odpoved->json('errors'))->flatten()->implode(' ');
+
+        throw new \RuntimeException(match (true) {
+            $odpoved->status() === 429 => __('posta.klient.prilis_mnoho_pokusu_zkuste_to_za'),
+            $odpoved->serverError() => __('posta.klient.sluzba_pro_odesilani_e_mailu_ted_3', ['status' => $odpoved->status()]),
+            default => mb_substr($chyby ?: (string) ($odpoved->json('message') ?: 'HTTP '.$odpoved->status()), 0, 500),
+        }, $odpoved->status());
+    }
+
     private function api(): PendingRequest
     {
-        $token = Propojeni::token() ?? throw new PostaNedostupna('Aplikace není propojená s Poštou.');
+        $token = Propojeni::token() ?? throw new PostaNedostupna(__('posta.klient.aplikace_neni_propojena_s_postou'));
 
         return Http::baseUrl(Propojeni::url().'/api/v1')->withToken($token)->acceptJson()->asJson()->timeout((int) config('posta.timeout', 10));
     }
@@ -76,7 +124,7 @@ class Klient
         try {
             $odpoved = $volani();
         } catch (ConnectionException $e) {
-            throw new PostaNedostupna('Pošta neodpovídá: '.mb_substr($e->getMessage(), 0, 200), 0, $e);
+            throw new PostaNedostupna(__('posta.klient.posta_neodpovida', ['get_message' => mb_substr($e->getMessage(), 0, 200)]), 0, $e);
         }
 
         if ($odpoved->successful()) {
@@ -87,9 +135,9 @@ class Klient
         $chyby = collect((array) $odpoved->json('errors'))->flatten()->implode(' ');
 
         if ($odpoved->serverError() || in_array($odpoved->status(), [401, 403, 408, 425, 429], true)) {
-            throw new PostaNedostupna('Pošta zprávu teď nepřijala ('.$odpoved->status().': '.mb_substr($zprava, 0, 200).').');
+            throw new PostaNedostupna(__('posta.klient.posta_zpravu_ted_neprijala', ['status' => $odpoved->status(), 'zprava' => mb_substr($zprava, 0, 200)]));
         }
 
-        throw new PostaOdmitla('Pošta zprávu odmítla: '.mb_substr($chyby ?: $zprava, 0, 1000), $odpoved->status());
+        throw new PostaOdmitla(__('posta.klient.posta_zpravu_odmitla', ['chyby' => mb_substr($chyby ?: $zprava, 0, 1000)]), $odpoved->status());
     }
 }

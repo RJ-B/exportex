@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\User;
+use App\Support\PrihlaseniZCrm;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -15,7 +16,9 @@ use Illuminate\Support\Str;
  * `php artisan simren:spravce <base64 JSON>`. Nový účet vznikne jako
  * superadmin s náhodným heslem, které nikdo nezná, a vrátí se jednorázový
  * odkaz na nastavení hesla – CRM ho ukáže jen tomu, kdo o účet požádal,
- * a nikam ho neukládá. Existující účet se jen povýší, heslo mu zůstane.
+ * a nikam ho neukládá. Existující účet se jen povýší a heslo mu zůstane; má-li
+ * heslo, vrátí se místo odkazu na heslo jednorázové přihlášení do administrace
+ * (`login_url`, App\Support\PrihlaseniZCrm, 5 minut, jen jednou).
  *
  * Proto superadminy nezakládá žádný seeder a hesla nejsou v kódu.
  * Liší se jen metody pod čarou: jak se tu hledá účet, jak se jmenuje role
@@ -56,11 +59,26 @@ class ZalozSpravce extends Command
         $this->povys($user);
         $user->save();
 
+        // Účet, který heslo má: heslo se nemění a obnova hesla nevzniká – CRM
+        // pošle správce rovnou do administrace jednorázovým přihlášením.
+        if (! $novy && filled($user->getAuthPassword())) {
+            $this->line(json_encode([
+                'created' => false,
+                'email' => $email,
+                'ma_heslo' => true,
+                'login_url' => PrihlaseniZCrm::odkaz($user),
+                'expires_minutes' => PrihlaseniZCrm::MINUT,
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+
+            return self::SUCCESS;
+        }
+
         $token = Password::broker(null)->createToken($user);
 
         $this->line(json_encode([
             'created' => $novy,
             'email' => $email,
+            'ma_heslo' => false,
             'reset_url' => $this->odkaz($token, $user),
             'expires_minutes' => (int) config('auth.passwords.'.(null ?? config('auth.defaults.passwords')).'.expire', 60),
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
@@ -90,5 +108,4 @@ class ZalozSpravce extends Command
         // Vlastní stránka (NastaveniHeslaController): po uložení rovnou přihlásí.
         return route('nastaveni-hesla', ['token' => $token, 'email' => $user->email]);
     }
-
 }

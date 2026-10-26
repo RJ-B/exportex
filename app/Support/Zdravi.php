@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Enums\StavWebu;
 use App\Models\Nastaveni;
+use App\Platby\StavPlateb;
 use App\Support\Posta\StavPosty;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -59,12 +60,24 @@ final class Zdravi
     /** @return array<string, array{ok: bool, zprava: string}> */
     public static function tvrde(): array
     {
+        $dalsi = [];
+
+        // Další databáze, na kterých web stojí (sablona.databaze) – třeba sdílené účty.
+        foreach ((array) config('sablona.databaze', []) as $spojeni) {
+            $dalsi['databaze:'.$spojeni] = self::zkus(function () use ($spojeni) {
+                DB::connection($spojeni)->select('select 1');
+
+                return __('obecne.zdravi.odpovida');
+            });
+        }
+
         return [
             'databaze' => self::zkus(function () {
                 DB::select('select 1');
 
-                return 'odpovídá';
+                return __('obecne.zdravi.odpovida');
             }),
+            ...$dalsi,
             'cache' => self::zkus(function () {
                 $klic = 'zdravi:'.Str::random(12);
                 Cache::put($klic, 1, 30);
@@ -72,17 +85,17 @@ final class Zdravi
                 Cache::forget($klic);
 
                 if ($precteno !== 1) {
-                    throw new \RuntimeException('zapsaná hodnota se nepřečetla');
+                    throw new \RuntimeException(__('obecne.zdravi.zapsana_hodnota_se_neprecetla'));
                 }
 
-                return 'zapisuje a čte';
+                return __('obecne.zdravi.zapisuje_a_cte');
             }),
             'storage' => self::zkus(function () {
                 if (@file_put_contents(storage_path('framework/cache/zdravi-zapis'), (string) time()) === false) {
                     throw new \RuntimeException('do storage/framework/cache nejde zapisovat');
                 }
 
-                return 'zapisovatelný';
+                return __('obecne.zdravi.zapisovatelny');
             }),
         ];
     }
@@ -108,6 +121,10 @@ final class Zdravi
             // Údržba: `artisan down` i Stav webu v administraci. Portál ukáže štítek
             // „V údržbě od …“ a údržbu produkce delší než hodinu připomene.
             'udrzba' => self::udrzba(),
+            // Platební brána (doplněk platby): brána, klíče jen ano/ne, režim, poslední
+            // platba a chyba. Portál ukáže stav a u produkce upozorní na testovací
+            // režim nebo chybějící klíče. Nikdy hodnoty klíčů (StavPlateb).
+            'platby' => rescue(fn () => StavPlateb::proZdravi(), null, false),
         ];
     }
 
@@ -117,7 +134,7 @@ final class Zdravi
      * ho jen nepřihlášení). Od kdy = čas souboru, u Stavu webu poslední změna
      * nastavení. Stav webu mění klient v administraci, portál ho jen ukazuje.
      *
-     * @return array{artisan: array{zapnuta: bool, od: ?string}, stav_webu: ?array{stav: string, nazev: string, zapnuta: bool, od: ?string}}
+     * @return array{artisan: array{zapnuta: bool, od: ?string}, stav_webu: ?array{stav: string, nazev: string, zapnuta: bool, od: ?string, text: ?string, konec: ?string}}
      */
     public static function udrzba(): array
     {
@@ -136,11 +153,16 @@ final class Zdravi
                     ? null
                     : Nastaveni::query()->whereKey(StavWebu::KLIC)->value('updated_at');
 
+                $plan = UdrzbaWebu::plan();
+
                 return [
                     'stav' => $stav->value,
                     'nazev' => $stav->nazev(),
                     'zapnuta' => $stav !== StavWebu::Online,
                     'od' => CasAplikace::zVenku($zmena)?->toIso8601String(),
+                    // Text a předpokládaný konec údržby z CRM (jen v Údržbě).
+                    'text' => $plan['text'],
+                    'konec' => $plan['konec']?->toIso8601String(),
                 ];
             }, null, false),
         ];

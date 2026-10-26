@@ -1,13 +1,12 @@
 {{-- Kostra stránek platby (výsledek, simulace). Soběstačná – projekt si ji může přepsat
      ve vlastním vzhledu; štítek TESTOVACÍ PLATBY a noindex musí zůstat. --}}
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $nadpis }} – {{ \App\Support\ZakladniUdaje::get('nazev') }}</title>
-    <meta name="robots" content="noindex, nofollow">
-    @if (class_exists(\App\Support\IkonaWebu::class)){{ \App\Support\IkonaWebu::html() }}@endif
+    {{ \App\Support\Seo\Seo::stranka($nadpis)->noindex()->html() }}
+    {{ \App\Support\IkonaWebu::html() }}
     @isset($obnovit)<meta http-equiv="refresh" content="{{ $obnovit }}">@endisset
     <style>
         :root { --pozadi: #f5f6f8; --karta: #ffffff; --text: #16181c; --slabe: #6b7280; --akcent: #2563eb; --okraj: #e5e7eb; --ok: #16a34a; --chyba: #dc2626; --ceka: #d97706; }
@@ -32,6 +31,7 @@
     @include('platby.stitek')
     <main>
         @yield('obsah')
+        @include('platby._loga', ['text' => true, 'zarovnani' => 'center', 'pozadi' => 'auto'])
     </main>
 </body>
 </html>

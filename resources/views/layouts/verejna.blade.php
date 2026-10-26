@@ -1,15 +1,17 @@
 {{-- Rozvržení veřejných stránek šablony (Kontakt, Ochrana osobních údajů, Zásady cookies).
      Projekt s vlastním vzhledem webu vloží jen obsah (@include('pravni._…-obsah'),
-     @include('formulare.kontakt')) a cookie lištu do svého layoutu. --}}
+     @include('formulare.kontakt')) a cookie lištu do svého layoutu.
+     SEO: $seoKlic = klíč stránky v SEO a měření, $seoPopis = popis z obsahu (nepovinné). --}}
 @php
     $udaje = \App\Support\ZakladniUdaje::nacti();
 @endphp
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $nadpis }} – {{ $udaje['nazev'] }}</title>
+    {{ \App\Support\Seo\Seo::stranka($nadpis, klic: $seoKlic ?? null)->popis($seoPopis ?? null)->html() }}
+    {{ \App\Support\IkonaWebu::html() }}
     <style>
         :root { --pozadi: #f5f6f8; --karta: #ffffff; --text: #16181c; --slabe: #6b7280; --akcent: #2563eb; --okraj: #e5e7eb; }
         @media (prefers-color-scheme: dark) { :root { --pozadi: #0f1115; --karta: #171a21; --text: #eceef1; --slabe: #9aa1ab; --akcent: #60a5fa; --okraj: #2a2f38; } }
@@ -51,21 +53,23 @@
 </head>
 <body>
     @include('oznameni.pruh')
+    @includeWhen(config('sablona.doplnky.platby'), 'platby.stitek')
     <main>
         <div class="hlavicka">
             <a class="zpet" href="/">← {{ $udaje['nazev'] }}</a>
             @include('oznameni.zvonecek')
         </div>
-        <p class="nazev">{{ $stitek ?? 'Právní informace' }}</p>
+        <p class="nazev">{{ $stitek ?? __('web.verejna.pravni_informace') }}</p>
         <h1>{{ $nadpis }}</h1>
         @include($obsah)
         @if (\Illuminate\Support\Facades\Route::has('ochrana-udaju'))
         <p style="margin-top: 32px; font-size: 14px;">
-            <a href="{{ route('ochrana-udaju') }}">Ochrana osobních údajů</a> ·
-            <a href="{{ route('cookies') }}">Zásady používání cookies</a>
-            @if (\App\Support\NastaveniWebu::meri()) · <button type="button" data-cc="open" style="background: none; border: 0; padding: 0; font: inherit; color: var(--akcent); text-decoration: underline; cursor: pointer;">Nastavení cookies</button>@endif
+            <a href="{{ route('ochrana-udaju') }}">{{ __('web.verejna.ochrana_osobnich_udaju') }}</a> ·
+            <a href="{{ route('cookies') }}">{{ __('web.verejna.zasady_pouzivani_cookies') }}</a>
+            @if (\App\Support\NastaveniWebu::meri()) · <button type="button" data-cc="open" style="background: none; border: 0; padding: 0; font: inherit; color: var(--akcent); text-decoration: underline; cursor: pointer;">{{ __('web.verejna.nastaveni_cookies') }}</button>@endif
         </p>
         @endif
+        @includeWhen(config('sablona.doplnky.platby'), 'platby._loga')
     </main>
     @includeIf('pravni.cookie-lista')
 </body>

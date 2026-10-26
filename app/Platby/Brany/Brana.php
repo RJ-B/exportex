@@ -3,6 +3,7 @@
 namespace App\Platby\Brany;
 
 use App\Platby\ChybaBrany;
+use App\Platby\MetodaPlatby;
 use App\Platby\Platba;
 use App\Platby\Rezim;
 use Illuminate\Http\Request;
@@ -28,6 +29,15 @@ interface Brana
 
     /** @throws ChybaBrany */
     public function stav(Platba $platba): StavZBrany;
+
+    /**
+     * Které metody jde při založení předvolit a brána je teď má (Apple Pay,
+     * Google Pay). Nevíme-li (brána neodpovídá), prázdné – aplikace pak
+     * nabídne jen kartu a nic se nerozbije.
+     *
+     * @return list<MetodaPlatby>
+     */
+    public function predvolby(): array;
 
     public function umiZrusit(): bool;
 

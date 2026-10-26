@@ -25,11 +25,20 @@ class PlatbaResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
 
-    protected static ?string $navigationLabel = 'Platby';
+    public static function getNavigationLabel(): string
+    {
+        return __('platby.platba_resource.platby');
+    }
 
-    protected static ?string $modelLabel = 'platba';
+    public static function getModelLabel(): string
+    {
+        return __('platby.platba_resource.platba');
+    }
 
-    protected static ?string $pluralModelLabel = 'platby';
+    public static function getPluralModelLabel(): string
+    {
+        return __('platby.platba_resource.platby_2');
+    }
 
     protected static ?string $slug = 'platby';
 
@@ -67,7 +76,7 @@ class PlatbaResource extends Resource
 
     public static function getNavigationBadgeTooltip(): ?string
     {
-        return NastaveniPlateb::stitek() ? 'Testovací platby – nic se nestrhne' : NastaveniPlateb::prehled()['chyba'];
+        return NastaveniPlateb::stitek() ? (NastaveniPlateb::prehled()['skutecna'] ? __('platby.platba_resource.skutecne_platby_pres_testovaci_branu') : __('platby.platba_resource.testovaci_platby_nic_se_nestrhne')) : NastaveniPlateb::prehled()['chyba'];
     }
 
     public static function table(Table $table): Table
@@ -76,42 +85,42 @@ class PlatbaResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->paginated([25, 50, 100])
             ->columns([
-                TextColumn::make('created_at')->label('Založena')->dateTime('j. n. Y H:i')->sortable()
+                TextColumn::make('created_at')->label(__('platby.platba_resource.zalozena'))->dateTime(__('formaty.datum_cas'))->sortable()
                     ->extraHeaderAttributes(['style' => 'width:1%;white-space:nowrap']),
-                TextColumn::make('popis')->label('Za co')
+                TextColumn::make('popis')->label(__('platby.platba_resource.za_co'))
                     ->description(fn (Platba $p) => $p->reference)
                     ->searchable(['popis', 'reference', 'verejne_id', 'externi_id'])
                     ->wrap(),
-                TextColumn::make('email')->label('Zákazník')
+                TextColumn::make('email')->label(__('platby.platba_resource.zakaznik'))
                     ->formatStateUsing(fn (Platba $p) => $p->celeJmeno() ?: $p->email)
                     ->description(fn (Platba $p) => $p->celeJmeno() ? $p->email : null)
                     ->searchable(['email', 'jmeno', 'prijmeni']),
-                TextColumn::make('castka')->label('Částka')->alignEnd()->sortable()
+                TextColumn::make('castka')->label(__('platby.platba_resource.castka'))->alignEnd()->sortable()
                     ->formatStateUsing(fn (Platba $p) => $p->castkaKc())
-                    ->description(fn (Platba $p) => $p->vraceno > 0 ? 'vráceno '.Platba::kc($p->vraceno, $p->mena) : null)
+                    ->description(fn (Platba $p) => $p->vraceno > 0 ? __('platby.platba_resource.vraceno', ['kc' => Platba::kc($p->vraceno, $p->mena)]) : null)
                     ->extraHeaderAttributes(['style' => 'width:1%;white-space:nowrap']),
-                TextColumn::make('stav')->label('Stav')->badge()
+                TextColumn::make('stav')->label(__('platby.platba_resource.stav'))->badge()
                     ->formatStateUsing(fn (Platba $p) => $p->stav->popis())
                     ->color(fn (Platba $p) => $p->stav->barva())
-                    ->description(fn (Platba $p) => $p->zaplaceno_v?->format('j. n. Y H:i'))
+                    ->description(fn (Platba $p) => $p->zaplaceno_v?->format(__('formaty.datum_cas')))
                     ->extraHeaderAttributes(['style' => 'width:1%;white-space:nowrap']),
-                TextColumn::make('brana')->label('Brána')->badge()
+                TextColumn::make('brana')->label(__('platby.platba_resource.brana'))->badge()
                     ->formatStateUsing(fn (Platba $p) => $p->nazevBrany().($p->testovaci() ? ' · test' : ''))
                     ->color(fn (Platba $p) => $p->testovaci() ? 'warning' : 'gray')
                     ->extraHeaderAttributes(['style' => 'width:1%;white-space:nowrap']),
             ])
             ->filters([
-                SelectFilter::make('brana')->label('Brána')
-                    ->options(['comgate' => 'Comgate', 'moone' => 'Mo.one', 'simulace' => 'Simulace'])
-                    ->placeholder('Vše'),
-                SelectFilter::make('rezim')->label('Režim')
+                SelectFilter::make('brana')->label(__('platby.platba_resource.brana'))
+                    ->options(['comgate' => __('platby.platba_resource.comgate'), 'moone' => 'Mo.one', 'simulace' => __('platby.platba_resource.simulace')])
+                    ->placeholder(__('platby.platba_resource.vse')),
+                SelectFilter::make('rezim')->label(__('platby.platba_resource.rezim'))
                     ->options(collect(Rezim::cases())->mapWithKeys(fn (Rezim $r) => [$r->value => $r->popis()])->all())
-                    ->placeholder('Vše'),
+                    ->placeholder(__('platby.platba_resource.vse')),
             ])
             ->recordUrl(fn (Platba $p) => static::getUrl('view', ['record' => $p]))
             ->emptyStateIcon('heroicon-o-banknotes')
-            ->emptyStateHeading('Zatím žádné platby')
-            ->emptyStateDescription('Platby z webu (a odkazy k zaplacení z tlačítka Nová platba) se objeví tady.');
+            ->emptyStateHeading(__('platby.platba_resource.zatim_zadne_platby'))
+            ->emptyStateDescription(__('platby.platba_resource.platby_z_webu_a_odkazy_k'));
     }
 
     public static function getPages(): array

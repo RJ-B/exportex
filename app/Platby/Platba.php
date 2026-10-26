@@ -28,6 +28,8 @@ class Platba extends Model
         return [
             'stav' => StavPlatby::class,
             'rezim' => Rezim::class,
+            'skutecna' => 'boolean',
+            'predvolba' => MetodaPlatby::class,
             'castka' => 'integer',
             'vraceno' => 'integer',
             'zaplaceno_v' => 'datetime',
@@ -57,9 +59,15 @@ class Platba extends Model
         return $this->rezim->testovaci();
     }
 
+    /** Šla přes ostrou testovací bránu Sim&Ren – peníze se skutečně strhly (vrací se ručně v Mo.one). */
+    public function skutecna(): bool
+    {
+        return (bool) $this->skutecna;
+    }
+
     public function nazevBrany(): string
     {
-        return $this->brana === 'simulace' ? 'Simulace' : (NastaveniPlateb::BRANY[$this->brana] ?? $this->brana);
+        return $this->brana === 'simulace' ? __('platby.platba.simulace') : (NastaveniPlateb::BRANY[$this->brana] ?? $this->brana);
     }
 
     public function castkaKc(): string
@@ -85,6 +93,6 @@ class Platba extends Model
 
     public static function kc(int $halere, string $mena = 'CZK'): string
     {
-        return (string) Number::currency($halere / 100, in: $mena, locale: 'cs');
+        return (string) Number::currency($halere / 100, in: $mena, locale: app()->getLocale());
     }
 }

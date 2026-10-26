@@ -50,12 +50,12 @@ class MailLog extends Model
     public function prijemciPopis(): string
     {
         $seznam = $this->recipients ?: array_filter([$this->to_email]);
-        $prvni = $seznam[0] ?? '(neznámý)';
+        $prvni = $seznam[0] ?? __('modely.mail_log.neznamy');
         $dalsi = max(0, count($seznam) - 1);
 
         return $dalsi === 0
             ? $prvni
-            : $prvni.' a '.$dalsi.' další';
+            : __('modely.mail_log.a_dalsi', ['prvni' => $prvni, 'dalsi' => $dalsi]);
     }
 
     /**
@@ -105,12 +105,12 @@ class MailLog extends Model
     public function statusLabel(): string
     {
         return match (true) {
-            $this->wasRetried() => 'Odesláno po chybě',
-            $this->status === self::STATUS_SENT => 'Odesláno',
-            $this->status === self::STATUS_FAILED => 'Selhalo',
-            $this->status === self::STATUS_QUEUED => 'Ve frontě Pošty',
-            $this->status === self::STATUS_HELD => 'Zadrženo (test)',
-            default => 'Odesílá se',
+            $this->wasRetried() => __('modely.mail_log.odeslano_po_chybe'),
+            $this->status === self::STATUS_SENT => __('modely.mail_log.odeslano'),
+            $this->status === self::STATUS_FAILED => __('modely.mail_log.selhalo'),
+            $this->status === self::STATUS_QUEUED => __('modely.mail_log.ve_fronte_posty'),
+            $this->status === self::STATUS_HELD => __('modely.mail_log.zadrzeno_test'),
+            default => __('modely.mail_log.odesila_se'),
         };
     }
 

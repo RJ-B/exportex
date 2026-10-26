@@ -3,6 +3,30 @@
 use Illuminate\Support\Str;
 use Pdo\Mysql;
 
+/*
+ * Další databáze aplikace se skládají z proměnných s předponou – `STARA_DB_HOST`,
+ * `IDENTITY_DB_DATABASE`… – vždy stejně jako hlavní (MariaDB, utf8mb4). Portál
+ * zakládá v .env jen hlavní DB_*; další doplní člověk na serveru a spojení,
+ * na kterých web stojí, patří do `sablona.databaze` (hlídá je /zdravi).
+ */
+$dalsi = fn (string $predpona) => [
+    'driver' => env($predpona.'DB_CONNECTION', 'mariadb'),
+    'url' => env($predpona.'DB_URL'),
+    'host' => env($predpona.'DB_HOST', env('DB_HOST', '127.0.0.1')),
+    'port' => env($predpona.'DB_PORT', env('DB_PORT', '3306')),
+    'database' => env($predpona.'DB_DATABASE', ''),
+    'username' => env($predpona.'DB_USERNAME', ''),
+    'password' => env($predpona.'DB_PASSWORD', ''),
+    'unix_socket' => env($predpona.'DB_SOCKET', env('DB_SOCKET', '')),
+    'charset' => env($predpona.'DB_CHARSET', 'utf8mb4'),
+    'collation' => env($predpona.'DB_COLLATION', 'utf8mb4_unicode_ci'),
+    'prefix' => '',
+    'prefix_indexes' => true,
+    'strict' => true,
+    'engine' => null,
+    'foreign_key_constraints' => true,
+];
+
 return [
 
     /*
@@ -17,7 +41,8 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'sqlite'),
+    // MariaDB lokálně i na serveru; SQLite jen v testech (phpunit.xml).
+    'default' => env('DB_CONNECTION', 'mariadb'),
 
     /*
     |--------------------------------------------------------------------------
@@ -35,7 +60,8 @@ return [
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),
-            'database' => env('DB_DATABASE', database_path('database.sqlite')),
+            // Prázdné DB_DATABASE (manifest `databaze: sqlite` ho nevyplňuje) = soubor v database/.
+            'database' => env('DB_DATABASE') ?: database_path('database.sqlite'),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
             'busy_timeout' => null,
@@ -83,6 +109,13 @@ return [
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
+
+        // Převod dat ze staré aplikace (App\Console\PrevodDat): jen čtení. MariaDB/MySQL
+        // přes STARA_DB_*, starý SQLite soubor: STARA_DB_CONNECTION=sqlite + STARA_DB_DATABASE=cesta.
+        'stara' => $dalsi('STARA_'),
+
+        // Druhá databáze, na které web stojí (sdílené účty…), např.:
+        // 'identita' => $dalsi('IDENTITY_'),   + do config/sablona.php 'databaze' => ['identita']
 
         'pgsql' => [
             'driver' => 'pgsql',

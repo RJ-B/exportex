@@ -3,13 +3,20 @@
 namespace App\Filament\Pages;
 
 use Filament\Pages\Dashboard;
+use Illuminate\Contracts\Support\Htmlable;
 
 /** Úvodní stránka administrace: Stav aplikace (StavAplikace) + widgety projektu. */
 class Prehled extends Dashboard
 {
-    protected static ?string $title = 'Přehled';
+    public function getTitle(): string|Htmlable
+    {
+        return __('administrace.prehled.prehled');
+    }
 
-    protected static ?string $navigationLabel = 'Přehled';
+    public static function getNavigationLabel(): string
+    {
+        return __('administrace.prehled.prehled');
+    }
 
     /** Úplně nahoře, pod ním Zobrazit web (sort -1). */
     protected static ?int $navigationSort = -2;

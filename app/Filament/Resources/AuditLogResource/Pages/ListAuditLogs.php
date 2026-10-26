@@ -15,7 +15,7 @@ class ListAuditLogs extends ListRecords
 
     public function getTitle(): string
     {
-        return 'Aktivita';
+        return __('administrace.list_audit_logs.aktivita');
     }
 
     /**
@@ -27,29 +27,29 @@ class ListAuditLogs extends ListRecords
     {
         return [
             Action::make('retence')
-                ->label('Retence logů')
+                ->label(__('administrace.list_audit_logs.retence_logu'))
                 ->icon('heroicon-o-clock')
                 ->color('gray')
-                ->modalHeading('Jak dlouho se logy drží')
-                ->modalDescription('Týká se e-mailů a chyb; aktivita se drží rok. Úklid běží denně ve 3:30 a mazání je nevratné.')
-                ->modalSubmitActionLabel('Uložit')
+                ->modalHeading(__('administrace.list_audit_logs.jak_dlouho_se_logy_drzi'))
+                ->modalDescription(__('administrace.list_audit_logs.tyka_se_e_mailu_a_chyb'))
+                ->modalSubmitActionLabel(__('administrace.list_audit_logs.ulozit'))
                 ->fillForm(fn () => ['dni' => (int) Nastaveni::hodnota('logy.retence_dni', 30)])
                 ->schema([
                     TextInput::make('dni')
-                        ->label('Počet dní')
+                        ->label(__('administrace.list_audit_logs.pocet_dni'))
                         ->numeric()
                         ->required()
                         // Spodní hranice schválně: nula by při nejbližším běhu
                         // umazala úplně všechno, a to nevratně.
                         ->minValue(7)
                         ->maxValue(3650)
-                        ->helperText('Nejméně 7 dní.'),
+                        ->helperText(__('administrace.list_audit_logs.nejmene_7_dni')),
                 ])
                 ->action(function (array $data) {
                     Nastaveni::nastav('logy.retence_dni', (int) $data['dni']);
 
                     Notification::make()
-                        ->title('Retence nastavena na '.$data['dni'].' dní.')
+                        ->title(__('administrace.list_audit_logs.retence_nastavena_na_dni', ['dni' => $data['dni']]))
                         ->success()
                         ->send();
                 }),

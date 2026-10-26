@@ -3,6 +3,7 @@
 namespace App\Filament\Support;
 
 use App\Filament\Clusters\ObsahWebu;
+use App\Filament\Navigace;
 use App\Support\SekceWebu;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -43,7 +44,7 @@ trait CastObsahuWebu
     public static function getNavigationGroup(): string|\UnitEnum|null
     {
         return match (static::obsahWebu()) {
-            'menu' => 'Obsah webu',
+            'menu' => Navigace::obsahWebu(),
             'sekce' => static::podskupinaObsahu(),
             default => null,
         };
@@ -163,19 +164,19 @@ trait CastObsahuWebu
         }
 
         return Action::make('prepnoutSekci')
-            ->label(fn () => SekceWebu::zapnuta($klic) ? 'Na webu zapnuto' : 'Na webu vypnuto')
+            ->label(fn () => SekceWebu::zapnuta($klic) ? __('administrace.cast_obsahu_webu.na_webu_zapnuto') : __('administrace.cast_obsahu_webu.na_webu_vypnuto'))
             ->icon(fn () => SekceWebu::zapnuta($klic) ? 'heroicon-o-eye' : 'heroicon-o-eye-slash')
             ->color(fn () => SekceWebu::zapnuta($klic) ? 'success' : 'gray')
             ->requiresConfirmation(fn () => SekceWebu::zapnuta($klic))
             ->modalHeading(fn () => 'Vypnout sekci „'.static::nazevSekce().'“?')
-            ->modalDescription('Návštěvníci ji na webu přestanou vidět. Obsah zůstane a jde ji kdykoli zapnout.')
-            ->modalSubmitActionLabel('Vypnout')
-            ->modalSubmitAction(fn (Action $action) => $action->color("warning"))
+            ->modalDescription(__('administrace.cast_obsahu_webu.navstevnici_ji_na_webu_prestanou_videt'))
+            ->modalSubmitActionLabel(__('administrace.cast_obsahu_webu.vypnout'))
+            ->modalSubmitAction(fn (Action $action) => $action->color('warning'))
             ->action(function () use ($klic): void {
                 $zapnout = ! SekceWebu::zapnuta($klic);
                 SekceWebu::nastav($klic, $zapnout);
 
-                Notification::make()->title(static::nazevSekce().($zapnout ? ' je na webu zapnutá' : ' je na webu vypnutá'))->success()->send();
+                Notification::make()->title(static::nazevSekce().($zapnout ? __('administrace.cast_obsahu_webu.je_na_webu_zapnuta') : __('administrace.cast_obsahu_webu.je_na_webu_vypnuta')))->success()->send();
             });
     }
 

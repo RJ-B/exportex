@@ -91,7 +91,7 @@ class OdchoziFronta
 
             if ($vzdat) {
                 $odchozi->mailLog?->update(['status' => MailLog::STATUS_FAILED, 'failed_at' => now(),
-                    'error' => 'Pošta zprávu nepřijala ani po '.config('posta.fronta.vzdat_po_hodinach', 72).' hodinách: '.mb_substr($e->getMessage(), 0, 500)]);
+                    'error' => __('posta.odchozi_fronta.posta_zpravu_neprijala_ani_po_hodinach', ['vzdat_po_hodinach' => config('posta.fronta.vzdat_po_hodinach', 72), 'get_message' => mb_substr($e->getMessage(), 0, 500)])]);
                 $odchozi->delete();
 
                 return false;

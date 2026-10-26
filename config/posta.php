@@ -1,5 +1,11 @@
 <?php
 
+use App\Mail\NovaZprava;
+use App\Mail\OznameniMail;
+use App\Platby\Mail\OdkazKZaplaceni;
+use App\Platby\Mail\PlatbaPrijata;
+use App\Platby\Mail\PlatbaVracena;
+
 /*
  * Pošta – společné odesílání e-mailů Sim&Ren (posta.simren.cz).
  *
@@ -42,6 +48,20 @@ return [
      */
     'nedostupna_minut' => 30,
     'prah_nedorucenych' => 5,
+
+    /*
+     * Účel zprávy podle třídy mailable / notifikace (UcelZpravy): Pošta podle něj
+     * vybere schránku firmy (Nastavení → E-mail). Obnova hesla a ověření e-mailu
+     * jsou „ucty“ vždy. Bez účelu = „pro všechno“. Účely: obecne, formulare,
+     * ucty, doklady, objednavky, hromadne. Projekt sem přidá své maily.
+     */
+    'ucely' => [
+        NovaZprava::class => 'formulare',
+        OznameniMail::class => 'hromadne',
+        OdkazKZaplaceni::class => 'objednavky',
+        PlatbaPrijata::class => 'doklady',
+        PlatbaVracena::class => 'doklady',
+    ],
 
     // Stav zprávy se z Pošty dotáže, když webhook nepřišel do tolika minut.
     'dotaz_na_stav_po_minutach' => 15,

@@ -52,7 +52,7 @@ class StrukturovanaData
             ])],
             'knowsAbout' => $c['zna'],
             'legalName' => $u['firma'],
-            'identifier' => $u['ico'] ? [['@type' => 'PropertyValue', 'name' => 'IČO', 'value' => $u['ico']]] : null,
+            'identifier' => $u['ico'] ? [['@type' => 'PropertyValue', 'name' => __('obecne.strukturovana_data.ico'), 'value' => $u['ico']]] : null,
             'foundingDate' => $c['zalozeno'],
             'email' => $u['email'],
             'telephone' => $telefon,

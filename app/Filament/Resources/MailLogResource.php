@@ -42,11 +42,20 @@ class MailLogResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-envelope';
 
-    protected static ?string $navigationLabel = 'E-maily';
+    public static function getNavigationLabel(): string
+    {
+        return __('administrace.mail_log_resource.e_maily');
+    }
 
-    protected static ?string $modelLabel = 'e-mail';
+    public static function getModelLabel(): string
+    {
+        return __('administrace.mail_log_resource.e_mail_2');
+    }
 
-    protected static ?string $pluralModelLabel = 'e-maily';
+    public static function getPluralModelLabel(): string
+    {
+        return __('administrace.mail_log_resource.e_maily_2');
+    }
 
     protected static ?int $navigationSort = 2;
 
@@ -74,18 +83,18 @@ class MailLogResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->paginated([25, 50, 100])
             ->emptyStateIcon('heroicon-o-envelope')
-            ->emptyStateHeading('Zatím neodešel žádný e-mail')
-            ->emptyStateDescription('Sem se zapisuje každý odchozí e-mail — komu šel, jestli dorazil a kolikátý pokus to byl.')
+            ->emptyStateHeading(__('administrace.mail_log_resource.zatim_neodesel_zadny_e_mail'))
+            ->emptyStateDescription(__('administrace.mail_log_resource.sem_se_zapisuje_kazdy_odchozi_e'))
             ->columns([
                 TextColumn::make('created_at')
-                    ->label('Kdy')
+                    ->label(__('administrace.mail_log_resource.kdy'))
                     ->extraHeaderAttributes(['style' => 'width:1%;white-space:nowrap'])
-                    ->dateTime('j. n. Y H:i')
+                    ->dateTime(__('formaty.datum_cas'))
                     ->description(fn (MailLog $record) => $record->created_at?->diffForHumans())
                     ->sortable(),
 
                 TextColumn::make('subject')
-                    ->label('Co')
+                    ->label(__('administrace.mail_log_resource.co'))
                     ->wrap()
                     ->limit(80)
                     // Chyba patří pod předmět: u selhaného mailu je to první,
@@ -108,14 +117,14 @@ class MailLogResource extends Resource
                 // přeskočil — sloupec „Komu" by zůstal prázdný právě u záznamu,
                 // kvůli kterému se do logu chodí.
                 TextColumn::make('komu')
-                    ->label('Komu')
+                    ->label(__('administrace.mail_log_resource.komu'))
                     ->extraHeaderAttributes(['style' => 'width:1%;white-space:nowrap'])
-                    ->getStateUsing(fn (MailLog $record) => $record->prijemciPopis() ?: 'bez adresy')
-                    ->description(fn (MailLog $record) => $record->to_name ?: ($record->user_id ? 'účet #'.$record->user_id : null))
+                    ->getStateUsing(fn (MailLog $record) => $record->prijemciPopis() ?: __('administrace.mail_log_resource.bez_adresy'))
+                    ->description(fn (MailLog $record) => $record->to_name ?: ($record->user_id ? __('administrace.mail_log_resource.ucet', ['user_id' => $record->user_id]) : null))
                     ->searchable(['to_email', 'to_name']),
 
                 TextColumn::make('status')
-                    ->label('Stav')
+                    ->label(__('administrace.mail_log_resource.stav'))
                     ->extraHeaderAttributes(['style' => 'width:1%;white-space:nowrap'])
                     ->badge()
                     ->formatStateUsing(fn (MailLog $record) => $record->statusLabel())
@@ -131,7 +140,7 @@ class MailLogResource extends Resource
                     // automatika, je polovina informace — a slité do jedné
                     // řádky se to nedá přečíst.
                     ->description(fn (MailLog $record) => Radky::pod(
-                        ($record->sent_at ?? $record->failed_at ?? $record->created_at)?->format('j. n. Y H:i'),
+                        ($record->sent_at ?? $record->failed_at ?? $record->created_at)?->format(__('formaty.datum_cas')),
                         $record->odesilatelPopis(),
                         $record->attempts > 1 ? $record->attempts.'. pokus' : null,
                     ))
@@ -139,17 +148,17 @@ class MailLogResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('status')
-                    ->label('Stav')
+                    ->label(__('administrace.mail_log_resource.stav'))
                     ->options([
-                        MailLog::STATUS_SENT => 'Odesláno',
-                        MailLog::STATUS_QUEUED => 'Ve frontě Pošty',
-                        MailLog::STATUS_FAILED => 'Selhalo',
-                        MailLog::STATUS_HELD => 'Zadrženo (test)',
-                        MailLog::STATUS_SENDING => 'Odesílá se',
+                        MailLog::STATUS_SENT => __('administrace.mail_log_resource.odeslano'),
+                        MailLog::STATUS_QUEUED => __('administrace.mail_log_resource.ve_fronte_posty'),
+                        MailLog::STATUS_FAILED => __('administrace.mail_log_resource.selhalo'),
+                        MailLog::STATUS_HELD => __('administrace.mail_log_resource.zadrzeno_test'),
+                        MailLog::STATUS_SENDING => __('administrace.mail_log_resource.odesila_se'),
                     ])
                     ->native(false),
                 Filter::make('neodeslane')
-                    ->label('Jen neodeslané')
+                    ->label(__('administrace.mail_log_resource.jen_neodeslane'))
                     // Parametr se MUSÍ jmenovat `$query` — Filament vstřikuje
                     // závislosti podle názvu, ne podle typu.
                     ->query(fn (Builder $query) => $query->where(fn ($w) => $w->failed()->orWhere(
@@ -158,18 +167,18 @@ class MailLogResource extends Resource
             ])
             ->recordActions([
                 Action::make('detail')
-                    ->label('Detail')
+                    ->label(__('administrace.mail_log_resource.detail'))
                     ->icon('heroicon-o-eye')
-                    ->modalHeading(fn (MailLog $record) => $record->subject ?: 'E-mail')
+                    ->modalHeading(fn (MailLog $record) => $record->subject ?: __('administrace.mail_log_resource.e_mail'))
                     ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Zavřít')
+                    ->modalCancelActionLabel(__('administrace.mail_log_resource.zavrit'))
                     ->modalContent(fn (MailLog $record) => view('filament.logy.mail-detail', ['mail' => $record])),
 
                 Action::make('poslat_znovu')
-                    ->label('Poslat znovu')
+                    ->label(__('administrace.mail_log_resource.poslat_znovu'))
                     ->icon('heroicon-o-arrow-path')
                     ->requiresConfirmation()
-                    ->modalDescription('Pošta zprávu zařadí znovu – stejný obsah, tíž příjemci.')
+                    ->modalDescription(__('administrace.mail_log_resource.posta_zpravu_zaradi_znovu_stejny_obsah'))
                     // Jen nedoručené v Poště – Pošta drží obsah (90 dní).
                     ->visible(fn (MailLog $record) => $record->isRetryable())
                     ->action(function (MailLog $record) {

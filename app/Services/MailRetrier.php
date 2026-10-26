@@ -19,13 +19,13 @@ class MailRetrier
     public function retry(MailLog $log): array
     {
         if (! $log->isRetryable()) {
-            return ['ok' => false, 'message' => 'Tenhle e-mail Pošta neodeslala – pošli ho znovu z aplikace.'];
+            return ['ok' => false, 'message' => __('obecne.mail_retrier.tenhle_e_mail_posta_neodeslala_posli')];
         }
 
         try {
             $zprava = app(Klient::class)->znovu($log->posta_id);
         } catch (Throwable $e) {
-            return ['ok' => false, 'message' => 'Pošta zprávu znovu nezařadila: '.mb_substr($e->getMessage(), 0, 200)];
+            return ['ok' => false, 'message' => __('obecne.mail_retrier.posta_zpravu_znovu_nezaradila', ['get_message' => mb_substr($e->getMessage(), 0, 200)])];
         }
 
         // `error` ani `failed_at` se NEmažou: záznam má zůstat čitelný jako
@@ -38,6 +38,6 @@ class MailRetrier
         ]);
         Webhook::aktualizuj($zprava);
 
-        return ['ok' => true, 'message' => 'Pošta zprávu zařadila znovu – výsledek uvidíš tady.'];
+        return ['ok' => true, 'message' => __('obecne.mail_retrier.posta_zpravu_zaradila_znovu_vysledek')];
     }
 }

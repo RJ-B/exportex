@@ -2,19 +2,19 @@
      Diff před/po je jádro – bez něj je audit jen seznam nadpisů. --}}
 <div class="simren-detail">
     <dl class="simren-udaje">
-        <dt>Kdy</dt>
-        <dd>{{ $zaznam->created_at?->format('j. n. Y H:i:s') }}</dd>
+        <dt>{{ __('administrace.audit_detail.kdy') }}</dt>
+        <dd>{{ $zaznam->created_at?->format(__('formaty.datum_cas_sekundy')) }}</dd>
 
-        <dt>Kdo</dt>
-        <dd>{{ $zaznam->user?->getFilamentName() ?? ($zaznam->user_id ? '#'.$zaznam->user_id : 'systém / smazaný účet') }}</dd>
+        <dt>{{ __('administrace.audit_detail.kdo') }}</dt>
+        <dd>{{ $zaznam->user?->getFilamentName() ?? ($zaznam->user_id ? '#'.$zaznam->user_id : __('administrace.audit_detail.system_smazany_ucet')) }}</dd>
 
-        <dt>Role v tu chvíli</dt>
-        <dd>{{ \App\Models\User::ROLE_POPISKY[$zaznam->user_role] ?? ($zaznam->user_role ?: '—') }}</dd>
+        <dt>{{ __('administrace.audit_detail.role_v_tu_chvili') }}</dt>
+        <dd>{{ \App\Models\User::popiskyRoli()[$zaznam->user_role] ?? ($zaznam->user_role ?: '—') }}</dd>
 
-        <dt>Odkud</dt>
+        <dt>{{ __('administrace.audit_detail.odkud') }}</dt>
         <dd>{{ $zaznam->ip_address ?: '—' }}</dd>
 
-        <dt>Čeho se to týká</dt>
+        <dt>{{ __('administrace.audit_detail.ceho_se_to_tyka') }}</dt>
         <dd>{{ $zaznam->auditable_type ? class_basename($zaznam->auditable_type).' #'.$zaznam->auditable_id : '—' }}</dd>
     </dl>
 
@@ -36,10 +36,10 @@
 
     @if ($klice)
         <div>
-            <div style="font-weight: 500; margin-bottom: .5rem">Co se změnilo</div>
+            <div style="font-weight: 500; margin-bottom: .5rem">{{ __('administrace.audit_detail.co_se_zmenilo') }}</div>
             <table class="simren-tabulka">
                 <thead>
-                    <tr><th>Pole</th><th>Před</th><th>Po</th></tr>
+                    <tr><th>{{ __('administrace.audit_detail.pole') }}</th><th>{{ __('administrace.audit_detail.pred') }}</th><th>{{ __('administrace.audit_detail.po') }}</th></tr>
                 </thead>
                 <tbody>
                     @foreach ($klice as $klic)

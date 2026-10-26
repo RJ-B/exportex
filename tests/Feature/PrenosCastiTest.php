@@ -269,4 +269,55 @@ class PrenosCastiTest extends TestCase
         $this->assertSame('token-produkce', DB::table('users')->where('id', $jana->id)->value('remember_token'));
         $this->assertSame('Jana', DB::table('users')->where('id', $jana->id)->value('name'));
     }
+
+    public function test_sifrovane_se_pocitaji_jen_z_prenasenych_radku_a_kazda_jednou(): void
+    {
+        // Klíč Pošty se nepřenáší vůbec a tabulka nastavení může patřit do víc částí –
+        // dřív se počítalo před filtrem části, takže z toho bylo víc vynechaných než jedna.
+        Nastaveni::nastav('posta.token', Crypt::encryptString('token-posty'));
+        Nastaveni::nastav('zaklad.klic_mapy', Crypt::encryptString('klic-mapy-testu'));
+        Nastaveni::nastav('zaklad.nazev', 'Firma z testu');
+
+        $export = $this->prikaz(['akce' => 'export', 'id' => $this->id]);
+
+        $this->assertTrue($export['ok'], $export['chyba'] ?? '');
+        $this->assertSame(['nastaveni.hodnota' => 1], $export['sifrovane_vynechane']);
+    }
+
+    public function test_radek_cile_se_nesparuje_se_dvema_radky_zdroje(): void
+    {
+        Schema::table('projekty_test', fn (Blueprint $t) => $t->string('puvodni_id')->nullable()->unique());
+        config(['prenos.casti.obsah.tabulky.projekty_test.klic' => [['puvodni_id'], ['slug']]]);
+
+        // Test: „strecha“ (p1) a bez původního id „strecha-upravena“. V produkci je jen
+        // jeden řádek p1 se slugem „strecha-upravena“ – první řádek ho najde podle
+        // puvodni_id, druhý podle slugu. Druhé spárování by přepsalo cizí řádek.
+        DB::table('projekty_test')->insert(['slug' => 'strecha', 'nazev' => 'Střecha z testu', 'puvodni_id' => 'p1']);
+        $druhy = $this->projekt('strecha-upravena', 'Druhá střecha z testu');
+        DB::table('projekty_test_fotky')->insert(['projekt_id' => $druhy, 'cesta' => 'projekty/druha.webp']);
+        $this->exportujAPrestav(function () {
+            DB::table('projekty_test')->insert(['slug' => 'strecha-upravena', 'nazev' => 'Střecha v produkci', 'puvodni_id' => 'p1']);
+        });
+
+        $nanecisto = $this->prikaz(['akce' => 'import', 'id' => $this->id, '--volby' => 'obsah:aktualizovat', '--nanecisto' => true]);
+
+        $this->assertTrue($nanecisto['ok'], $nanecisto['chyba'] ?? '');
+        $obsah = $nanecisto['casti']['obsah'];
+        $this->assertSame(1, $obsah['konflikty']);
+        $this->assertSame(1, $obsah['zmenene']);
+        $this->assertSame(0, $obsah['nove']);
+        $this->assertSame(1, $obsah['preskocene']);   // fotka druhého řádku nemá rodiče
+        $this->assertCount(1, $obsah['konflikty_popis']);
+        $this->assertStringContainsString('slug "strecha-upravena"', $obsah['konflikty_popis'][0]);
+        $this->assertStringContainsString('nic se nepřepsalo', $obsah['konflikty_popis'][0]);
+        $this->assertSame(['Střecha v produkci'], DB::table('projekty_test')->pluck('nazev')->all());
+
+        // Doopravdy: první řádek aktualizuje svůj, druhý nic nepřepíše ani nezaloží.
+        $v = $this->prikaz(['akce' => 'import', 'id' => $this->id, '--volby' => 'obsah:aktualizovat']);
+
+        $this->assertSame(1, $v['casti']['obsah']['konflikty']);
+        $this->assertSame([['strecha', 'Střecha z testu', 'p1']], DB::table('projekty_test')->get()
+            ->map(fn ($r) => [$r->slug, $r->nazev, $r->puvodni_id])->all());
+        $this->assertSame(0, DB::table('projekty_test_fotky')->count());
+    }
 }

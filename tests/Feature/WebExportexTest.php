@@ -112,30 +112,33 @@ class WebExportexTest extends TestCase
 
     public function test_seo_zustava(): void
     {
-        $html = $this->get('/')->getContent();
+        // SEO šablony (Seo) s údaji Exportex; jako na produkci (mimo ni je noindex).
+        $this->app['env'] = 'production';
+        config(['app.url' => 'https://exportex.cz']);
+        $html = $this->get('https://exportex.cz/')->getContent();
 
         $this->assertStringContainsString('<title>Exportex — textil z Uzbekistánu a Střední Asie do EU</title>', $html);
         $this->assertStringContainsString('<meta name="description" content="Textil z Uzbekistánu a Střední Asie do EU: froté, ložní prádlo, úplety, konfekce, tkaniny a příze.', $html);
-        $this->assertStringContainsString('<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">', $html);
-        $this->assertStringContainsString('<link rel="canonical" href="https://exportex.cz/">', $html);
+        $this->assertStringContainsString('<meta name="robots" content="index, follow, max-image-preview:large">', $html);
+        $this->assertStringContainsString('<link rel="canonical" href="https://exportex.cz">', $html);
         $this->assertStringContainsString('<link rel="alternate" hreflang="en" href="https://exportex.cz/?lang=en">', $html);
         $this->assertStringContainsString('<meta property="og:image" content="https://exportex.cz/assets/img/og.webp">', $html);
         $this->assertStringContainsString('<link rel="manifest" href="/site.webmanifest">', $html);
 
         preg_match('#<script type="application/ld\+json">(.*?)</script>#s', $html, $m);
-        $jsonld = json_decode($m[1], true);
-        $organizace = $jsonld['@graph'][0];
-        $this->assertSame('exportex s.r.o.', $organizace['name']);
-        $this->assertSame(['@type' => 'PostalAddress', 'streetAddress' => 'Na Poříčí 1070/19', 'addressLocality' => 'Praha', 'postalCode' => '110 00', 'addressRegion' => 'Praha 1', 'addressCountry' => 'CZ'], $organizace['address']);
+        $graf = json_decode($m[1], true)['@graph'];
+        $organizace = $graf[0];
+        $this->assertSame('Exportex', $organizace['name']);
+        $this->assertSame('exportex s.r.o.', $organizace['legalName']);
         $this->assertSame('Tomáš Mikyska', $organizace['contactPoint'][0]['name']);
-        $this->assertSame('+420734479684', $organizace['telephone']);
-        $this->assertSame([['@type' => 'PropertyValue', 'name' => 'IČO', 'value' => '17671833']], $organizace['identifier']);
-        $this->assertCount(7, $jsonld['@graph'][2]['hasOfferCatalog']['itemListElement']);
+        $this->assertSame('https://exportex.cz/assets/img/logo.png', $organizace['logo']['url']);
+        $sluzba = collect($graf)->firstWhere('@type', 'Service');
+        $this->assertCount(7, $sluzba['hasOfferCatalog']['itemListElement']);
 
-        $this->get('/sitemap.xml')->assertOk()->assertHeader('Content-Type', 'application/xml')
-            ->assertSee('<loc>https://exportex.cz/</loc>', false)
-            ->assertSee('hreflang="en" href="https://exportex.cz/?lang=en"', false);
-        $this->get('/robots.txt')->assertOk()->assertSee('Sitemap: https://exportex.cz/sitemap.xml')->assertSee('Disallow: /admin');
+        // robots.txt a sitemap.xml šablony (MapaWebu).
+        $this->assertStringStartsWith('application/xml', (string) $this->get('/sitemap.xml')->assertOk()->headers->get('Content-Type'));
+        $this->get('/sitemap.xml')->assertSee('<loc>https://exportex.cz</loc>', false);
+        $this->get('/robots.txt')->assertOk()->assertSee('Sitemap: https://exportex.cz/sitemap.xml');
         $this->assertFileExists(public_path('site.webmanifest'));
         $this->assertFileExists(public_path('favicon.ico'));
     }
@@ -145,6 +148,9 @@ class WebExportexTest extends TestCase
         $this->get('/soukromi.html')->assertStatus(301)->assertRedirect('/ochrana-osobnich-udaju');
         $this->get('/cookies.html')->assertStatus(301)->assertRedirect('/zasady-cookies');
         $this->get('/index.html')->assertStatus(301)->assertRedirect('/');
+        // www. přesměruje KanonickaDomena šablony (na produkci, podle APP_URL).
+        $this->app['env'] = 'production';
+        config(['app.url' => 'https://exportex.cz']);
         $this->get('http://www.exportex.cz/zasady-cookies')->assertStatus(301)->assertRedirect('https://exportex.cz/zasady-cookies');
         $this->get('/neexistuje')->assertNotFound()->assertSee('Tady nic není.');
     }
@@ -308,7 +314,7 @@ class WebExportexTest extends TestCase
     public function test_ochrana_osobnich_udaju_a_cookies(): void
     {
         $this->get('/ochrana-osobnich-udaju')->assertOk()->assertSeeInOrder([
-            '<meta name="robots" content="noindex, follow">',
+            '<meta name="robots" content="noindex, nofollow">',   // test není produkce (MapaWebu::indexovat)
             'Ochrana osobních údajů',
             'Účinné od 3. 10. 2026',
             'exportex s.r.o.', 'Na Poříčí 1070/19, Nové Město, 110 00 Praha 1', 'IČO: 17671833',
@@ -351,7 +357,7 @@ class WebExportexTest extends TestCase
 
         // Uložení beze změny nic nepokazí – web je pořád jako před převodem.
         auth()->logout();
-        $this->assertSame(ObsahWebu::VYCHOZI['sortiment']['nadpis'], ObsahWebu::sekce('sortiment')['nadpis']);
+        $this->assertSame(ObsahWebu::vychozi()['sortiment']['nadpis'], ObsahWebu::sekce('sortiment')['nadpis']);
         $this->get('/')->assertOk()->assertSee('Co pro Vás zajistíme a dovezeme.');
     }
 }

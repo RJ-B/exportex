@@ -4,7 +4,7 @@
         {{ $this->form }}
 
         <div style="margin-top: 1.5rem">
-            <x-filament::button type="submit">Uložit</x-filament::button>
+            <x-filament::button type="submit">{{ __('administrace.formular.ulozit') }}</x-filament::button>
         </div>
     </form>
 </x-filament-panels::page>

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Clusters;
 
+use App\Filament\Navigace;
 use App\Models\ErrorLog;
 use App\Models\MailLog;
 use Filament\Clusters\Cluster;
@@ -34,11 +35,20 @@ class Logy extends Cluster
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Provoz';
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return Navigace::spravaAplikace();
+    }
 
-    protected static ?string $navigationLabel = 'Logy';
+    public static function getNavigationLabel(): string
+    {
+        return __('administrace.logy.logy');
+    }
 
-    protected static ?string $clusterBreadcrumb = 'Logy';
+    public static function getClusterBreadcrumb(): ?string
+    {
+        return __('administrace.logy.logy');
+    }
 
     protected static ?int $navigationSort = 1;
 

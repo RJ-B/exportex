@@ -8,6 +8,7 @@ use App\Models\Nastaveni;
 use App\Support\Zdravi;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
@@ -36,6 +37,20 @@ class ZdraviTest extends TestCase
         }
     }
 
+    public function test_dalsi_databaze_webu_se_hlida_taky(): void
+    {
+        // Sdílené účty v jiné databázi: bez nich se nikdo nepřihlásí – web nefunguje.
+        config(['database.connections.identita' => ['driver' => 'sqlite', 'database' => '/neexistuje/identita.sqlite']]);
+        config(['sablona.databaze' => ['identita']]);
+
+        $this->get('/zdravi')->assertStatus(503);
+        $this->assertFalse(Zdravi::tvrde()['databaze:identita']['ok']);
+
+        config(['database.connections.identita' => ['driver' => 'sqlite', 'database' => ':memory:']]);
+        DB::purge('identita');
+        $this->get('/zdravi')->assertOk();
+    }
+
     public function test_diagnostika_pro_portal(): void
     {
         // Vlastní storage, ať se nepočítají chyby ze skutečného logu projektu.
@@ -50,6 +65,9 @@ class ZdraviTest extends TestCase
             '['.now()->subMinutes(20)->format('Y-m-d H:i:s').'] testing.ERROR: SQLSTATE spadlo spojení',
             '['.now()->subMinutes(5)->format('Y-m-d H:i:s').'] testing.INFO: jen informace',
             '['.now()->subMinutes(2)->format('Y-m-d H:i:s').'] testing.CRITICAL: došla paměť',
+            // 404 od botů (starší řádky z doby před filtrem) se do chyb nepočítají.
+            '['.now()->subMinutes(1)->format('Y-m-d H:i:s').'] testing.ERROR: The route careers could not be found. {"exception":"[object] (Symfony\\\\Component\\\\HttpKernel\\\\Exception\\\\NotFoundHttpException(code: 0): The route careers could not be found. at /app/vendor/x.php:1)"}',
+            '['.now()->subMinutes(1)->format('Y-m-d H:i:s').'] testing.ERROR: The GET method is not supported for route posta/webhook. {"exception":"[object] (Symfony\\\\Component\\\\HttpKernel\\\\Exception\\\\MethodNotAllowedHttpException(code: 0): x)"}',
         ])."\n");
         Zdravi::znackaPlanovace();
 
@@ -125,12 +143,32 @@ class ZdraviTest extends TestCase
 
         $this->assertFalse($bez['artisan']['zapnuta']);
         $this->assertNull($bez['artisan']['od']);
-        $this->assertSame(['stav' => 'online', 'nazev' => 'Online', 'zapnuta' => false, 'od' => null], $bez['stav_webu']);
+        $this->assertSame(['stav' => 'online', 'nazev' => 'Online', 'zapnuta' => false, 'od' => null, 'text' => null, 'konec' => null], $bez['stav_webu']);
 
         $this->assertTrue($s['artisan']['zapnuta']);
         $this->assertSame($cas, Carbon::parse($s['artisan']['od'])->getTimestamp());
         $this->assertSame('udrzba', $s['stav_webu']['stav']);
         $this->assertTrue($s['stav_webu']['zapnuta']);
         $this->assertNotNull($s['stav_webu']['od']);
+    }
+
+    public function test_zdravi_odpovida_i_v_udrzbe(): void
+    {
+        // Nasazení během údržby (artisan down): portál čte /zdravi a 503 by novou
+        // verzi vrátil, i když funguje.
+        $this->app->maintenanceMode()->activate(['retry' => 60, 'status' => 503]);
+
+        try {
+            $this->get('/zdravi')->assertOk()->assertSeeText('ok');
+            $this->get('/admin/login')->assertStatus(503);
+        } finally {
+            $this->app->maintenanceMode()->deactivate();
+        }
+    }
+
+    public function test_bez_doplnku_platby_jen_zapnuto_false(): void
+    {
+        // Web platby nepoužívá – portál nic nehlásí.
+        $this->assertSame(['verze' => 1, 'zapnuto' => false], Zdravi::diagnostika()['platby']);
     }
 }

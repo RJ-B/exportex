@@ -2,13 +2,14 @@
      Sim&Ren – přichází se na ni jen z CRM, proto vypadá jako CRM. Bez cizích
      písem a knihoven, styly inline (Tailwind se ve vlastních šablonách nebuildí). --}}
 <!doctype html>
-<html lang="cs">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="color-scheme" content="light dark" />
-    <title>Nastavení hesla · {{ config('app.name') }}</title>
+    <title>{{ __('web.nastaveni.nastaveni_hesla', ['name' => config('app.name')]) }}</title>
+    {{ \App\Support\IkonaWebu::html() }}
     <style>
         :root {
             --bg: #f1f5f9; --bg2: #e2e8f0; --karta: #ffffff; --okraj: #e2e8f0; --text: #0f172a; --text2: #475569;
@@ -71,7 +72,7 @@
 </head>
 <body>
 <main>
-    <div class="znacka"><b>S</b><span>Simren CRM</span><small>· {{ config('app.name') }}</small></div>
+    <div class="znacka"><b>S</b><span>{{ __('web.nastaveni.simren_crm') }}</span><small>· {{ config('app.name') }}</small></div>
 
     <div class="karta">
         @if (! $platny)
@@ -79,17 +80,17 @@
                 <div class="ikona">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
                 </div>
-                <h1>Odkaz už neplatí</h1>
-                <p class="pod" style="margin-bottom: 0;">Odkaz na nastavení hesla platí jen jednou a omezenou dobu. V CRM u zakázky klikni znovu na <strong>Můj účet správce</strong> – dostaneš nový.</p>
+                <h1>{{ __('web.nastaveni.odkaz_uz_neplati') }}</h1>
+                <p class="pod" style="margin-bottom: 0;">{{ __('web.nastaveni.odkaz_na_nastaveni_hesla_plati_jen') }} <strong>{{ __('web.nastaveni.muj_ucet_spravce') }}</strong> {{ __('web.nastaveni.dostanes_novy') }}</p>
             </div>
         @else
-            <h1>Nastav si heslo</h1>
-            <p class="pod">Účet správce v aplikaci <strong>{{ config('app.name') }}</strong>. Po uložení tě rovnou přihlásíme.</p>
+            <h1>{{ __('web.nastaveni.nastav_si_heslo') }}</h1>
+            <p class="pod">{{ __('web.nastaveni.ucet_spravce_v_aplikaci') }} <strong>{{ config('app.name') }}</strong>{{ __('web.nastaveni.po_ulozeni_te_rovnou_prihlasime') }}</p>
 
             <div class="osoba">
                 <i>{{ mb_strtoupper(mb_substr($jmeno ?: $email, 0, 1)) }}</i>
                 <div>
-                    <strong>{{ $jmeno ?: 'Správce' }}</strong>
+                    <strong>{{ $jmeno ?: __('web.nastaveni.spravce') }}</strong>
                     <span>{{ $email }}</span>
                 </div>
             </div>
@@ -105,7 +106,7 @@
                 {{-- Pro správce hesel: ke kterému účtu heslo patří. --}}
                 <input type="text" name="username" value="{{ $email }}" autocomplete="username" hidden />
 
-                <label for="heslo">Nové heslo</label>
+                <label for="heslo">{{ __('web.nastaveni.nove_heslo') }}</label>
                 <div class="pole">
                     <input id="heslo" type="password" name="password" autocomplete="new-password" minlength="10" required autofocus />
                     <button type="button" class="oko" data-pro="heslo" aria-label="Zobrazit heslo">
@@ -113,9 +114,9 @@
                     </button>
                 </div>
                 <div class="sila" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-                <p class="napoveda" id="sila-text">Aspoň 10 znaků. Delší a různorodější je bezpečnější.</p>
+                <p class="napoveda" id="sila-text">{{ __('web.nastaveni.aspon_10_znaku_delsi_a_ruznorodejsi') }}</p>
 
-                <label for="heslo2">Heslo znovu</label>
+                <label for="heslo2">{{ __('web.nastaveni.heslo_znovu') }}</label>
                 <div class="pole">
                     <input id="heslo2" type="password" name="password_confirmation" autocomplete="new-password" minlength="10" required />
                     <button type="button" class="oko" data-pro="heslo2" aria-label="Zobrazit heslo">
@@ -124,12 +125,12 @@
                 </div>
                 <p class="napoveda" id="shoda"></p>
 
-                <button type="submit" id="ulozit">Uložit a přihlásit</button>
+                <button type="submit" id="ulozit">{{ __('web.nastaveni.ulozit_a_prihlasit') }}</button>
             </form>
         @endif
     </div>
 
-    <p class="pata">Odkaz přišel ze Simren CRM a platí jen jednou.<br />Heslo nikdo jiný nezná a nikam se neposílá.</p>
+    <p class="pata">{{ __('web.nastaveni.odkaz_prisel_ze_simren_crm_a') }}<br />{{ __('web.nastaveni.heslo_nikdo_jiny_nezna_a_nikam') }}</p>
 </main>
 
 @if ($platny)
@@ -142,7 +143,7 @@
         const shoda = document.getElementById('shoda');
         const tlacitko = document.getElementById('ulozit');
         const barvy = ['var(--chyba)', 'var(--varovani)', 'var(--varovani)', 'var(--ok)'];
-        const popisy = ['Slabé heslo', 'Ujde', 'Dobré heslo', 'Silné heslo'];
+        const popisy = [@js(__('web.nastaveni.slabe_heslo')), @js(__('web.nastaveni.ujde')), @js(__('web.nastaveni.dobre_heslo')), @js(__('web.nastaveni.silne_heslo'))];
 
         const sila = (h) => {
             if (h.length < 10) return 0;
@@ -157,11 +158,11 @@
             const s = sila(heslo.value);
             pruhy.forEach((p, i) => { p.style.background = i < s ? barvy[s - 1] : ''; });
             silaText.textContent = heslo.value.length === 0
-                ? 'Aspoň 10 znaků. Delší a různorodější je bezpečnější.'
-                : heslo.value.length < 10 ? `Ještě ${10 - heslo.value.length} ${10 - heslo.value.length === 1 ? 'znak' : (10 - heslo.value.length < 5 ? 'znaky' : 'znaků')}` : popisy[s - 1];
+                ? @js(__('web.nastaveni.aspon_10_znaku'))
+                : heslo.value.length < 10 ? @js(__('web.nastaveni.jeste_znaku')).replace(':pocet', 10 - heslo.value.length).replace(':slovo', 10 - heslo.value.length === 1 ? @js(__('web.nastaveni.znak')) : (10 - heslo.value.length < 5 ? @js(__('web.nastaveni.znaky')) : @js(__('web.nastaveni.znaku')))) : popisy[s - 1];
             const vyplneno = heslo2.value.length > 0;
             const sedi = heslo.value === heslo2.value;
-            shoda.textContent = vyplneno ? (sedi ? 'Hesla se shodují ✓' : 'Hesla se zatím neshodují') : '';
+            shoda.textContent = vyplneno ? (sedi ? @js(__('web.nastaveni.hesla_se_shoduji')) : @js(__('web.nastaveni.hesla_se_zatim_neshoduji'))) : '';
             shoda.style.color = vyplneno ? (sedi ? 'var(--ok)' : 'var(--slabe)') : '';
             tlacitko.disabled = heslo.value.length < 10 || !sedi;
         };
@@ -173,12 +174,12 @@
         document.querySelectorAll('.oko').forEach((b) => b.addEventListener('click', () => {
             const pole = document.getElementById(b.dataset.pro);
             pole.type = pole.type === 'password' ? 'text' : 'password';
-            b.setAttribute('aria-label', pole.type === 'password' ? 'Zobrazit heslo' : 'Skrýt heslo');
+            b.setAttribute('aria-label', pole.type === 'password' ? @js(__('web.nastaveni.zobrazit_heslo')) : @js(__('web.nastaveni.skryt_heslo')));
         }));
 
         document.getElementById('formular').addEventListener('submit', () => {
             tlacitko.disabled = true;
-            tlacitko.textContent = 'Ukládám…';
+            tlacitko.textContent = @js(__('web.nastaveni.ukladam'));
         });
     })();
 </script>

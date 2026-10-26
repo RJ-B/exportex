@@ -30,22 +30,22 @@ enum KanalOznameni: string
     public function nazev(): string
     {
         return match ($this) {
-            self::Centrum => 'Centrum oznámení',
-            self::Pruh => 'Pruh přes web',
-            self::Email => 'E-mail',
-            self::WebPush => 'Upozornění v prohlížeči',
-            self::MobilPush => 'Mobilní aplikace',
+            self::Centrum => __('modely.kanal_oznameni.centrum_oznameni'),
+            self::Pruh => __('modely.kanal_oznameni.pruh_pres_web'),
+            self::Email => __('modely.kanal_oznameni.e_mail'),
+            self::WebPush => __('modely.kanal_oznameni.upozorneni_v_prohlizeci'),
+            self::MobilPush => __('modely.kanal_oznameni.mobilni_aplikace'),
         };
     }
 
     public function popis(): string
     {
         return match ($this) {
-            self::Centrum => 'Zvoneček na webu i v administraci, nepřečtené s počtem.',
-            self::Pruh => 'Pruh nahoře na každé stránce – odstávky a výpadky. Pro všechny ho vidí i nepřihlášení.',
-            self::Email => 'Přes Poštu; novinky a nabídky jen těm, kdo s nimi souhlasili.',
-            self::WebPush => 'Připravujeme.',
-            self::MobilPush => 'Připravujeme.',
+            self::Centrum => __('modely.kanal_oznameni.zvonecek_na_webu_i_v_administraci'),
+            self::Pruh => __('modely.kanal_oznameni.pruh_nahore_na_kazde_strance_odstavky'),
+            self::Email => __('modely.kanal_oznameni.pres_postu_novinky_a_nabidky_jen'),
+            self::WebPush => __('modely.kanal_oznameni.pripravujeme'),
+            self::MobilPush => __('modely.kanal_oznameni.pripravujeme'),
         };
     }
 

@@ -11,33 +11,31 @@
         .posta-udaje dt { color: var(--gray-500); }
         .posta-udaje dd { margin: 0; }
         .posta-slabe { color: var(--gray-500); font-size: .8rem; }
+        .posta-adresa { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .5rem; margin-bottom: .25rem; }
     </style>
 
     @if (! $propojeni['propojeno'])
         <div class="posta-chyba">
-            Aplikace není propojená s Poštou – e-maily (formuláře, upozornění, obnova hesla) neodcházejí.
-            Klikni na <strong>Propojit s poštou</strong>; v Poště správce přidělí adresy, ze kterých smí aplikace posílat.
+            {{ __('posta.posta.aplikace_neni_propojena_s_postou_e') }} <strong>{{ __('posta.posta.propojit_s_postou') }}</strong>{{ __('posta.posta.v_poste_spravce_prideli_adresy_ze_2') }}
             @if ($stara)
-                <br>Aplikace má ještě starou schránku <strong>{{ $stara['adresa'] }}</strong> ({{ $stara['smtp_host'] }}{{ $stara['zdroj'] === 'env' ? ', v .env' : '' }}) –
-                při propojení ji Pošta může převzít i s heslem (správce to povolí na souhlasu).
+                <br>{{ __('posta.posta.aplikace_ma_jeste_starou_schranku') }} <strong>{{ $stara['adresa'] }}</strong> {{ __('posta.posta.pri_propojeni_ji_posta_muze_prevzit', ['smtp_host' => $stara['smtp_host'], 'stara' => $stara['zdroj'] === 'env' ? ', v .env' : '']) }}
             @endif
         </div>
     @else
         @if ($prevzeti && empty($prevzeti['smazano']))
             <div class="{{ ($prevzeti['ok'] ?? false) ? 'posta-stav' : 'posta-chyba' }}" style="margin-bottom: 1rem">
-                <strong>Převzetí staré schránky {{ $prevzeti['adresa'] }}:</strong> {{ $prevzeti['zprava'] ?? '' }}
+                <strong>{{ __('posta.posta.prevzeti_stare_schranky', ['adresa' => $prevzeti['adresa']]) }}</strong> {{ $prevzeti['zprava'] ?? '' }}
                 @if ($prevzeti['ok'] ?? false)
                     @if (! empty($prevzeti['zkouska_id']))
-                        <br>Zkušební e-mail je v Poště – jakmile ho Pošta potvrdí jako odeslaný, stará schránka (i heslo) se z aplikace smaže.
+                        <br>{{ __('posta.posta.zkusebni_e_mail_je_v_poste') }}
                     @else
-                        <br>Pošli <strong>zkušební e-mail</strong> – až ho Pošta potvrdí jako odeslaný, stará schránka (i heslo) se z aplikace sama smaže.
+                        <br>{{ __('posta.posta.posli') }} <strong>{{ __('posta.posta.zkusebni_e_mail') }}</strong> {{ __('posta.posta.az_ho_posta_potvrdi_jako_odeslany') }}
                     @endif
                 @endif
             </div>
         @elseif ($prevzeti && ! empty($prevzeti['env_zbyva']))
             <div class="posta-stav" style="margin-bottom: 1rem">
-                Stará schránka {{ $prevzeti['adresa'] }} je převzatá do Pošty. Zbývá smazat SMTP z <code>.env</code> na serveru
-                (MAIL_HOST, MAIL_USERNAME, MAIL_PASSWORD…) – přes portál, <code>MAIL_MAILER=log</code> stačí jako záloha.
+                {{ __('posta.posta.stara_schranka_je_prevzata_do_posty', ['adresa' => $prevzeti['adresa']]) }} <code>.env</code> {{ __('posta.posta.na_serveru_mail_host_mail_username') }} <code>MAIL_MAILER=log</code> {{ __('posta.posta.staci_jako_zaloha') }}
             </div>
         @endif
 
@@ -45,23 +43,37 @@
             <div class="posta-chyba">{{ $stav['zprava'] }}</div>
         @endif
 
-        <x-filament::section heading="Propojení">
+        <x-filament::section heading="{{ __('posta.posta.propojeni') }}">
             <dl class="posta-udaje">
-                <dt>Pošta</dt><dd>{{ $propojeni['url'] }}{{ $propojeni['rucne'] ? ' (klíč zadaný ručně)' : '' }}</dd>
-                @if ($propojeni['aplikace'])<dt>Aplikace v Poště</dt><dd>{{ $propojeni['aplikace'] }}</dd>@endif
-                <dt>Smí posílat z</dt>
+                <dt>{{ __('posta.posta.posta') }}</dt><dd>{{ $propojeni['url'] }}{{ $propojeni['rucne'] ? __('posta.posta.klic_zadany_rucne') : '' }}</dd>
+                @if ($propojeni['aplikace'])<dt>{{ __('posta.posta.aplikace_v_poste') }}</dt><dd>{{ $propojeni['aplikace'] }}</dd>@endif
+                <dt>{{ __('posta.posta.smi_posilat_z') }}</dt>
                 <dd>
                     @forelse ($propojeni['adresy'] as $adresa)
-                        <div>{{ $adresa['jmeno'] ? $adresa['jmeno'].' <'.$adresa['adresa'].'>' : $adresa['adresa'] }}</div>
+                        <div class="posta-adresa">
+                            <span>{{ $adresa['jmeno'] ? $adresa['jmeno'].' <'.$adresa['adresa'].'>' : $adresa['adresa'] }}</span>
+                            {{-- Kopie do Odeslaných – stav posílá Pošta (starší Pošta ho nemá, pak se nic neukáže). --}}
+                            @isset($adresa['kopie'])
+                                <span class="posta-slabe" title="{{ $adresa['kopie_zprava'] ?? '' }}">· {{ match ($adresa['kopie']) {
+                                    'zapnuto' => __('posta.posta.kopie_se_ukladaji_do_odeslanych_2'),
+                                    'sama' => __('posta.posta.odeslane_uklada_schranka_sama'),
+                                    'nelze' => __('posta.posta.kopie_do_odeslanych_nejdou'),
+                                    default => __('posta.posta.kopie_se_do_odeslanych_neukladaji'),
+                                } }}</span>
+                                @if (in_array($adresa['kopie'], ['zapnuto', 'vypnuto'], true))
+                                    {{ ($this->kopieAction)(['adresa' => $adresa['adresa'], 'zapnout' => $adresa['kopie'] === 'vypnuto']) }}
+                                @endif
+                            @endisset
+                        </div>
                     @empty
-                        <span class="posta-slabe">žádné adresy – přiděl je v Poště a dej Ověřit</span>
+                        <span class="posta-slabe">{{ __('posta.posta.zadne_adresy_pridel_je_v_poste') }}</span>
                     @endforelse
                 </dd>
-                @if ($propojeni['kdy'])<dt>Propojeno</dt><dd>{{ \App\Support\CasAplikace::zVenku($propojeni['kdy'])?->format('j. n. Y H:i') }}</dd>@endif
-                @if ($propojeni['token_plati_do'])<dt>Klíč platí do</dt><dd>{{ \App\Support\CasAplikace::zVenku($propojeni['token_plati_do'])?->format('j. n. Y') }} <span class="posta-slabe">(obnovuje se sám)</span></dd>@endif
-                <dt>Odchozí fronta</dt><dd>{{ $fronta ? $fronta.' zpráv čeká na Poštu – předají se samy' : 'prázdná' }}</dd>
+                @if ($propojeni['kdy'])<dt>{{ __('posta.posta.propojeno') }}</dt><dd>{{ \App\Support\CasAplikace::zVenku($propojeni['kdy'])?->format(__('formaty.datum_cas')) }}</dd>@endif
+                @if ($propojeni['token_plati_do'])<dt>{{ __('posta.posta.klic_plati_do') }}</dt><dd>{{ \App\Support\CasAplikace::zVenku($propojeni['token_plati_do'])?->format(__('formaty.datum')) }} <span class="posta-slabe">{{ __('posta.posta.obnovuje_se_sam') }}</span></dd>@endif
+                <dt>{{ __('posta.posta.odchozi_fronta') }}</dt><dd>{{ $fronta ? __('posta.posta.zprav_ceka_na_postu_predaji_se', ['fronta' => $fronta]) : __('posta.posta.prazdna') }}</dd>
             </dl>
-            <p class="posta-slabe" style="margin-top: .75rem;">Schránky, DNS domény (SPF, DKIM, DMARC) a opakování při chybě řeší Pošta. Co odešlo a co ne: Provoz → Logy → E-maily.</p>
+            <p class="posta-slabe" style="margin-top: .75rem;">{{ __('posta.posta.schranky_dns_domeny_spf_dkim_dmarc') }}</p>
         </x-filament::section>
     @endif
 
@@ -70,7 +82,7 @@
 
         @if ($propojeni['propojeno'] || static::webovy())
             <div style="margin-top: 1.5rem">
-                <x-filament::button type="submit">Uložit</x-filament::button>
+                <x-filament::button type="submit">{{ __('posta.posta.ulozit') }}</x-filament::button>
             </div>
         @endif
     </form>

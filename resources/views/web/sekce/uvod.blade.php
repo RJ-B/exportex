@@ -51,5 +51,5 @@
     @endif
   </div>
 
-  <div class="scrollhint" aria-hidden="true"><i></i><span data-cs="Scroll" data-en="Scroll">Scroll</span></div>
+  <div class="scrollhint" aria-hidden="true"><i></i><span data-cs="Scroll" data-en="Scroll">{{ __('web.uvod.scroll') }}</span></div>
 </section>

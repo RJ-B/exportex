@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Enums\StavWebu;
+use App\Support\UdrzbaWebu;
 use App\Support\ZakladniUdaje;
 use Closure;
 use Illuminate\Http\Request;
@@ -29,7 +30,11 @@ class StavWebuMiddleware
 
         if ($stav === StavWebu::Udrzba) {
             // 503 + Retry-After: vyhledávač pochopí, že jde o přechodný stav.
-            return response()->view('stav-webu.udrzba', ['udaje' => $udaje], 503)->header('Retry-After', '600');
+            // S předpokládaným koncem z CRM (UdrzbaWebu::plan) do něj, jinak 10 minut.
+            $konec = UdrzbaWebu::plan()['konec'];
+            $za = $konec !== null && $konec->isFuture() ? (int) max(60, min(86400, now()->diffInSeconds($konec))) : 600;
+
+            return response()->view('stav-webu.udrzba', ['udaje' => $udaje], 503)->header('Retry-After', (string) $za);
         }
 
         return response()->view('stav-webu.pripravujeme', ['udaje' => $udaje]);

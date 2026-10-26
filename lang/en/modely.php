@@ -1,0 +1,62 @@
+<?php
+
+return [
+    'stav_webu' => [
+        'udrzba_zapnuta' => 'Maintenance turned on',
+        'udrzba_vypnuta' => 'Maintenance turned off → :nazev',
+        'pripravujeme' => 'Coming soon',
+        'udrzba' => 'Maintenance',
+        'web_je_verejny_a_funguje_cely' => 'The website is public and fully working.',
+        'navstevnici_vidi_pripravujeme_pro_web' => 'Visitors see “Coming soon”. For a website that has not been launched yet.',
+        'navstevnici_vidi_web_se_prave_upravuje' => 'Visitors see “The website is being updated” (HTTP 503 – search engines will not drop it from the index). For a short while when something is being fixed.',
+        'online' => 'Online',
+    ],
+    'mail_log' => [
+        'neznamy' => '(unknown)',
+        'a_dalsi' => ':prvni and :dalsi more',
+        'odeslano_po_chybe' => 'Sent after an error',
+        'odeslano' => 'Sent',
+        've_fronte_posty' => 'In the Pošta queue',
+        'zadrzeno_test' => 'Held (test)',
+        'odesila_se' => 'Sending',
+        'selhalo' => 'Failed',
+    ],
+    'user' => [
+        'superadmin' => 'Superadmin',
+        'admin' => 'Admin',
+        'klient' => 'Client',
+    ],
+    'druh_oznameni' => [
+        'provozni' => 'Operational',
+        'servisni' => 'Service',
+        'novinky' => 'News',
+        'nabidky_a_akce' => 'Offers and promotions',
+        'tyka_se_vaseho_uctu_nebo_objednavky' => 'About your account or order (e.g. “order shipped”).',
+        'planovane_odstavky_vypadky_a_dulezite' => 'Planned downtime, outages and important service changes.',
+        'nove_funkce_a_zmeny_v_nabidce' => 'New features and changes to the offer.',
+        'akce_slevy_a_nabidky' => 'Promotions, discounts and offers.',
+    ],
+    'kanal_oznameni' => [
+        'centrum_oznameni' => 'Notification centre',
+        'pruh_pres_web' => 'Website banner',
+        'e_mail' => 'E-mail',
+        'upozorneni_v_prohlizeci' => 'Browser notifications',
+        'mobilni_aplikace' => 'Mobile app',
+        'zvonecek_na_webu_i_v_administraci' => 'A bell on the website and in the administration, unread ones with a count.',
+        'pruh_nahore_na_kazde_strance_odstavky' => 'A banner at the top of every page – downtime and outages. When it is for everyone, visitors who are not signed in see it too.',
+        'pres_postu_novinky_a_nabidky_jen' => 'Via Pošta; news and offers only to those who agreed to them.',
+        'pripravujeme' => 'Coming soon.',
+    ],
+    'stav_oznameni' => [
+        'koncept' => 'Draft',
+        'naplanovano' => 'Scheduled',
+        'odesila_se' => 'Sending',
+        'odeslano' => 'Sent',
+    ],
+    'zavaznost_oznameni' => [
+        'informace' => 'Information',
+        'upozorneni' => 'Warning',
+        'vazne' => 'Serious',
+        'vyreseno' => 'Resolved',
+    ],
+];

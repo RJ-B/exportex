@@ -17,7 +17,7 @@ class PlatbaVracena extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: ($this->platba->testovaci() ? '[TEST] ' : '').'Vrácení platby – '.$this->platba->popis.' – '.ZakladniUdaje::get('nazev'),
+            subject: __('platby.platba_vracena.vraceni_platby', ['testovaci' => ($this->platba->testovaci() ? '[TEST] ' : ''), 'popis' => $this->platba->popis, 'get' => ZakladniUdaje::get('nazev')]),
         );
     }
 

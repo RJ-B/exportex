@@ -14,10 +14,10 @@ enum ZavaznostOznameni: string
     public function nazev(): string
     {
         return match ($this) {
-            self::Info => 'Informace',
-            self::Varovani => 'Upozornění',
-            self::Kriticke => 'Vážné',
-            self::Vyreseno => 'Vyřešeno',
+            self::Info => __('modely.zavaznost_oznameni.informace'),
+            self::Varovani => __('modely.zavaznost_oznameni.upozorneni'),
+            self::Kriticke => __('modely.zavaznost_oznameni.vazne'),
+            self::Vyreseno => __('modely.zavaznost_oznameni.vyreseno'),
         };
     }
 

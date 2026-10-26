@@ -29,13 +29,25 @@ class SkupinaResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
-    protected static ?string $navigationLabel = 'Skupiny příjemců';
+    public static function getNavigationLabel(): string
+    {
+        return __('administrace.skupina_resource.skupiny_prijemcu');
+    }
 
-    protected static ?string $navigationParentItem = 'Oznámení';
+    public static function getNavigationParentItem(): ?string
+    {
+        return OznameniResource::getNavigationLabel();
+    }
 
-    protected static ?string $modelLabel = 'skupina příjemců';
+    public static function getModelLabel(): string
+    {
+        return __('administrace.skupina_resource.skupina_prijemcu');
+    }
 
-    protected static ?string $pluralModelLabel = 'skupiny příjemců';
+    public static function getPluralModelLabel(): string
+    {
+        return __('administrace.skupina_resource.skupiny_prijemcu_2');
+    }
 
     protected static ?int $navigationSort = 3;
 
@@ -47,17 +59,17 @@ class SkupinaResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->columns(1)->components([
-            TextInput::make('nazev')->label('Název')->required()->maxLength(120)->unique(ignoreRecord: true),
-            TextInput::make('popis')->label('Popis')->maxLength(255),
+            TextInput::make('nazev')->label(__('administrace.skupina_resource.nazev'))->required()->maxLength(120)->unique(ignoreRecord: true),
+            TextInput::make('popis')->label(__('administrace.skupina_resource.popis'))->maxLength(255),
             Select::make('clenove')
-                ->label('Členové')
+                ->label(__('administrace.skupina_resource.clenove'))
                 ->relationship('clenove', 'prijmeni', fn (Builder $query) => $query
                     ->when(! auth()->user()?->jeSuperadmin(), fn (Builder $query) => $query->where('role', '!=', 'superadmin'))
                     ->orderBy('prijmeni')->orderBy('jmeno'))
                 ->getOptionLabelFromRecordUsing(fn (User $record) => $record->getFilamentName().' – '.$record->email)
                 ->searchable(['jmeno', 'prijmeni', 'email'])
                 ->multiple()
-                ->helperText('Hledejte jménem, příjmením nebo e-mailem.'),
+                ->helperText(__('administrace.skupina_resource.hledejte_jmenem_prijmenim_nebo_e_mailem')),
         ]);
     }
 
@@ -66,12 +78,12 @@ class SkupinaResource extends Resource
         return $table
             ->defaultSort('nazev')
             ->columns([
-                TextColumn::make('nazev')->label('Název')->searchable()->sortable()->description(fn (OznameniSkupina $record) => $record->popis),
-                TextColumn::make('clenove_count')->label('Členů')->counts('clenove')->sortable(),
+                TextColumn::make('nazev')->label(__('administrace.skupina_resource.nazev'))->searchable()->sortable()->description(fn (OznameniSkupina $record) => $record->popis),
+                TextColumn::make('clenove_count')->label(__('administrace.skupina_resource.clenu'))->counts('clenove')->sortable(),
             ])
             ->recordActions([EditAction::make(), DeleteAction::make()])
-            ->emptyStateHeading('Zatím žádné skupiny')
-            ->emptyStateDescription('Skupina je pojmenovaný seznam lidí, kterým pak jde poslat oznámení najednou.');
+            ->emptyStateHeading(__('administrace.skupina_resource.zatim_zadne_skupiny'))
+            ->emptyStateDescription(__('administrace.skupina_resource.skupina_je_pojmenovany_seznam_lidi'));
     }
 
     public static function getPages(): array

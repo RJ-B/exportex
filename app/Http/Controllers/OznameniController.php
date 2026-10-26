@@ -31,8 +31,8 @@ class OznameniController extends Controller
         $user = $request->user();
 
         return view('layouts.verejna', [
-            'nadpis' => 'Oznámení',
-            'stitek' => 'Váš účet',
+            'nadpis' => __('web.oznameni_controller.oznameni'),
+            'stitek' => __('web.oznameni_controller.vas_ucet'),
             'obsah' => 'oznameni.stranka',
             'zobrazit' => $zobrazit,
             'neprectenych' => Centrum::neprectenych($user),
@@ -103,8 +103,8 @@ class OznameniController extends Controller
         $druh = $this->druhSeSouhlasem($druh);
 
         return view('layouts.verejna', [
-            'nadpis' => 'Odhlášení z odběru',
-            'stitek' => 'Oznámení',
+            'nadpis' => __('web.oznameni_controller.odhlaseni_z_odberu'),
+            'stitek' => __('web.oznameni_controller.oznameni'),
             'obsah' => 'oznameni.odhlaseni',
             'druh' => $druh,
             'email' => $user->email,
@@ -128,8 +128,8 @@ class OznameniController extends Controller
         }
 
         return view('layouts.verejna', [
-            'nadpis' => 'Odhlášení z odběru',
-            'stitek' => 'Oznámení',
+            'nadpis' => __('web.oznameni_controller.odhlaseni_z_odberu'),
+            'stitek' => __('web.oznameni_controller.oznameni'),
             'obsah' => 'oznameni.odhlaseni',
             'druh' => $druh,
             'email' => $user->email,

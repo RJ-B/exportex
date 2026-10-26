@@ -1,15 +1,16 @@
-@if ($platba->testovaci())TESTOVACÍ PLATBA – nic se nestrhlo, jen zkouška platební brány.
+@if ($platba->skutecna()){!! __('platby.prijata.skutecna_platba_pres_testovaci_branu') !!}
+
+@elseif ($platba->testovaci()){!! __('platby.prijata.testovaci_platba_nic_se_nestrhlo_jen') !!}
 
 @endif
-Dobrý den{{ $platba->jmeno ? ' '.$platba->jmeno : '' }},
+{!! __('platby.prijata.dobry_den', ['platba' => $platba->jmeno ? ' '.$platba->jmeno : '']) !!}
 
-děkujeme, platba je zaplacená.
+{!! __('platby.prijata.dekujeme_platba_je_zaplacena') !!}
 
-Za: {{ $platba->popis }}
-@if ($platba->reference)Číslo: {{ $platba->reference }}
+{!! __('platby.prijata.za', ['popis' => $platba->popis]) !!}
+@if ($platba->reference){!! __('platby.prijata.cislo', ['reference' => $platba->reference]) !!}
 @endif
-Částka: {{ $platba->castkaKc() }}
-Zaplaceno: {{ $platba->zaplaceno_v?->format('j. n. Y H:i') }}
+{!! __('platby.prijata.castka_zaplaceno', ['castka_kc' => $platba->castkaKc(), 'format' => $platba->zaplaceno_v?->format(__('formaty.datum_cas'))]) !!}
 
 {{ \App\Support\ZakladniUdaje::get('nazev') }}
 @if (\App\Support\ZakladniUdaje::get('email')){{ \App\Support\ZakladniUdaje::get('email') }}

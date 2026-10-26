@@ -22,7 +22,11 @@ use Illuminate\Database\Eloquent\Builder;
 class Cileni
 {
     /** Role, které jde v cílení vybrat. */
-    public const ROLE = ['admin' => 'Správci (admin)', 'klient' => 'Klienti'];
+    /** @return array<string, string> */
+    public static function role(): array
+    {
+        return ['admin' => __('obecne.cileni.spravci_admin'), 'klient' => __('obecne.cileni.klienti')];
+    }
 
     public static function dotaz(array $cileni): Builder
     {
@@ -32,7 +36,7 @@ class Cileni
             return $dotaz->where('role', '!=', 'superadmin');
         }
 
-        $role = array_values(array_intersect((array) ($cileni['role'] ?? []), array_keys(self::ROLE)));
+        $role = array_values(array_intersect((array) ($cileni['role'] ?? []), array_keys(self::role())));
         $skupiny = array_map('intval', (array) ($cileni['skupiny'] ?? []));
         $uzivatele = array_map('intval', (array) ($cileni['uzivatele'] ?? []));
 
@@ -98,10 +102,10 @@ class Cileni
     public static function popis(array $cileni): string
     {
         if (($cileni['komu'] ?? null) === 'vsichni') {
-            return 'Všem';
+            return __('obecne.cileni.vsem');
         }
 
-        $casti = array_map(fn ($r) => self::ROLE[$r] ?? $r, (array) ($cileni['role'] ?? []));
+        $casti = array_map(fn ($r) => self::role()[$r] ?? $r, (array) ($cileni['role'] ?? []));
 
         $skupiny = (array) ($cileni['skupiny'] ?? []);
         if ($skupiny !== []) {
@@ -110,9 +114,9 @@ class Cileni
 
         $vybrani = count((array) ($cileni['uzivatele'] ?? []));
         if ($vybrani > 0) {
-            $casti[] = $vybrani === 1 ? '1 vybraný' : ($vybrani < 5 ? $vybrani.' vybraní' : $vybrani.' vybraných');
+            $casti[] = $vybrani === 1 ? __('obecne.cileni.t1_vybrany') : ($vybrani < 5 ? __('obecne.cileni.vybrani', ['vybrani' => $vybrani]) : __('obecne.cileni.vybranych', ['vybrani' => $vybrani]));
         }
 
-        return $casti === [] ? 'Nikomu' : implode(' · ', $casti);
+        return $casti === [] ? __('obecne.cileni.nikomu') : implode(' · ', $casti);
     }
 }

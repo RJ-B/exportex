@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Platby\StavPlateb;
 use App\Support\Zdravi as Kontrola;
 use Illuminate\Console\Command;
 
@@ -37,6 +38,10 @@ class Zdravi extends Command
             $d['udrzba']['artisan']['zapnuta'] ? 'artisan down od '.$d['udrzba']['artisan']['od'] : null,
             ($d['udrzba']['stav_webu']['zapnuta'] ?? false) ? 'Stav webu '.$d['udrzba']['stav_webu']['nazev'].' od '.($d['udrzba']['stav_webu']['od'] ?? '–') : null,
         ])->filter()->implode(', ') ?: 'ne');
+
+        if (is_array($d['platby'] ?? null) && ($d['platby']['zapnuto'] ?? false)) {
+            $this->line('platby    '.StavPlateb::popis($d['platby']));
+        }
 
         return $d['ok'] ? self::SUCCESS : self::FAILURE;
     }

@@ -16,6 +16,7 @@ use InvalidArgumentException;
  *         predmet: $objednavka,                          // klíč idempotence = objednavka:15
  *         reference: $objednavka->cislo,
  *         navratUrl: route('objednavka', $objednavka),   // kam po platbě (?platba=<id>)
+ *         metoda: MetodaPlatby::zVolby($request->input('metoda_platby')), // Apple Pay / Google Pay
  *     ));
  *     return redirect()->away($platba->presmerovani_url);
  */
@@ -32,6 +33,9 @@ final class PozadavekPlatby
         public readonly ?string $klic = null,
         public readonly ?string $navratUrl = null,
         public readonly string $mena = 'CZK',
+        // Předvolba Apple Pay / Google Pay (aplikace) – jen když ji brána a nastavení
+        // nabízí (NastaveniPlateb::metody), jinak výběr na bráně jako bez ní.
+        public readonly ?MetodaPlatby $metoda = null,
         // Brána zvolená zákazníkem (comgate / moone), když jich klient nabízí víc;
         // null = první nabízená (NastaveniPlateb::aktivni).
         public readonly ?string $brana = null,

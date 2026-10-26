@@ -10,7 +10,7 @@
     </style>
 
     <x-filament::section>
-        <x-slot name="description">Přihlášený člověk vidí web vždycky celý. Administrace a kontrola zdraví (/zdravi) běží v každém stavu.</x-slot>
+        <x-slot name="description">{{ __('administrace.stav_webu.prihlaseny_clovek_vidi_web_vzdycky_cely') }}</x-slot>
 
         <div class="stav-mrizka">
             @foreach ($stavy as $stav)
@@ -25,7 +25,7 @@
                     </div>
                     <div>
                         @if ($je)
-                            <x-filament::badge :color="$stav->barva()" icon="heroicon-m-check">Právě zapnuto</x-filament::badge>
+                            <x-filament::badge :color="$stav->barva()" icon="heroicon-m-check">{{ __('administrace.stav_webu.prave_zapnuto') }}</x-filament::badge>
                         @else
                             {{ ($this->prepnoutAction)(['stav' => $stav->value]) }}
                         @endif
@@ -35,7 +35,7 @@
         </div>
 
         @if ($zmena)
-            <p class="stav-popis" style="margin-top: 1rem;">Naposledy přepnuto: {{ $zmena }}.</p>
+            <p class="stav-popis" style="margin-top: 1rem;">{{ __('administrace.stav_webu.naposledy_prepnuto', ['zmena' => $zmena]) }}</p>
         @endif
     </x-filament::section>
 
@@ -43,7 +43,7 @@
         {{ $this->form }}
 
         <div style="margin-top: 1.5rem">
-            <x-filament::button type="submit">Uložit texty</x-filament::button>
+            <x-filament::button type="submit">{{ __('administrace.stav_webu.ulozit_texty') }}</x-filament::button>
         </div>
     </form>
 </x-filament-panels::page>

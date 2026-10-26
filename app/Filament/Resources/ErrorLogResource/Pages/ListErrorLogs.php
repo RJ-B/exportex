@@ -11,6 +11,6 @@ class ListErrorLogs extends ListRecords
 
     public function getTitle(): string
     {
-        return 'Chyby';
+        return __('administrace.list_error_logs.chyby');
     }
 }

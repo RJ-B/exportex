@@ -12,7 +12,7 @@ use Throwable;
  * posílá na STDIN – token ani tajemství nikdy nejsou v argumentech procesu
  * ani v logu. Výstup je jeden řádek JSON bez tajemství.
  *
- *   {"akce": "zjisti"}  → {"podporovano": true, "propojeno": bool, "zdroj": …, "stara_schranka": {adresa, smtp_host, zdroj}|null}
+ *   {"akce": "zjisti"}  → {"podporovano": true, "propojeno": bool, "aplikace": slug|null, "zdroj": …, "stara_schranka": {adresa, smtp_host, zdroj}|null}
  *   {"akce": "propoj", "url", "token", "webhook_tajemstvi", "aplikace", "prevzeti"}
  *                       → {"ok": true, "aplikace": slug, "prevzeti": {ok, zprava}|null}
  *   {"akce": "odpoj"}   → {"ok": true} (portál aplikaci v Poště už odpojil)
@@ -47,6 +47,8 @@ class PrikazZPortalu extends Command
                     'podporovano' => true,
                     'verze' => self::VERZE,
                     'propojeno' => Propojeni::propojeno(),
+                    // Ke které aplikaci v Poště – portál pozná klíče z cizí databáze.
+                    'aplikace' => Propojeni::slug(),
                     'zdroj' => Propojeni::zdroj(),
                     'stara_schranka' => StaraSchranka::popis(),
                 ]),

@@ -3,20 +3,23 @@
 namespace App\Filament\Pages;
 
 use App\Enums\StavWebu as Stav;
+use App\Filament\Navigace;
 use App\Models\Nastaveni;
 use App\Support\TextyStavuWebu;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Schema;
+use App\Support\UdrzbaWebu;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 
 /**
- * Provoz → Stav webu: Online / Připravujeme / Údržba. Jen superadmin.
+ * Správa aplikace → Stav webu: Online / Připravujeme / Údržba. Jen superadmin.
  *
  * Kdo spravuje obsah, web nevypíná – kdyby ho omylem přepnul, návštěvníci
  * by viděli „Připravujeme“ a nikdo by nevěděl proč.
@@ -27,11 +30,20 @@ class StavWebu extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSignal;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Provoz';
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return Navigace::spravaAplikace();
+    }
 
-    protected static ?string $navigationLabel = 'Stav webu';
+    public static function getNavigationLabel(): string
+    {
+        return __('administrace.stav_webu.stav_webu');
+    }
 
-    protected static ?string $title = 'Stav webu';
+    public function getTitle(): string|Htmlable
+    {
+        return __('administrace.stav_webu.stav_webu');
+    }
 
     protected static ?string $slug = 'stav-webu';
 
@@ -65,19 +77,19 @@ class StavWebu extends Page
     /** Co návštěvník čte, když web není Online. Prázdné = výchozí text. */
     public function form(Schema $schema): Schema
     {
-        $vychozi = TextyStavuWebu::VYCHOZI;
+        $vychozi = TextyStavuWebu::vychozi();
 
         return $schema
             ->statePath('data')
             ->components([
-                Section::make('Texty pro návštěvníky')
-                    ->description('Prázdné pole = výchozí text (je vidět šedě).')
+                Section::make(__('administrace.stav_webu.texty_pro_navstevniky'))
+                    ->description(__('administrace.stav_webu.prazdne_pole_vychozi_text_je_videt'))
                     ->columns(2)
                     ->schema([
-                        TextInput::make('pripravujeme_nadpis')->label('Připravujeme – nadpis')->placeholder($vychozi['pripravujeme_nadpis']),
-                        TextInput::make('udrzba_nadpis')->label('Údržba – nadpis')->placeholder($vychozi['udrzba_nadpis']),
-                        Textarea::make('pripravujeme_text')->label('Připravujeme – text')->rows(3)->placeholder($vychozi['pripravujeme_text']),
-                        Textarea::make('udrzba_text')->label('Údržba – text')->rows(3)->placeholder($vychozi['udrzba_text']),
+                        TextInput::make('pripravujeme_nadpis')->label(__('administrace.stav_webu.pripravujeme_nadpis'))->placeholder($vychozi['pripravujeme_nadpis']),
+                        TextInput::make('udrzba_nadpis')->label(__('administrace.stav_webu.udrzba_nadpis'))->placeholder($vychozi['udrzba_nadpis']),
+                        Textarea::make('pripravujeme_text')->label(__('administrace.stav_webu.pripravujeme_text'))->rows(3)->placeholder($vychozi['pripravujeme_text']),
+                        Textarea::make('udrzba_text')->label(__('administrace.stav_webu.udrzba_text'))->rows(3)->placeholder($vychozi['udrzba_text']),
                     ]),
             ]);
     }
@@ -88,7 +100,7 @@ class StavWebu extends Page
 
         TextyStavuWebu::uloz($this->form->getState());
 
-        Notification::make()->title('Texty uloženy')->success()->send();
+        Notification::make()->title(__('administrace.stav_webu.texty_ulozeny'))->success()->send();
     }
 
     protected function getViewData(): array
@@ -103,12 +115,12 @@ class StavWebu extends Page
     public function prepnoutAction(): Action
     {
         return Action::make('prepnout')
-            ->label(fn (array $arguments): string => 'Přepnout na '.Stav::from($arguments['stav'])->nazev())
+            ->label(fn (array $arguments): string => __('administrace.stav_webu.prepnout_na', ['from' => Stav::from($arguments['stav'])->nazev()]))
             ->color(fn (array $arguments): string => Stav::from($arguments['stav'])->barva())
             ->requiresConfirmation()
-            ->modalHeading(fn (array $arguments): string => 'Přepnout web na „'.Stav::from($arguments['stav'])->nazev().'“?')
+            ->modalHeading(fn (array $arguments): string => __('administrace.stav_webu.prepnout_web_na', ['from' => Stav::from($arguments['stav'])->nazev()]))
             ->modalDescription(fn (array $arguments): string => Stav::from($arguments['stav'])->popis())
-            ->modalSubmitActionLabel('Přepnout')
+            ->modalSubmitActionLabel(__('administrace.stav_webu.prepnout'))
             ->action(function (array $arguments): void {
                 // Akci jde vyvolat i mimo tlačítko (Livewire) – kontrola i tady.
                 abort_unless(static::canAccess(), 403);
@@ -116,9 +128,11 @@ class StavWebu extends Page
                 $stav = Stav::from($arguments['stav']);
 
                 Nastaveni::nastav(Stav::KLIC, $stav->value);
-                Nastaveni::nastav(Stav::KLIC.'.zmena', auth()->user()->getFilamentName().' · '.now()->format('j. n. Y G:i'));
+                // Ruční přepnutí ruší text a konec údržby z CRM – platí jen pro tu jednu údržbu.
+                UdrzbaWebu::smazPlan();
+                Nastaveni::nastav(Stav::KLIC.'.zmena', auth()->user()->getFilamentName().' · '.now()->format(__('formaty.datum_cas_g')));
 
-                Notification::make()->title('Web je teď ve stavu '.$stav->nazev())->status($stav->barva())->send();
+                Notification::make()->title(__('administrace.stav_webu.web_je_ted_ve_stavu', ['nazev' => $stav->nazev()]))->status($stav->barva())->send();
             });
     }
 }

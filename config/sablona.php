@@ -34,15 +34,40 @@ return [
     'po_nastaveni_hesla' => null,
 
     /*
+     * Další domény webu (stará doména, překlep, jiná koncovka), které se trvale
+     * přesměrují na doménu z APP_URL. `www.` se přesměruje vždy samo.
+     * Příklad: ['rootklima.eu', 'samsungklima.cz'].
+     */
+    'dalsi_domeny' => [],
+
+    /*
+     * Další databáze, bez kterých web nefunguje (spojení z config/database.php,
+     * např. sdílené účty 'identita'). /zdravi je kontroluje stejně jako hlavní:
+     * když neodpovídá, vrátí 503 a nasazení se vrátí. Spojení 'stara' (převod
+     * dat) sem nepatří – po převodu se z .env smaže.
+     */
+    'databaze' => [],
+
+    /*
+     * Vyhledávání na webu (pro strukturovaná data – Google pak u výsledku ukáže
+     * pole hledání). null = web vyhledávání nemá. Příklad:
+     * ['routa' => 'hledat', 'parametr' => 'q'] → https://web.cz/hledat?q=…
+     */
+    'vyhledavani' => null,
+
+    /*
      * Volitelné doplňky šablony (v CRM se volí v okně „Realizace: projekt a web“,
      * popis v .simren/sablona.yml). Zapíná se tady (commit), ne v .env –
      * je to vlastnost projektu. Vypnutý doplněk aplikace nemá: nenačte jeho
      * routy, migrace, administraci ani plánovač. Env jen pro testy.
      *
-     *   platby – platební brána (Comgate, Mo.one), docs/platby.md
+     *   platby    – platební brána (Comgate, Mo.one), docs/platby.md
+     *   fakturace – napojení na fakturace.simren.cz (klíče zapíše portál),
+     *               stav napojení a bankovní účet pro doklady, docs/fakturace.md
      */
     'doplnky' => [
         'platby' => (bool) env('SABLONA_DOPLNEK_PLATBY', false),
+        'fakturace' => (bool) env('SABLONA_DOPLNEK_FAKTURACE', false),
     ],
 
     /*

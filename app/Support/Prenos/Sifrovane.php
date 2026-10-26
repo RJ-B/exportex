@@ -57,13 +57,17 @@ class Sifrovane
      * aktualizaci nepřepíše a nový řádek dostane výchozí hodnotu).
      *
      * @param  array<string, int>  $vynechane  „tabulka.sloupec“ => počet
+     * @param  bool  $pocitat  false = řádek už se započítal (tabulka ve víc částech)
      */
-    public static function bez(string $tabulka, array $radek, array &$vynechane): array
+    public static function bez(string $tabulka, array $radek, array &$vynechane, bool $pocitat = true): array
     {
         foreach ($radek as $sloupec => $hodnota) {
             if (self::je($hodnota)) {
                 unset($radek[$sloupec]);
-                $vynechane[$tabulka.'.'.$sloupec] = ($vynechane[$tabulka.'.'.$sloupec] ?? 0) + 1;
+
+                if ($pocitat) {
+                    $vynechane[$tabulka.'.'.$sloupec] = ($vynechane[$tabulka.'.'.$sloupec] ?? 0) + 1;
+                }
             }
         }
 

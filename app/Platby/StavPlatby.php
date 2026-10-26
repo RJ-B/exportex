@@ -36,14 +36,14 @@ enum StavPlatby: string
     public function popis(): string
     {
         return match ($this) {
-            self::Zalozena => 'Založena',
-            self::Ceka => 'Čeká na zaplacení',
-            self::Zaplacena => 'Zaplacena',
-            self::Zamitnuta => 'Zamítnuta',
-            self::Zrusena => 'Zrušena',
-            self::CastecneVracena => 'Částečně vrácena',
-            self::Vracena => 'Vrácena',
-            self::Chyba => 'Chyba brány',
+            self::Zalozena => __('platby.stav_platby.zalozena'),
+            self::Ceka => __('platby.stav_platby.ceka_na_zaplaceni'),
+            self::Zaplacena => __('platby.stav_platby.zaplacena'),
+            self::Zamitnuta => __('platby.stav_platby.zamitnuta'),
+            self::Zrusena => __('platby.stav_platby.zrusena'),
+            self::CastecneVracena => __('platby.stav_platby.castecne_vracena'),
+            self::Vracena => __('platby.stav_platby.vracena'),
+            self::Chyba => __('platby.stav_platby.chyba_brany'),
         };
     }
 

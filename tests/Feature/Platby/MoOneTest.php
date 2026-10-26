@@ -48,8 +48,7 @@ class MoOneTest extends TestCase
 
         Http::fake(function (Request $r) {
             return match (true) {
-                // Skutečné Mo.one posílá camelCase (ověřeno 16. 10. 2026 na api.znpay.tech).
-                $r->url() === self::URL.'/payment/api/auth/token' => Http::response(['accessToken' => $this->token, 'tokenType' => 'Bearer', 'expiresIn' => 3600]),
+                $r->url() === self::URL.'/payment/api/auth/token' => Http::response(['AccessToken' => $this->token, 'TokenType' => 'Bearer', 'ExpiresIn' => 3600]),
                 $r->url() === self::URL.'/payment/api/transactions/initiate' => Http::response(['Transaction' => [
                     'PublicID' => $id = $this->dalsiId++, 'Amount' => 1250.50, 'TipAmount' => 0, 'CurrencyCode' => 'CZK',
                     'PayPointPublicID' => null, 'RedirectUrl' => 'https://app.mo.one/pay/'.$id,
@@ -201,5 +200,67 @@ class MoOneTest extends TestCase
         }
 
         $this->assertSame(StavPlatby::Chyba, Platba::query()->first()->stav);
+    }
+
+    public function test_odpovedi_se_ctou_bez_ohledu_na_velikost_pismen(): void
+    {
+        $camel = false;
+        $pocet = 0;
+        $k = function (string $pascal) use (&$camel) {
+            return $camel ? lcfirst($pascal) : $pascal;
+        };
+
+        Http::fake(function (Request $r) use (&$camel, &$pocet, $k) {
+            return match (true) {
+                str_ends_with($r->url(), '/auth/token') => Http::response([$k('AccessToken') => 'jwt-ci', $k('TokenType') => 'Bearer', $k('ExpiresIn') => 3600]),
+                str_ends_with($r->url(), '/initiate') => Http::response([$k('Transaction') => [
+                    $k('PublicID') => 'UDPCI'.(++$pocet), $k('RedirectUrl') => 'https://app.mo.one/pay/ci',
+                ]]),
+                str_ends_with($r->url(), '/status') => Http::response([$k('Amount') => 1250.50, $k('Status') => 'Success']),
+                default => Http::response(null, 404),
+            };
+        });
+
+        foreach ([false, true] as $camel) {
+            \Illuminate\Support\Facades\Cache::flush();
+
+            $platba = $this->platby()->zaloz($this->pozadavek(['reference' => 'CI'.(int) $camel]));
+            $this->assertSame('UDPCI'.$pocet, $platba->externi_id);
+            $this->assertSame('https://app.mo.one/pay/ci', $platba->presmerovani_url);
+
+            $this->platby()->overStav($platba);
+            $this->assertSame(StavPlatby::Zaplacena, $platba->refresh()->stav);
+            Http::assertSent(fn (Request $r) => str_ends_with($r->url(), '/status') && $r->hasHeader('Authorization', 'Bearer jwt-ci'));
+        }
+
+        $this->assertSame('x', \App\Platby\Brany\MoOne::pole(['transaction' => ['publicId' => 'x']], 'Transaction.PublicID'));
+        $this->assertNull(\App\Platby\Brany\MoOne::pole(['a' => 1], 'B'));
+    }
+
+    public function test_platba_pres_ostrou_testovaci_branu_je_skutecna(): void
+    {
+        $pocet = 0;
+        Http::fake(function (Request $r) use (&$pocet) {
+            return match (true) {
+            str_ends_with($r->url(), '/auth/token') => Http::response(['accessToken' => 'jwt', 'expiresIn' => 3600]),
+            str_ends_with($r->url(), '/initiate') => Http::response(['transaction' => ['publicID' => 'SK'.(++$pocet), 'redirectUrl' => 'https://app.mo.one/pay/sk']]),
+            default => Http::response(null, 404),
+            };
+        });
+
+        foreach (['https://api-test.znpay.tech' => false, 'https://api.znpay.tech' => true] as $url => $skutecna) {
+            config(['platby.test.moone.url' => $url]);
+            \App\Platby\NastaveniPlateb::zapomen();
+            \Illuminate\Support\Facades\Cache::flush();
+
+            $platba = $this->platby()->zaloz($this->pozadavek(['reference' => 'SK'.(int) $skutecna]));
+
+            $this->assertSame(Rezim::Testovaci, $platba->rezim);
+            $this->assertSame($skutecna, $platba->refresh()->skutecna());
+
+            $mail = view('mail.platby.odkaz', ['platba' => $platba])->render();
+            $this->assertStringContainsString($skutecna ? 'SKUTEČNÁ PLATBA' : 'nic se nestrhne', $mail);
+            $this->assertStringNotContainsString($skutecna ? 'nic se nestrhne' : 'SKUTEČNÁ PLATBA', $mail);
+        }
     }
 }

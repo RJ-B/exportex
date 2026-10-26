@@ -49,20 +49,20 @@ class OchranaFormulare
     private static function duvod(Request $request): ?string
     {
         if (filled($request->input(self::HONEYPOT))) {
-            return 'vyplněné skryté pole';
+            return __('obecne.ochrana_formulare.vyplnene_skryte_pole');
         }
 
         try {
             $zobrazeno = (int) Crypt::decryptString((string) $request->input(self::CAS));
         } catch (Throwable) {
-            return 'chybí nebo je podvržený čas zobrazení';
+            return __('obecne.ochrana_formulare.chybi_nebo_je_podvrzeny_cas_zobrazeni');
         }
 
         $stari = time() - $zobrazeno;
 
         return match (true) {
-            $stari < self::MIN_SEKUND => 'odesláno za '.$stari.' s',
-            $stari > self::MAX_SEKUND => 'formulář starší než 2 hodiny',
+            $stari < self::MIN_SEKUND => __('obecne.ochrana_formulare.odeslano_za_s', ['stari' => $stari]),
+            $stari > self::MAX_SEKUND => __('obecne.ochrana_formulare.formular_starsi_nez_2_hodiny'),
             default => null,
         };
     }

@@ -40,13 +40,13 @@ class PlatbaUdalost extends Model
     public function popisZdroje(): string
     {
         return match ($this->zdroj) {
-            'zalozeni' => 'Založení',
-            'navrat' => 'Návrat zákazníka',
-            'webhook' => 'Oznámení brány',
-            'overeni' => 'Ověření stavu',
-            'planovac' => 'Kontrola plánovačem',
-            'administrace' => 'Administrace',
-            'simulace' => 'Simulace',
+            'zalozeni' => __('platby.platba_udalost.zalozeni'),
+            'navrat' => __('platby.platba_udalost.navrat_zakaznika'),
+            'webhook' => __('platby.platba_udalost.oznameni_brany'),
+            'overeni' => __('platby.platba_udalost.overeni_stavu'),
+            'planovac' => __('platby.platba_udalost.kontrola_planovacem'),
+            'administrace' => __('platby.platba_udalost.administrace'),
+            'simulace' => __('platby.platba_udalost.simulace'),
             default => (string) $this->zdroj,
         };
     }

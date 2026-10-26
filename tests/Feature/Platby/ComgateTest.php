@@ -2,9 +2,11 @@
 
 namespace Tests\Feature\Platby;
 
+use App\Platby\Brany\Comgate;
 use App\Platby\ChybaBrany;
 use App\Platby\NastaveniPlateb;
 use App\Platby\Platba;
+use App\Platby\PlatbyNedostupne;
 use App\Platby\Rezim;
 use App\Platby\StavPlatby;
 use Illuminate\Http\Client\Request;
@@ -113,7 +115,7 @@ class ComgateTest extends TestCase
 
         NastaveniPlateb::uloz(['comgate_vypnute' => ['LATER_TWISTO']]);
         $this->assertSame(['LATER_TWISTO'], NastaveniPlateb::comgateVypnute());
-        $this->assertSame('ALL-LATER_TWISTO', \App\Platby\Brany\Comgate::vyraz(NastaveniPlateb::comgateVypnute()));
+        $this->assertSame('ALL-LATER_TWISTO', Comgate::vyraz(NastaveniPlateb::comgateVypnute()));
 
         $this->assertSame(['CARD_CZ_CSOB_2', 'BANK_CZ_RB'], array_keys(NastaveniPlateb::branaKlienta('comgate')->metody()));
     }
@@ -131,14 +133,14 @@ class ComgateTest extends TestCase
         try {
             NastaveniPlateb::aktivni('moone');
             $this->fail('Neověřená brána nesmí platit ostře.');
-        } catch (\App\Platby\PlatbyNedostupne) {
+        } catch (PlatbyNedostupne) {
         }
 
         $this->assertNotNull(NastaveniPlateb::procNeOstre());
 
         // Nenabízená brána se nepoužije, i když má údaje.
         NastaveniPlateb::uloz(['nabizet' => ['comgate']]);
-        $this->expectException(\App\Platby\PlatbyNedostupne::class);
+        $this->expectException(PlatbyNedostupne::class);
         NastaveniPlateb::aktivni('moone');
     }
 }

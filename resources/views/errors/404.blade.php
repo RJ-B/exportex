@@ -9,7 +9,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Stránka nenalezena — {{ $nazev }}</title>
+<title>{{ __('web.404.stranka_nenalezena', ['nazev' => $nazev]) }}</title>
 <meta name="robots" content="noindex, follow">
 <meta name="theme-color" content="{{ config('web.barva') }}">
 <meta name="color-scheme" content="light dark">
@@ -23,10 +23,10 @@
 <main id="obsah" class="section section--base" style="min-height:100svh;display:flex;align-items:center">
   <div class="wrap" style="text-align:center;max-width:52ch">
     <div class="eyebrow" style="justify-content:center"><span class="num">404</span>
-      <span class="lbl">Stránka nenalezena</span></div>
-    <h1 class="h2" style="margin-bottom:16px">Tady nic není.</h1>
-    <p class="lead" style="margin:0 auto 28px">Odkaz je nejspíš zastaralý nebo překlepnutý. Zkuste to od začátku.</p>
-    <a href="/" class="btn btn--primary btn--lg">Zpět na úvod</a>
+      <span class="lbl">{{ __('web.404.stranka_nenalezena_2') }}</span></div>
+    <h1 class="h2" style="margin-bottom:16px">{{ __('web.404.tady_nic_neni') }}</h1>
+    <p class="lead" style="margin:0 auto 28px">{{ __('web.404.odkaz_je_nejspis_zastaraly_nebo') }}</p>
+    <a href="/" class="btn btn--primary btn--lg">{{ __('web.404.zpet_na_uvod') }}</a>
   </div>
 </main>
 </body>

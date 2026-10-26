@@ -2,6 +2,7 @@
 
 namespace App\Platby\Brany;
 
+use App\Platby\MetodaPlatby;
 use App\Platby\Platba;
 use App\Platby\PlatbyNedostupne;
 use App\Platby\Rezim;
@@ -23,7 +24,7 @@ class Simulace implements Brana
     public function __construct()
     {
         if (! app()->environment('local', 'testing')) {
-            throw new PlatbyNedostupne('Simulace plateb je jen pro lokální vývoj a testy.');
+            throw new PlatbyNedostupne(__('platby.simulace.simulace_plateb_je_jen_pro_lokalni'));
         }
     }
 
@@ -34,7 +35,7 @@ class Simulace implements Brana
 
     public function nazev(): string
     {
-        return 'Simulace';
+        return __('platby.simulace.simulace');
     }
 
     public function rezim(): Rezim
@@ -62,6 +63,12 @@ class Simulace implements Brana
         );
     }
 
+    /** Simulace umí všechno – lokálně jde vyzkoušet celý průchod s předvolbou. */
+    public function predvolby(): array
+    {
+        return MetodaPlatby::cases();
+    }
+
     public function umiZrusit(): bool
     {
         return true;
@@ -85,7 +92,7 @@ class Simulace implements Brana
 
     public function overSpojeni(): string
     {
-        return 'Simulace – nic se neověřuje.';
+        return __('platby.simulace.simulace_nic_se_neoveruje');
     }
 
     public function webhookPravy(Request $request): bool

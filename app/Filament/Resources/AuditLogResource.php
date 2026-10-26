@@ -42,11 +42,20 @@ class AuditLogResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-list-bullet';
 
-    protected static ?string $navigationLabel = 'Aktivita';
+    public static function getNavigationLabel(): string
+    {
+        return __('administrace.audit_log_resource.aktivita');
+    }
 
-    protected static ?string $modelLabel = 'záznam';
+    public static function getModelLabel(): string
+    {
+        return __('administrace.audit_log_resource.zaznam');
+    }
 
-    protected static ?string $pluralModelLabel = 'aktivita';
+    public static function getPluralModelLabel(): string
+    {
+        return __('administrace.audit_log_resource.aktivita_2');
+    }
 
     protected static ?int $navigationSort = 1;
 
@@ -61,13 +70,13 @@ class AuditLogResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->paginated([25, 50, 100])
             ->emptyStateIcon('heroicon-o-list-bullet')
-            ->emptyStateHeading('Zatím žádná aktivita')
-            ->emptyStateDescription('Sem se zapisuje každá změna nastavení a účtů – kdo ji udělal a co přesně změnil.')
+            ->emptyStateHeading(__('administrace.audit_log_resource.zatim_zadna_aktivita'))
+            ->emptyStateDescription(__('administrace.audit_log_resource.sem_se_zapisuje_kazda_zmena_nastaveni'))
             ->columns([
                 TextColumn::make('created_at')
-                    ->label('Kdy')
+                    ->label(__('administrace.audit_log_resource.kdy'))
                     ->extraHeaderAttributes(['style' => 'width:1%;white-space:nowrap'])
-                    ->dateTime('j. n. Y H:i:s')
+                    ->dateTime(__('formaty.datum_cas_sekundy'))
                     ->sortable(),
 
                 // Kdo = jeden sloupec, tři patra POD SEBOU: jméno, role, IP.
@@ -79,25 +88,25 @@ class AuditLogResource extends Resource
                 // nespustí — u sloupce „kdo" je přitom prázdno ta nejhorší
                 // odpověď: nepozná se systémová změna od chybějícího údaje.
                 TextColumn::make('kdo')
-                    ->label('Kdo')
+                    ->label(__('administrace.audit_log_resource.kdo'))
                     ->extraHeaderAttributes(['style' => 'width:1%;white-space:nowrap'])
                     ->getStateUsing(fn (AuditLog $record) => $record->user?->getFilamentName()
-                        ?? ($record->user_id ? 'smazaný účet #'.$record->user_id : 'systém'))
+                        ?? ($record->user_id ? __('administrace.audit_log_resource.smazany_ucet', ['user_id' => $record->user_id]) : __('administrace.audit_log_resource.system')))
                     ->description(fn (AuditLog $record) => Radky::pod(
-                        User::ROLE_POPISKY[$record->user_role] ?? $record->user_role ?? 'bez role',
+                        User::popiskyRoli()[$record->user_role] ?? $record->user_role ?? __('administrace.audit_log_resource.bez_role'),
                         $record->ip_address ?: 'bez IP',
                     ))
                     ->searchable(['user_role', 'ip_address']),
 
                 TextColumn::make('event')
-                    ->label('Událost')
+                    ->label(__('administrace.audit_log_resource.udalost'))
                     ->extraHeaderAttributes(['style' => 'width:1%;white-space:nowrap'])
                     ->fontFamily('mono')
                     ->size('sm')
                     ->searchable(),
 
                 TextColumn::make('summary')
-                    ->label('Souhrn')
+                    ->label(__('administrace.audit_log_resource.souhrn'))
                     ->wrap()
                     // Nabere zbylou šířku řádku. Přes `style`, ne Tailwind
                     // třídu: Filament si CSS kompiluje sám a třídu, kterou
@@ -108,7 +117,7 @@ class AuditLogResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('event')
-                    ->label('Událost')
+                    ->label(__('administrace.audit_log_resource.udalost'))
                     // Nabídka se skládá z toho, co v logu opravdu je — pevný
                     // seznam by zastaral při první nové události.
                     ->options(fn () => AuditLog::query()
@@ -119,11 +128,11 @@ class AuditLogResource extends Resource
             ])
             ->recordActions([
                 Action::make('detail')
-                    ->label('Detail')
+                    ->label(__('administrace.audit_log_resource.detail'))
                     ->icon('heroicon-o-eye')
-                    ->modalHeading(fn (AuditLog $record) => $record->event.' · '.$record->created_at->format('j. n. Y H:i:s'))
+                    ->modalHeading(fn (AuditLog $record) => $record->event.' · '.$record->created_at->format(__('formaty.datum_cas_sekundy')))
                     ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Zavřít')
+                    ->modalCancelActionLabel(__('administrace.audit_log_resource.zavrit'))
                     ->modalContent(fn (AuditLog $record) => view('filament.logy.audit-detail', ['zaznam' => $record])),
             ]);
     }

@@ -31,8 +31,8 @@ class PoImportu
         $vysledek = [];
 
         app(Propojeni::class)->zapomen();
-        $vysledek['posta'] = 'zapomenuto – portál web propojí znovu';
-        $vysledek['posta_fronta'] = rescue(fn () => Odchozi::query()->delete(), 'nešlo smazat', false);
+        $vysledek['posta'] = __('obecne.po_importu.zapomenuto_portal_web_propoji_znovu');
+        $vysledek['posta_fronta'] = rescue(fn () => Odchozi::query()->delete(), __('obecne.po_importu.neslo_smazat'), false);
 
         try {
             $vysledek['sifrovane'] = Sifrovane::uklidNecitelnych();

@@ -28,7 +28,7 @@ abstract class StrankaSekceWebu extends Page
 
     public ?array $data = [];
 
-    /** Klíč obsahu v ObsahWebu::VYCHOZI. */
+    /** Klíč obsahu v ObsahWebu::vychozi(). */
     abstract protected static function obsah(): string;
 
     public function mount(): void
@@ -40,7 +40,7 @@ abstract class StrankaSekceWebu extends Page
     {
         ObsahWebu::uloz(static::obsah(), $this->form->getState());
 
-        Notification::make()->title('Uloženo')->body('Změny jsou hned na webu.')->success()->send();
+        Notification::make()->title(__('administrace.stranka_sekce_webu.ulozeno'))->body(__('administrace.stranka_sekce_webu.zmeny_jsou_hned_na_webu'))->success()->send();
     }
 
     /**
@@ -73,11 +73,11 @@ abstract class StrankaSekceWebu extends Page
     /** Štítek a nadpis sekce – stejné u všech sekcí webu (štítek je i v menu webu). */
     public static function nadpisSekce(bool $popis = false): Section
     {
-        return Section::make('Nadpis sekce')
-            ->description('Štítek je nad nadpisem s číslem sekce a zároveň v menu webu.')
+        return Section::make(__('administrace.stranka_sekce_webu.nadpis_sekce'))
+            ->description(__('administrace.stranka_sekce_webu.stitek_je_nad_nadpisem_s_cislem'))
             ->columns(2)
             ->schema([
-                ...self::text('stitek', 'Štítek (v menu)', 40),
+                ...self::text('stitek', __('administrace.stranka_sekce_webu.stitek_v_menu'), 40),
                 ...self::text('nadpis', 'Nadpis', 160),
                 ...($popis ? self::odstavec('popis', 'Text pod nadpisem', 400) : []),
             ]);
@@ -104,6 +104,6 @@ abstract class StrankaSekceWebu extends Page
                 'type' => null,
                 'url' => ObsahWebu::obrazek($file),
             ])
-            ->helperText('JPEG, PNG nebo WebP. Fotka se sama zmenší a uloží jako WebP.'));
+            ->helperText(__('administrace.stranka_sekce_webu.jpeg_png_nebo_webp_fotka_se')));
     }
 }

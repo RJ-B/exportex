@@ -13,9 +13,15 @@ class UkazkyZakazek extends StrankaSekceWebu
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBriefcase;
 
-    protected static ?string $navigationLabel = 'Ukázky zakázek';
+    public static function getNavigationLabel(): string
+    {
+        return __('administrace.ukazky_zakazek.ukazky_zakazek');
+    }
 
-    protected static ?string $title = 'Ukázky zakázek';
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return __('administrace.ukazky_zakazek.ukazky_zakazek');
+    }
 
     protected static ?string $slug = 'web/ukazky-zakazek';
 
@@ -42,14 +48,14 @@ class UkazkyZakazek extends StrankaSekceWebu
             ->statePath('data')
             ->components([
                 self::nadpisSekce(popis: true),
-                Section::make('Zakázky')
+                Section::make(__('administrace.ukazky_zakazek.zakazky'))
                     ->schema([
                         Repeater::make('polozky')->hiddenLabel()
                             ->columns(2)
                             ->reorderableWithDragAndDrop()
                             ->collapsible()
                             ->itemLabel(fn (array $state) => $state['nazev'] ?? null)
-                            ->addActionLabel('Přidat zakázku')
+                            ->addActionLabel(__('administrace.ukazky_zakazek.pridat_zakazku'))
                             ->schema(JakToFunguje::kartaSeStitkem()),
                     ]),
             ]);

@@ -35,11 +35,11 @@ class ListPlatby extends ListRecords
             ->badge(fn () => Platba::query()->whereIn('stav', $stavy)->count() ?: null);
 
         return [
-            'vse' => Tab::make('Vše'),
-            'ceka' => $tab('Čeká', [StavPlatby::Zalozena->value, StavPlatby::Ceka->value]),
-            'zaplacene' => Tab::make('Zaplacené')->modifyQueryUsing(fn (Builder $query) => $query->where('stav', StavPlatby::Zaplacena->value)),
-            'neuspesne' => $tab('Neúspěšné', [StavPlatby::Zamitnuta->value, StavPlatby::Zrusena->value, StavPlatby::Chyba->value]),
-            'vracene' => Tab::make('Vrácené')->modifyQueryUsing(fn (Builder $query) => $query->whereIn('stav', [StavPlatby::CastecneVracena->value, StavPlatby::Vracena->value])),
+            'vse' => Tab::make(__('platby.list_platby.vse')),
+            'ceka' => $tab(__('platby.list_platby.ceka'), [StavPlatby::Zalozena->value, StavPlatby::Ceka->value]),
+            'zaplacene' => Tab::make(__('platby.list_platby.zaplacene'))->modifyQueryUsing(fn (Builder $query) => $query->where('stav', StavPlatby::Zaplacena->value)),
+            'neuspesne' => $tab(__('platby.list_platby.neuspesne'), [StavPlatby::Zamitnuta->value, StavPlatby::Zrusena->value, StavPlatby::Chyba->value]),
+            'vracene' => Tab::make(__('platby.list_platby.vracene'))->modifyQueryUsing(fn (Builder $query) => $query->whereIn('stav', [StavPlatby::CastecneVracena->value, StavPlatby::Vracena->value])),
         ];
     }
 
@@ -47,25 +47,25 @@ class ListPlatby extends ListRecords
     {
         return [
             Action::make('nastaveni')
-                ->label('Platební brána')
+                ->label(__('platby.list_platby.platebni_brana'))
                 ->icon('heroicon-o-cog-6-tooth')
                 ->color('gray')
                 ->url(fn () => PlatebniBrana::getUrl()),
             Action::make('novaPlatba')
-                ->label('Nová platba')
+                ->label(__('platby.list_platby.nova_platba'))
                 ->icon('heroicon-o-plus')
-                ->modalHeading('Odkaz k zaplacení')
+                ->modalHeading(__('platby.list_platby.odkaz_k_zaplaceni'))
                 ->modalDescription(fn () => NastaveniPlateb::prehled()['chyba'] ?? NastaveniPlateb::prehled()['popis'])
-                ->modalSubmitActionLabel('Vytvořit odkaz')
+                ->modalSubmitActionLabel(__('platby.list_platby.vytvorit_odkaz'))
                 ->schema([
-                    TextInput::make('popis')->label('Za co')->required()->maxLength(190)->placeholder('Záloha na zahradní altán'),
-                    TextInput::make('castka')->label('Částka (Kč)')->required()->placeholder('2 500')
-                        ->rule('regex:/^\s*\d[\d\s]*([,.]\d{1,2})?\s*$/')->validationMessages(['regex' => 'Částka v korunách, např. 2 500 nebo 1250,50.']),
-                    TextInput::make('reference')->label('Číslo (objednávky, faktury)')->maxLength(64),
-                    TextInput::make('email')->label('E-mail zákazníka')->email()->required(),
-                    TextInput::make('jmeno')->label('Jméno')->maxLength(80),
-                    TextInput::make('prijmeni')->label('Příjmení')->maxLength(80),
-                    Toggle::make('poslat')->label('Poslat odkaz zákazníkovi e-mailem')->default(true),
+                    TextInput::make('popis')->label(__('platby.list_platby.za_co'))->required()->maxLength(190)->placeholder(__('platby.list_platby.zaloha_na_zahradni_altan')),
+                    TextInput::make('castka')->label(__('platby.list_platby.castka_kc'))->required()->placeholder('2 500')
+                        ->rule('regex:/^\s*\d[\d\s]*([,.]\d{1,2})?\s*$/')->validationMessages(['regex' => __('platby.list_platby.castka_v_korunach_napr_2_500')]),
+                    TextInput::make('reference')->label(__('platby.list_platby.cislo_objednavky_faktury'))->maxLength(64),
+                    TextInput::make('email')->label(__('platby.list_platby.e_mail_zakaznika'))->email()->required(),
+                    TextInput::make('jmeno')->label(__('platby.list_platby.jmeno'))->maxLength(80),
+                    TextInput::make('prijmeni')->label(__('platby.list_platby.prijmeni'))->maxLength(80),
+                    Toggle::make('poslat')->label(__('platby.list_platby.poslat_odkaz_zakaznikovi_e_mailem'))->default(true),
                 ])
                 ->action(function (array $data, Platby $platby) {
                     try {
@@ -78,7 +78,7 @@ class ListPlatby extends ListRecords
                             reference: $data['reference'] ?: null,
                         ));
                     } catch (PlatbyNedostupne|ChybaBrany|\InvalidArgumentException $e) {
-                        Notification::make()->title('Platbu nejde vytvořit')->body($e->getMessage())->danger()->send();
+                        Notification::make()->title(__('platby.list_platby.platbu_nejde_vytvorit'))->body($e->getMessage())->danger()->send();
 
                         return;
                     }
@@ -87,11 +87,11 @@ class ListPlatby extends ListRecords
                         try {
                             Mail::to($platba->email, $platba->celeJmeno() ?: null)->send(new OdkazKZaplaceni($platba));
                         } catch (Throwable $e) {
-                            app(ErrorLogger::class)->capture($e, ['platba' => $platba->verejne_id, 'kdy' => 'odkaz k zaplacení']);
+                            app(ErrorLogger::class)->capture($e, ['platba' => $platba->verejne_id, 'kdy' => __('platby.list_platby.odkaz_k_zaplaceni_2')]);
                         }
                     }
 
-                    Notification::make()->title('Odkaz k zaplacení je připravený')
+                    Notification::make()->title(__('platby.list_platby.odkaz_k_zaplaceni_je_pripraveny'))
                         ->body($platba->odkazKZaplaceni())->success()->persistent()->send();
 
                     $this->redirect(PlatbaResource::getUrl('view', ['record' => $platba]));

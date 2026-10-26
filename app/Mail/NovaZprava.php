@@ -23,7 +23,7 @@ class NovaZprava extends Mailable
 
         return new Envelope(
             replyTo: [new Address($this->zprava->email, $this->zprava->celeJmeno())],
-            subject: 'Nová poptávka z webu '.ZakladniUdaje::get('nazev').': '.$od.($this->zprava->jazyk === 'en' ? ' [EN]' : ''),
+            subject: __('maily.nova_zprava.nova_poptavka_z_webu', ['get' => ZakladniUdaje::get('nazev'), 'od' => $od, 'hodnota' => ($this->zprava->jazyk === 'en' ? ' [EN]' : '')]),
         );
     }
 

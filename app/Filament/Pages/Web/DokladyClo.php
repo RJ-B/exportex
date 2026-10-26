@@ -13,9 +13,15 @@ class DokladyClo extends StrankaSekceWebu
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentCheck;
 
-    protected static ?string $navigationLabel = 'Doklady a clo';
+    public static function getNavigationLabel(): string
+    {
+        return __('administrace.doklady_clo.doklady_a_clo');
+    }
 
-    protected static ?string $title = 'Doklady a clo';
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return __('administrace.doklady_clo.doklady_a_clo');
+    }
 
     protected static ?string $slug = 'web/doklady-a-clo';
 
@@ -42,14 +48,14 @@ class DokladyClo extends StrankaSekceWebu
             ->statePath('data')
             ->components([
                 self::nadpisSekce(),
-                Section::make('Karty')
+                Section::make(__('administrace.doklady_clo.karty'))
                     ->schema([
                         Repeater::make('polozky')->hiddenLabel()
                             ->columns(2)
                             ->reorderableWithDragAndDrop()
                             ->collapsible()
                             ->itemLabel(fn (array $state) => $state['stitek'] ?? null)
-                            ->addActionLabel('Přidat kartu')
+                            ->addActionLabel(__('administrace.doklady_clo.pridat_kartu'))
                             ->schema(JakToFunguje::kartaSeStitkem()),
                     ]),
             ]);

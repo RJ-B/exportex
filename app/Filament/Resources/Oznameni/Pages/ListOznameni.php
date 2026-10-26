@@ -19,35 +19,35 @@ class ListOznameni extends ListRecords
     {
         return [
             Action::make('skupiny')
-                ->label('Skupiny příjemců')
+                ->label(__('administrace.list_oznameni.skupiny_prijemcu'))
                 ->icon('heroicon-o-user-group')
                 ->color('gray')
                 ->url(SkupinaResource::getUrl()),
             // Rozhodnutí Sim&Ren (právo, souhlasy) – jen superadmin.
             Action::make('nastaveni')
-                ->label('Nastavení')
+                ->label(__('administrace.list_oznameni.nastaveni'))
                 ->icon('heroicon-o-cog-6-tooth')
                 ->color('gray')
                 ->visible(fn () => auth()->user()?->jeSuperadmin())
-                ->modalHeading('Nastavení oznámení')
-                ->modalDescription('Výchozí je konzervativní: nabídky vypnuté, oznámení z portálu jen správcům.')
+                ->modalHeading(__('administrace.list_oznameni.nastaveni_oznameni'))
+                ->modalDescription(__('administrace.list_oznameni.vychozi_je_konzervativni_nabidky_vypnute'))
                 ->fillForm(fn () => [
                     'marketing' => NastaveniOznameni::marketing(),
                     'portal_koncovym' => NastaveniOznameni::portalKoncovym(),
                 ])
                 ->schema([
                     Toggle::make('marketing')
-                        ->label('Klient smí posílat nabídky a akce (marketing)')
-                        ->helperText('Obchodní sdělení – e-mailem jen lidem, kteří výslovně souhlasili. Zapnout až po domluvě s klientem.'),
+                        ->label(__('administrace.list_oznameni.klient_smi_posilat_nabidky_a_akce'))
+                        ->helperText(__('administrace.list_oznameni.obchodni_sdeleni_e_mailem_jen_lidem')),
                     Toggle::make('portal_koncovym')
-                        ->label('Oznámení z portálu Sim&Ren i koncovým uživatelům')
-                        ->helperText('Nové verze, odstávky a výpadky. Vypnuté = jen správcům aplikace. (Příjem z portálu připravujeme.)'),
+                        ->label(__('administrace.list_oznameni.oznameni_z_portalu_sim_ren_i'))
+                        ->helperText(__('administrace.list_oznameni.nove_verze_odstavky_a_vypadky_vypnute')),
                 ])
                 ->action(function (array $data) {
                     NastaveniOznameni::uloz((bool) $data['marketing'], (bool) $data['portal_koncovym']);
-                    Notification::make()->title('Nastavení oznámení uloženo')->success()->send();
+                    Notification::make()->title(__('administrace.list_oznameni.nastaveni_oznameni_ulozeno'))->success()->send();
                 }),
-            CreateAction::make()->label('Napsat oznámení'),
+            CreateAction::make()->label(__('administrace.list_oznameni.napsat_oznameni')),
         ];
     }
 }

@@ -20,15 +20,15 @@ class NavratZPosty
         try {
             $vysledek = $propojeni->dokonci($request->query());
             $prevzeti = $vysledek['prevzeti_vysledek'] ?? null;
-            Notification::make()->title('Propojeno s Poštou')
+            Notification::make()->title(__('posta.navrat_z_posty.propojeno_s_postou'))
                 ->body($prevzeti
-                    ? $prevzeti['zprava'].($prevzeti['ok'] ? ' Pošli zkušební e-mail – po jeho odeslání se stará schránka z aplikace smaže.' : '')
-                    : 'Smí posílat z: '.(collect(Propojeni::adresy())->pluck('adresa')->implode(', ') ?: '–').'.')
+                    ? $prevzeti['zprava'].($prevzeti['ok'] ? __('posta.navrat_z_posty.posli_zkusebni_e_mail_po_jeho') : '')
+                    : __('posta.navrat_z_posty.smi_posilat_z', ['adresy' => (collect(Propojeni::adresy())->pluck('adresa')->implode(', ') ?: '–')]))
                 ->{$prevzeti && ! $prevzeti['ok'] ? 'warning' : 'success'}()
                 ->persistent((bool) $prevzeti)
                 ->send();
         } catch (Throwable $e) {
-            Notification::make()->title('Propojení s Poštou se nepovedlo')->body($e->getMessage())->danger()->persistent()->send();
+            Notification::make()->title(__('posta.navrat_z_posty.propojeni_s_postou_se_nepovedlo'))->body($e->getMessage())->danger()->persistent()->send();
         }
 
         return redirect()->to(PostaStranka::getUrl());

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Clusters;
 
+use App\Filament\Navigace;
 use Filament\Clusters\Cluster;
 use Filament\Pages\Enums\SubNavigationPosition;
 
@@ -16,9 +17,15 @@ class ObsahWebu extends Cluster
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-group';
 
-    protected static ?string $navigationLabel = 'Obsah webu';
+    public static function getNavigationLabel(): string
+    {
+        return Navigace::obsahWebu();
+    }
 
-    protected static ?string $clusterBreadcrumb = 'Obsah webu';
+    public static function getClusterBreadcrumb(): ?string
+    {
+        return Navigace::obsahWebu();
+    }
 
     protected static ?string $slug = 'obsah-webu';
 

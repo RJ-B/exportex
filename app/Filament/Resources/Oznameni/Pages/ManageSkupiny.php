@@ -12,6 +12,6 @@ class ManageSkupiny extends ManageRecords
 
     protected function getHeaderActions(): array
     {
-        return [CreateAction::make()->label('Nová skupina')];
+        return [CreateAction::make()->label(__('administrace.manage_skupiny.nova_skupina'))];
     }
 }

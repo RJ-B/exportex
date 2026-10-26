@@ -11,7 +11,8 @@ use Illuminate\Foundation\Events\Dispatchable;
  * zaplacena, vystavit doklad…) má být rychlý; pomalé věci do fronty.
  *
  * $platba->testovaci() = zaplaceno přes testovací bránu nebo simulaci –
- * nic se nestrhlo, zboží neodesílat.
+ * zboží neodesílat. Testovací brána Sim&Ren může být ostrá (api.znpay.tech):
+ * pak se peníze skutečně strhly a vrací se ručně v aplikaci Mo.one.
  */
 class PlatbaZaplacena
 {

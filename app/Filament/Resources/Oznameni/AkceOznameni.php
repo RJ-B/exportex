@@ -37,21 +37,21 @@ trait AkceOznameni
     protected function nahledAction(): Action
     {
         return Action::make('nahled')
-            ->label('Náhled')
+            ->label(__('administrace.akce_oznameni.nahled'))
             ->icon('heroicon-o-eye')
             ->color('gray')
             ->mountUsing(fn () => $this->ulozRozpracovane())
-            ->modalHeading('Náhled oznámení')
+            ->modalHeading(__('administrace.akce_oznameni.nahled_oznameni'))
             ->modalWidth('3xl')
             ->modalContent(fn () => view('filament.oznameni.nahled', ['oznameni' => $this->record, 'email' => $this->nahledEmailu()]))
             ->modalSubmitAction(false)
-            ->modalCancelActionLabel('Zavřít');
+            ->modalCancelActionLabel(__('administrace.akce_oznameni.zavrit'));
     }
 
     protected function testSobeAction(): Action
     {
         return Action::make('test')
-            ->label('Poslat zkoušku sobě')
+            ->label(__('administrace.akce_oznameni.poslat_zkousku_sobe'))
             ->icon('heroicon-o-envelope')
             ->color('gray')
             ->action(function () {
@@ -59,10 +59,10 @@ trait AkceOznameni
 
                 try {
                     app(Odeslani::class)->testSobe($this->record, auth()->user());
-                    Notification::make()->title('Zkouška odešla na '.auth()->user()->email)->body('Nikomu jinému nic neodešlo.')->success()->send();
+                    Notification::make()->title(__('administrace.akce_oznameni.zkouska_odesla_na', ['email' => auth()->user()->email]))->body(__('administrace.akce_oznameni.nikomu_jinemu_nic_neodeslo'))->success()->send();
                 } catch (Throwable $e) {
                     report($e);
-                    Notification::make()->title('Zkoušku se nepodařilo poslat')->body($e->getMessage())->danger()->send();
+                    Notification::make()->title(__('administrace.akce_oznameni.zkousku_se_nepodarilo_poslat'))->body($e->getMessage())->danger()->send();
                 }
             });
     }
@@ -70,13 +70,13 @@ trait AkceOznameni
     protected function odeslatAction(): Action
     {
         return Action::make('odeslat')
-            ->label(fn () => $this->record->naplanovano_na?->isFuture() ? 'Naplánovat' : 'Odeslat')
+            ->label(fn () => $this->record->naplanovano_na?->isFuture() ? __('administrace.akce_oznameni.naplanovat') : __('administrace.akce_oznameni.odeslat'))
             ->icon('heroicon-o-paper-airplane')
             ->mountUsing(function (Action $action, ?Schema $schema) {
                 $this->ulozRozpracovane();
 
                 if ($chyby = app(Odeslani::class)->chyby($this->record)) {
-                    Notification::make()->title('Oznámení zatím nejde odeslat')->body(implode(' ', $chyby))->danger()->persistent()->send();
+                    Notification::make()->title(__('administrace.akce_oznameni.oznameni_zatim_nejde_odeslat'))->body(implode(' ', $chyby))->danger()->persistent()->send();
                     $action->cancel();
                 }
 
@@ -84,32 +84,32 @@ trait AkceOznameni
                 $schema?->fill();
             })
             ->modalHeading(fn () => $this->record->naplanovano_na?->isFuture()
-                ? 'Naplánovat na '.$this->record->naplanovano_na->format('j. n. Y H:i').'?'
-                : 'Odeslat oznámení?')
+                ? __('administrace.akce_oznameni.naplanovat_na', ['format' => $this->record->naplanovano_na->format(__('formaty.datum_cas'))])
+                : __('administrace.akce_oznameni.odeslat_oznameni'))
             ->modalWidth('lg')
             ->schema(fn () => [
                 // Až při vykreslení – počty vznikají v mountUsing, schéma se skládá dřív.
                 View::make('filament.oznameni.pocty')->viewData(fn () => ['pocty' => $this->poctyOdeslani, 'oznameni' => $this->record]),
                 TextInput::make('potvrzeni')
-                    ->label('Pro potvrzení opište počet příjemců')
+                    ->label(__('administrace.akce_oznameni.pro_potvrzeni_opiste_pocet_prijemcu'))
                     ->visible(fn () => ($this->poctyOdeslani['prijemcu'] ?? 0) >= NastaveniOznameni::limit('potvrzeni_od'))
                     ->required()
                     ->in(fn () => [(string) ($this->poctyOdeslani['prijemcu'] ?? '')])
-                    ->validationMessages(['in' => 'Počet nesedí – opište ho přesně.']),
+                    ->validationMessages(['in' => __('administrace.akce_oznameni.pocet_nesedi_opiste_ho_presne')]),
             ])
-            ->modalSubmitActionLabel(fn () => $this->record->naplanovano_na?->isFuture() ? 'Naplánovat' : 'Odeslat teď')
+            ->modalSubmitActionLabel(fn () => $this->record->naplanovano_na?->isFuture() ? __('administrace.akce_oznameni.naplanovat') : __('administrace.akce_oznameni.odeslat_ted'))
             ->action(function (Action $action) {
                 try {
                     app(Odeslani::class)->odeslat($this->record, auth()->user());
                 } catch (OznameniNejdeOdeslat $e) {
-                    Notification::make()->title('Oznámení nejde odeslat')->body(implode(' ', $e->chyby))->danger()->persistent()->send();
+                    Notification::make()->title(__('administrace.akce_oznameni.oznameni_nejde_odeslat'))->body(implode(' ', $e->chyby))->danger()->persistent()->send();
                     $action->halt();
                 }
 
                 $this->record->refresh();
                 Notification::make()
-                    ->title($this->record->naplanovano_na?->isFuture() ? 'Naplánováno na '.$this->record->naplanovano_na->format('j. n. Y H:i') : 'Oznámení odchází')
-                    ->body($this->record->maKanal(KanalOznameni::Email) ? 'E-maily odcházejí po dávkách přes Poštu – výsledek uvidíte v detailu.' : null)
+                    ->title($this->record->naplanovano_na?->isFuture() ? __('administrace.akce_oznameni.naplanovano_na', ['format' => $this->record->naplanovano_na->format(__('formaty.datum_cas'))]) : __('administrace.akce_oznameni.oznameni_odchazi'))
+                    ->body($this->record->maKanal(KanalOznameni::Email) ? __('administrace.akce_oznameni.e_maily_odchazeji_po_davkach_pres') : null)
                     ->success()->send();
 
                 $this->redirect(OznameniResource::getUrl('view', ['record' => $this->record]));

@@ -3,6 +3,7 @@
 namespace App\Platby\Brany;
 
 use App\Platby\ChybaBrany;
+use App\Platby\MetodaPlatby;
 use App\Platby\Platba;
 use App\Platby\Rezim;
 use App\Platby\StavPlatby;
@@ -44,7 +45,7 @@ class Comgate implements Brana
 
     public function nazev(): string
     {
-        return 'Comgate';
+        return __('platby.comgate.comgate');
     }
 
     public function rezim(): Rezim
@@ -68,21 +69,22 @@ class Comgate implements Brana
             // Comgate: 1–16 znaků, ukáže se zákazníkovi a ve výpisu.
             'label' => Str::limit(Str::ascii($platba->popis) ?: 'Platba', 16, ''),
             'refId' => $platba->reference ?: $platba->verejne_id,
-            // Výběr metod bez metod vypnutých v administraci.
-            'method' => self::vyraz($this->vypnute),
+            // Předvolba (Apple Pay / Google Pay) otevře rovnou peněženku, jinak výběr metod
+            // bez metod vypnutých v administraci.
+            'method' => $platba->predvolba?->kodComgate() ?? self::vyraz($this->vypnute),
             'email' => $platba->email,
             'fullName' => $platba->celeJmeno() ?: $platba->email,
             'country' => 'CZ',
-            'lang' => 'cs',
+            'lang' => app()->getLocale(),
             'test' => $this->test(),
             // Návratové adresy s každou platbou – web nezávisí na tom, co je v portálu Comgate.
             'url_paid' => $navrat,
             'url_cancelled' => $navrat,
             'url_pending' => $navrat,
-        ]), 'založení platby');
+        ]), __('platby.comgate.zalozeni_platby'));
 
         if (blank($odpoved['transId'] ?? null) || blank($odpoved['redirect'] ?? null)) {
-            throw new ChybaBrany('Comgate nevrátil číslo ani adresu platby.');
+            throw new ChybaBrany(__('platby.comgate.comgate_nevratil_cislo_ani_adresu_platby'));
         }
 
         return new ZalozenaPlatba($odpoved['transId'], $odpoved['redirect'], self::bezTajemstvi($odpoved));
@@ -90,23 +92,38 @@ class Comgate implements Brana
 
     public function stav(Platba $platba): StavZBrany
     {
-        $odpoved = $this->json(fn (PendingRequest $h) => $h->get('payment/transId/'.rawurlencode((string) $platba->externi_id).'.json'), 'ověření stavu');
+        $odpoved = $this->json(fn (PendingRequest $h) => $h->get('payment/transId/'.rawurlencode((string) $platba->externi_id).'.json'), __('platby.comgate.overeni_stavu'));
 
         $stav = match (strtoupper((string) ($odpoved['status'] ?? ''))) {
             'PAID' => StavPlatby::Zaplacena,
             'CANCELLED' => StavPlatby::Zrusena,
             // AUTHORIZED = předautorizace (šablona ji nepoužívá) – peníze ještě nepřišly.
             'PENDING', 'AUTHORIZED' => StavPlatby::Ceka,
-            default => throw new ChybaBrany('Comgate vrátil neznámý stav „'.($odpoved['status'] ?? '').'“.'),
+            default => throw new ChybaBrany(__('platby.comgate.comgate_vratil_neznamy_stav', ['hodnota' => ($odpoved['status'] ?? '')])),
         };
 
         return new StavZBrany(
             stav: $stav,
             castka: is_numeric($odpoved['price'] ?? null) ? (int) $odpoved['price'] : null,
             metoda: $odpoved['method'] ?? null,
-            poznamka: filled($odpoved['paymentErrorReason'] ?? null) ? 'Důvod: '.$odpoved['paymentErrorReason'] : null,
+            poznamka: filled($odpoved['paymentErrorReason'] ?? null) ? __('platby.comgate.duvod', ['payment_error_reason' => $odpoved['paymentErrorReason']]) : null,
             data: self::bezTajemstvi($odpoved),
         );
+    }
+
+    /**
+     * Apple Pay a Google Pay jsou u Comgate součást platby kartou: brána je ukáže,
+     * když má obchod zapnutou kartu CARD_CZ_COMGATE nebo CARD_CZ_CSOB_2
+     * (https://apidoc.comgate.cz/en/applepay-a-googlepay); předvolí se kódem
+     * APPLEPAY_REDIRECT / GOOGLEPAY_REDIRECT.
+     */
+    public function predvolby(): array
+    {
+        $kody = collect(array_keys($this->metody() ?? []));
+        $karta = $kody->contains(fn (string $k) => in_array($k, ['CARD_CZ_COMGATE', 'CARD_CZ_CSOB_2'], true));
+
+        return array_values(array_filter(MetodaPlatby::cases(), fn (MetodaPlatby $m) => $karta
+            || $kody->contains(fn (string $k) => str_starts_with($k, strtok($m->kodComgate(), '_')))));
     }
 
     /**
@@ -125,7 +142,7 @@ class Comgate implements Brana
         }
 
         try {
-            $odpoved = $this->json(fn (PendingRequest $h) => $h->get('method.json', ['lang' => 'cs', 'curr' => 'CZK', 'country' => 'CZ']), 'výpis metod');
+            $odpoved = $this->json(fn (PendingRequest $h) => $h->get('method.json', ['lang' => app()->getLocale(), 'curr' => 'CZK', 'country' => 'CZ']), __('platby.comgate.vypis_metod'));
         } catch (ChybaBrany) {
             Cache::put($klic, ['metody' => null], now()->addMinute());
 
@@ -169,7 +186,7 @@ class Comgate implements Brana
 
     public function zrus(Platba $platba): void
     {
-        $this->json(fn (PendingRequest $h) => $h->delete('payment/transId/'.rawurlencode((string) $platba->externi_id).'.json'), 'zrušení platby');
+        $this->json(fn (PendingRequest $h) => $h->delete('payment/transId/'.rawurlencode((string) $platba->externi_id).'.json'), __('platby.comgate.zruseni_platby'));
     }
 
     public function umiVratit(): bool
@@ -185,14 +202,14 @@ class Comgate implements Brana
             'curr' => $platba->mena,
             'test' => $this->test(),
             'refId' => $platba->reference ?: $platba->verejne_id,
-        ]), 'vrácení platby');
+        ]), __('platby.comgate.vraceni_platby'));
     }
 
     public function overSpojeni(): string
     {
-        $odpoved = $this->json(fn (PendingRequest $h) => $h->get('method.json', ['lang' => 'cs', 'curr' => 'CZK', 'country' => 'CZ']), 'ověření spojení');
+        $odpoved = $this->json(fn (PendingRequest $h) => $h->get('method.json', ['lang' => app()->getLocale(), 'curr' => 'CZK', 'country' => 'CZ']), __('platby.comgate.overeni_spojeni'));
 
-        return 'Spojení s Comgate funguje ('.count((array) ($odpoved['methods'] ?? [])).' platebních metod).';
+        return __('platby.comgate.spojeni_s_comgate_funguje_platebnich', ['count' => count((array) ($odpoved['methods'] ?? []))]);
     }
 
     /** Comgate posílá v oznámení i heslo obchodu – musí sedět. */
@@ -233,18 +250,18 @@ class Comgate implements Brana
             /** @var Response $odpoved */
             $odpoved = $pozadavek($this->http());
         } catch (ConnectionException $e) {
-            throw new ChybaBrany('Comgate neodpovídá ('.$co.'): '.$e->getMessage(), previous: $e);
+            throw new ChybaBrany(__('platby.comgate.comgate_neodpovida', ['co' => $co, 'get_message' => $e->getMessage()]), previous: $e);
         }
 
         if ($odpoved->status() === 401 || $odpoved->status() === 403) {
-            throw new ChybaBrany('Comgate odmítl přihlášení ('.$co.') – zkontroluj identifikátor obchodu a heslo.');
+            throw new ChybaBrany(__('platby.comgate.comgate_odmitl_prihlaseni_zkontroluj', ['co' => $co]));
         }
 
         $data = (array) $odpoved->json();
 
         if (! $odpoved->successful() || (isset($data['code']) && (int) $data['code'] !== 0)) {
             throw new ChybaBrany('Comgate: '.$co.' selhalo (HTTP '.$odpoved->status()
-                .(isset($data['code']) ? ', kód '.$data['code'] : '').')'
+                .(isset($data['code']) ? __('platby.comgate.kod', ['code' => $data['code']]) : '').')'
                 .(filled($data['message'] ?? null) ? ' – '.$data['message'] : '').'.');
         }
 

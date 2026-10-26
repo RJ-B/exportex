@@ -12,6 +12,7 @@ use App\Support\Posta\Odchozi;
 use App\Support\Posta\Propojeni;
 use App\Support\Posta\StaraSchranka;
 use App\Support\Zdravi;
+use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -394,5 +395,29 @@ class PostaTest extends TestCase
         Propojeni::zapisPrevzeti(['adresa' => 'servis@pekarna-novak.cz', 'zdroj' => 'env', 'ok' => true, 'zkouska_id' => 'Z1']);
         StaraSchranka::poDoruceni('Z1');
         $this->assertTrue(Propojeni::prevzeti()['env_zbyva'], '.env smaže portál – stránka to připomene');
+    }
+
+    public function test_kopie_do_odeslanych_prepinac_v_administraci(): void
+    {
+        $this->propoj();
+        $adresy = fn (string $kopie) => ['adresy' => [['adresa' => 'info@pekarna-novak.cz', 'jmeno' => 'Pekárna Novák', 'vychozi' => true, 'kopie' => $kopie, 'kopie_zprava' => '…']]];
+        Http::fake([
+            self::POSTA.'/api/v1/ja' => Http::response(['aplikace' => ['nazev' => 'Web'] + $adresy('vypnuto')]),
+            self::POSTA.'/api/v1/schranky/*/kopie' => Http::sequence()
+                ->push(['kopie' => ['ok' => true, 'stav' => 'zapnuto', 'zprava' => 'Kopie do Odeslaných zapnutá a ověřená (sent).', 'zmena' => true], 'aplikace' => $adresy('zapnuto')])
+                ->push(['kopie' => ['ok' => false, 'stav' => 'vypnuto', 'zprava' => 'Kopii do Odeslaných nejde zapnout: Authentication failed', 'zmena' => false], 'aplikace' => $adresy('vypnuto')], 422),
+        ]);
+        $this->actingAs($this->spravce());
+
+        Livewire::test(PostaStranka::class)
+            ->assertSee('kopie se do Odeslaných neukládají')
+            ->callAction(TestAction::make('kopie')->arguments(['adresa' => 'info@pekarna-novak.cz', 'zapnout' => true]))
+            ->assertNotified('Kopie se ukládají do Odeslaných');
+
+        Http::assertSent(fn ($r) => $r->method() === 'PUT' && str_ends_with($r->url(), '/api/v1/schranky/info%40pekarna-novak.cz/kopie') && $r['zapnuto'] === true);
+        $this->assertSame('zapnuto', Propojeni::adresy()[0]['kopie'], 'nový stav z odpovědi Pošty');
+
+        // Nepovedené zapnutí: důvod od Pošty, žádná výjimka.
+        $this->assertSame(['ok' => false, 'stav' => 'vypnuto', 'zprava' => 'Kopii do Odeslaných nejde zapnout: Authentication failed'], app(Propojeni::class)->nastavKopii('info@pekarna-novak.cz', true));
     }
 }

@@ -7,14 +7,15 @@
     $u = \App\Support\ZakladniUdaje::nacti();
 @endphp
 
-@section('titulek', 'Cookies a místní úložiště — '.$u['nazev'])
-@section('popis', 'Jaké cookies web '.$u['nazev'].' používá a co si ukládá v prohlížeči: zvolený jazyk, světlý či tmavý režim a pozici na stránce.')
+@section('titulek', __('web.zasady_cookies.cookies_a_mistni_uloziste'))
+@section('seo_klic', 'cookies')
+@section('popis', __('web.zasady_cookies.jake_cookies_web_pouziva_a_co', ['nazev' => $u['nazev']]))
 
 @section('obsah')
 <main id="obsah" class="section section--base">
   <div class="wrap doc">
-    <div class="eyebrow"><span class="num">§</span><span class="lbl">Cookies</span></div>
-    <h1 class="h2" data-cs="Cookies a místní úložiště" data-en="Cookies and local storage">Cookies a místní úložiště</h1>
+    <div class="eyebrow"><span class="num">§</span><span class="lbl">{{ __('web.zasady_cookies.cookies') }}</span></div>
+    <h1 class="h2" data-cs="{{ __('web.zasady_cookies.cookies_a_mistni_uloziste') }}" data-en="{{ __('web.zasady_cookies.cookies_a_mistni_uloziste', [], 'en') }}">{{ __('web.zasady_cookies.cookies_a_mistni_uloziste') }}</h1>
 
     <div data-jazyk="cs">
       @include('pravni._cookies-obsah')

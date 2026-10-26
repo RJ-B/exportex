@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Event;
 use Livewire\Livewire;
 use Tests\TestCase;
 
-/** Kostra administrace: Nastavení (Základní údaje) a Provoz (Stav webu), Přehled. */
+/** Kostra administrace: Nastavení (Základní údaje) a Správa aplikace (Stav webu), Přehled. */
 class KostraAdministraceTest extends TestCase
 {
     use RefreshDatabase;

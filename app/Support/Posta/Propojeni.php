@@ -42,6 +42,31 @@ class Propojeni
     /** Obnovit token, když mu zbývá méně dní. */
     private const OBNOVIT_DNI_PRED = 30;
 
+    /**
+     * Instalace = adresa webu (host z APP_URL). Uložené propojení platí jen
+     * v instalaci, pro kterou vzniklo: databáze nahraná z jiného webu (test
+     * z produkce, produkce s přenosem dat z testu) nese cizí klíče – ty se
+     * nepoužijí a portál web propojí znovu sám (zjisti hlásí propojeno: false).
+     */
+    public static function instalace(): string
+    {
+        return strtolower((string) (parse_url((string) config('app.url'), PHP_URL_HOST) ?: config('app.url')));
+    }
+
+    /** Patří uložené propojení téhle instalaci? Starší záznam bez adresy ano. */
+    public static function patriSem(): bool
+    {
+        $pro = self::cti('pro');
+
+        return blank($pro) || $pro === self::instalace();
+    }
+
+    /** Identifikátor aplikace v Poště, ke které je instalace propojená (portál ho porovná se svým). */
+    public static function slug(): ?string
+    {
+        return self::patriSem() ? ((json_decode((string) self::cti('propojeno'), true) ?: [])['slug'] ?? null) : null;
+    }
+
     public static function propojeno(): bool
     {
         return self::token() !== null;
@@ -55,14 +80,14 @@ class Propojeni
     /** Token z nastavení; když tam není, z .env (POSTA_TOKEN). */
     public static function token(): ?string
     {
-        return self::desifruj(self::cti('token')) ?? (filled(config('posta.token')) ? (string) config('posta.token') : null);
+        return (self::patriSem() ? self::desifruj(self::cti('token')) : null) ?? (filled(config('posta.token')) ? (string) config('posta.token') : null);
     }
 
     /** Odkud je propojení: nastaveni (tlačítko, portál, ručně) | env | null. */
     public static function zdroj(): ?string
     {
         return match (true) {
-            self::desifruj(self::cti('token')) !== null => 'nastaveni',
+            self::patriSem() && self::desifruj(self::cti('token')) !== null => 'nastaveni',
             filled(config('posta.token')) => 'env',
             default => null,
         };
@@ -71,7 +96,7 @@ class Propojeni
     /** @return list<string> tajemství webhooků (aktuální; po výměně dočasně i předchozí; bez nich .env) */
     public static function webhookTajemstvi(): array
     {
-        $ulozene = array_values(array_filter([self::desifruj(self::cti('webhook_tajemstvi')), self::desifruj(self::cti('webhook_tajemstvi_predchozi'))]));
+        $ulozene = self::patriSem() ? array_values(array_filter([self::desifruj(self::cti('webhook_tajemstvi')), self::desifruj(self::cti('webhook_tajemstvi_predchozi'))])) : [];
 
         return $ulozene !== [] ? $ulozene : array_values(array_filter([(string) config('posta.webhook_tajemstvi')]));
     }
@@ -79,7 +104,7 @@ class Propojeni
     /** Adresy, ze kterých aplikace smí posílat (přidělil správce Pošty; bez nich POSTA_OD z .env). @return list<array{adresa: string, jmeno: ?string}> */
     public static function adresy(): array
     {
-        $ulozene = array_values(array_filter((array) json_decode((string) self::cti('adresy'), true), fn ($a) => is_array($a) && filled($a['adresa'] ?? null)));
+        $ulozene = self::patriSem() ? array_values(array_filter((array) json_decode((string) self::cti('adresy'), true), fn ($a) => is_array($a) && filled($a['adresa'] ?? null))) : [];
 
         if ($ulozene === [] && filter_var(config('posta.od'), FILTER_VALIDATE_EMAIL)) {
             return [['adresa' => strtolower((string) config('posta.od')), 'jmeno' => null]];
@@ -152,7 +177,7 @@ class Propojeni
         $url = rtrim(trim($url), '/');
 
         if (! preg_match('~^https://[a-z0-9.-]+(:\d+)?$~i', $url) && ! app()->environment(['local', 'testing'])) {
-            throw new RuntimeException('Adresa Pošty musí být https.');
+            throw new RuntimeException(__('posta.propojeni.adresa_posty_musi_byt_https'));
         }
 
         $state = Str::random(40);
@@ -181,11 +206,11 @@ class Propojeni
 
         // state musí sedět – jinak by šlo podstrčit cizí kód.
         if (! $ulozene || ! hash_equals($ulozene['state'], (string) ($dotaz['state'] ?? ''))) {
-            throw new RuntimeException('Propojení nejde dokončit – začni ho prosím znovu tlačítkem Propojit s poštou.');
+            throw new RuntimeException(__('posta.propojeni.propojeni_nejde_dokoncit_zacni_ho_prosim'));
         }
 
         if (($dotaz['error'] ?? null) === 'access_denied') {
-            throw new RuntimeException('Propojení bylo v Poště zamítnuto.');
+            throw new RuntimeException(__('posta.propojeni.propojeni_bylo_v_poste_zamitnuto'));
         }
 
         $odpoved = Http::baseUrl($ulozene['url'])->acceptJson()->timeout(15)->post('/api/v1/propojeni/token', [
@@ -195,7 +220,7 @@ class Propojeni
         ]);
 
         if (! $odpoved->successful() || blank($odpoved->json('token'))) {
-            throw new RuntimeException('Pošta propojení nepotvrdila ('.($odpoved->json('message') ?? 'HTTP '.$odpoved->status()).'). Zkus to znovu.');
+            throw new RuntimeException(__('posta.propojeni.posta_propojeni_nepotvrdila_zkus_to', ['json' => ($odpoved->json('message') ?? 'HTTP '.$odpoved->status())]));
         }
 
         $this->uloz($ulozene['url'], (string) $odpoved->json('token'), $odpoved->json('webhook_tajemstvi'), (array) $odpoved->json('aplikace'), rucne: false);
@@ -222,7 +247,7 @@ class Propojeni
         $stara = StaraSchranka::zjisti();
 
         if (! $stara || $stara['adresa'] !== $adresa) {
-            return ['ok' => false, 'zprava' => 'Stará schránka '.$adresa.' už v aplikaci není – v Poště ji přidej ručně.'];
+            return ['ok' => false, 'zprava' => __('posta.propojeni.stara_schranka_uz_v_aplikaci_neni', ['adresa' => $adresa])];
         }
 
         try {
@@ -230,7 +255,7 @@ class Propojeni
         } catch (Throwable $e) {
             self::zapisPrevzeti(['adresa' => $adresa, 'zdroj' => $stara['zdroj'], 'ok' => false, 'zprava' => $e->getMessage(), 'kdy' => now()->toIso8601String()]);
 
-            return ['ok' => false, 'zprava' => 'Převzetí schránky se nepovedlo: '.$e->getMessage()];
+            return ['ok' => false, 'zprava' => __('posta.propojeni.prevzeti_schranky_se_nepovedlo', ['get_message' => $e->getMessage()])];
         }
 
         if (isset($odpoved['aplikace']['adresy'])) {
@@ -241,9 +266,9 @@ class Propojeni
         $overeni = $odpoved['schranka']['overeni'] ?? null;
         $ok = ($odpoved['vysledek'] ?? null) === 'prirazena' || ($overeni['ok'] ?? false);
         $zprava = match (true) {
-            ($odpoved['vysledek'] ?? null) === 'prirazena' => 'Schránka '.$adresa.' už v Poště byla – je přidělená aplikaci.',
-            $ok => 'Pošta převzala schránku '.$adresa.' a přihlášení ověřila.',
-            default => 'Pošta schránku '.$adresa.' převzala, ale přihlášení nefunguje: '.($overeni['zprava'] ?? '?').' Oprav ho v Poště.',
+            ($odpoved['vysledek'] ?? null) === 'prirazena' => __('posta.propojeni.schranka_uz_v_poste_byla_je', ['adresa' => $adresa]),
+            $ok => __('posta.propojeni.posta_prevzala_schranku_a_prihlaseni', ['adresa' => $adresa]),
+            default => __('posta.propojeni.posta_schranku_prevzala_ale_prihlaseni', ['adresa' => $adresa, 'hodnota' => ($overeni['zprava'] ?? '?')]),
         };
 
         self::zapisPrevzeti(['adresa' => $adresa, 'zdroj' => $stara['zdroj'], 'vysledek' => $odpoved['vysledek'] ?? null, 'ok' => $ok, 'zprava' => $zprava, 'kdy' => now()->toIso8601String()]);
@@ -271,12 +296,33 @@ class Propojeni
         $odpoved = Http::baseUrl($url.'/api/v1')->withToken(trim($token))->acceptJson()->timeout(15)->get('/ja');
 
         if (! $odpoved->successful()) {
-            throw new RuntimeException($odpoved->status() === 401 ? 'Pošta klíč nepřijala (neplatný nebo zrušený).' : 'Pošta vrátila chybu '.$odpoved->status().'.');
+            throw new RuntimeException($odpoved->status() === 401 ? __('posta.propojeni.posta_klic_neprijala_neplatny_nebo') : __('posta.propojeni.posta_vratila_chybu', ['status' => $odpoved->status()]));
         }
 
         $this->uloz($url, trim($token), filled($tajemstvi) ? trim($tajemstvi) : null, (array) $odpoved->json('aplikace'), rucne: true);
 
         return $odpoved->json('aplikace');
+    }
+
+    /**
+     * Zapne / vypne kopii do Odeslaných u přidělené adresy. Servery ani heslo
+     * se neposílají – Pošta je vezme z předvolby poskytovatele a hned ověří.
+     *
+     * @return array{ok: bool, stav: ?string, zprava: string}
+     */
+    public function nastavKopii(string $adresa, bool $zapnout): array
+    {
+        try {
+            $odpoved = app(Klient::class)->kopie($adresa, $zapnout);
+        } catch (Throwable $e) {
+            return ['ok' => false, 'stav' => null, 'zprava' => $e->getMessage()];
+        }
+
+        if (isset($odpoved['aplikace']['adresy'])) {
+            self::zapis('adresy', json_encode($odpoved['aplikace']['adresy'], JSON_UNESCAPED_UNICODE));
+        }
+
+        return ['ok' => (bool) ($odpoved['kopie']['ok'] ?? false), 'stav' => $odpoved['kopie']['stav'] ?? null, 'zprava' => (string) ($odpoved['kopie']['zprava'] ?? '')];
     }
 
     /** Ověří spojení (GET /ja) a obnoví přidělené adresy. @return array{ok: bool, zprava: string} */
@@ -291,8 +337,7 @@ class Propojeni
         self::zapis('adresy', json_encode($aplikace['adresy'] ?? [], JSON_UNESCAPED_UNICODE));
         self::zapis('token_plati_do', (string) ($aplikace['token_plati_do'] ?? ''));
 
-        return ['ok' => true, 'zprava' => 'Připojeno k Poště jako „'.($aplikace['nazev'] ?? '?').'“. Smí posílat z: '
-            .(collect($aplikace['adresy'] ?? [])->pluck('adresa')->implode(', ') ?: 'žádné adresy – přiděl je v Poště').'.'];
+        return ['ok' => true, 'zprava' => __('posta.propojeni.pripojeno_k_poste_jako_smi_posilat', ['hodnota' => ($aplikace['nazev'] ?? '?'), 'pluck' => (collect($aplikace['adresy'] ?? [])->pluck('adresa')->implode(', ') ?: __('posta.propojeni.zadne_adresy_pridel_je_v_poste'))])];
     }
 
     /** Obnoví token, když brzy vyprší (plánovač denně). true = obnoven. */
@@ -326,11 +371,11 @@ class Propojeni
         $token = trim((string) ($data['token'] ?? ''));
 
         if (! preg_match('~^https://[a-z0-9.-]+(:\d+)?$~i', $url) && ! app()->environment(['local', 'testing'])) {
-            throw new RuntimeException('Adresa Pošty musí být https.');
+            throw new RuntimeException(__('posta.propojeni.adresa_posty_musi_byt_https'));
         }
 
         if (! str_starts_with($token, 'pst_') || strlen($token) > 200) {
-            throw new RuntimeException('Token Pošty chybí nebo nemá správný tvar.');
+            throw new RuntimeException(__('posta.propojeni.token_posty_chybi_nebo_nema_spravny'));
         }
 
         $aplikace = (array) ($data['aplikace'] ?? []);
@@ -355,7 +400,7 @@ class Propojeni
     /** Zapomene propojení bez volání Pošty (portál aplikaci v Poště odpojil sám). */
     public function zapomen(): void
     {
-        foreach (['token', 'webhook_tajemstvi', 'webhook_tajemstvi_predchozi', 'token_plati_do', 'propojeno', 'adresy', 'od', 'prevzeti'] as $klic) {
+        foreach (['token', 'webhook_tajemstvi', 'webhook_tajemstvi_predchozi', 'token_plati_do', 'propojeno', 'adresy', 'od', 'prevzeti', 'pro'] as $klic) {
             self::smaz($klic);
         }
     }
@@ -371,7 +416,7 @@ class Propojeni
             }
         }
 
-        foreach (['token', 'webhook_tajemstvi', 'webhook_tajemstvi_predchozi', 'token_plati_do', 'propojeno', 'adresy', 'od', 'prevzeti'] as $klic) {
+        foreach (['token', 'webhook_tajemstvi', 'webhook_tajemstvi_predchozi', 'token_plati_do', 'propojeno', 'adresy', 'od', 'prevzeti', 'pro'] as $klic) {
             self::smaz($klic);
         }
     }
@@ -391,7 +436,10 @@ class Propojeni
 
         self::zapis('token_plati_do', (string) ($aplikace['token_plati_do'] ?? ''));
         self::zapis('adresy', json_encode($aplikace['adresy'] ?? [], JSON_UNESCAPED_UNICODE));
-        self::zapis('propojeno', json_encode(['kdy' => now()->toIso8601String(), 'aplikace' => $aplikace['nazev'] ?? null, 'rucne' => $rucne, 'portal' => $zPortalu], JSON_UNESCAPED_UNICODE));
+        self::zapis('propojeno', json_encode(['kdy' => now()->toIso8601String(), 'aplikace' => $aplikace['nazev'] ?? null, 'slug' => $aplikace['slug'] ?? null, 'rucne' => $rucne, 'portal' => $zPortalu], JSON_UNESCAPED_UNICODE));
+        // Pro kterou instalaci propojení vzniklo – databáze nahraná z jiného webu
+        // (test ← produkce, produkce ← přenos dat z testu) ho pak nepoužije.
+        self::zapis('pro', self::instalace());
     }
 
     private static function desifruj(?string $sifra): ?string

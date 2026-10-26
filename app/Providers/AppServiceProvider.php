@@ -7,7 +7,13 @@ use App\Observers\AuditableObserver;
 use App\Services\UdrzbaDoAktivity;
 use App\Support\CasAplikace;
 use App\Support\Posta\Propojeni as Posta;
+use App\Support\Rozvrh;
 use App\Support\SekceWebu;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TimePicker;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Console\Signals;
@@ -17,11 +23,17 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Passkeys\Passkeys;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // Passkey je jen druhý krok po hesle (App\Bezpecnost\DruhyKrok) – trasy
+        // balíčku (přihlášení bez hesla) se neregistrují; vlastní v routes/web.php.
+        // V register(): balíček trasy zakládá ve svém boot(), který běží dřív.
+        Passkeys::ignoreRoutes();
+
         // Každý odchozí mail projde LoggingTransportem a zapíše se do Logy → E-maily.
         // Obaluje se `mail.manager`, ne jednotlivá volání – jinak by log minul
         // maily posílané mimo Mailable (Mail::raw). Musí to být extend():
@@ -48,15 +60,34 @@ class AppServiceProvider extends ServiceProvider
         }
     }
 
+    /**
+     * Žádné prvky, které kreslí prohlížeč (Safari a Chrome je mají každý jinak):
+     * Select, filtry tabulky (i TernaryFilter, je to potomek) a výběr data a času
+     * kreslí Filament sám. Co Filament jako <select> vykreslí natvrdo
+     * (stránkování, řazení a seskupení tabulky, měsíc v kalendáři), převleče
+     * public/js/vyber.js (+ public/css/vyber.css, vložené v AdminPanelProvider).
+     */
+    public static function bezNativnichPrvku(): void
+    {
+        // Povinné pole nejde vyprázdnit křížkem – jako u nativní roletky.
+        Select::configureUsing(fn (Select $pole) => $pole
+            ->native(false)
+            ->selectablePlaceholder(fn (Select $component): bool => ! $component->isRequired()));
+        SelectFilter::configureUsing(fn (SelectFilter $filtr) => $filtr->native(false));
+        DatePicker::configureUsing(fn (DatePicker $pole) => $pole->native(false)->displayFormat(__('formaty.datum')));
+        DateTimePicker::configureUsing(fn (DateTimePicker $pole) => $pole->native(false)->displayFormat(__('formaty.datum_cas')));
+        TimePicker::configureUsing(fn (TimePicker $pole) => $pole->native(false));
+    }
+
     public function boot(): void
     {
         // ->rozlozit() u plánovaných úloh: posun aplikace v hodině (portál, jinak z adresy webu).
-        \App\Support\Rozvrh::zapni();
-
-        self::https();
+        Rozvrh::zapni();
 
         // Pravidlo času: čas zvenku (API, webhooky, shim) se ukládá v pásmu aplikace, ne v UTC.
         CasAplikace::zapni();
+
+        self::https();
 
         // Veřejné formuláře: 3 odeslání za minutu a 20 za den z jedné IP. Při
         // překročení vrátí stránku s chybou formuláře (ne holou 429).
@@ -64,7 +95,7 @@ class AppServiceProvider extends ServiceProvider
             // Formulář na webu posílá JSON (assets/js/main.js) – dostane 429, ne přesměrování.
             $prilisMnoho = fn () => $request->expectsJson()
                 ? response()->json(['ok' => false, 'error' => 'throttle'], 429)
-                : back()->withInput()->withErrors(['formular' => 'Odeslali jste moc zpráv za sebou. Zkuste to prosím později.']);
+                : back()->withInput()->withErrors(['formular' => __('obecne.app_service_provider.odeslali_jste_moc_zprav_za_sebou')]);
 
             return [
                 Limit::perMinute(3)->by('formular-min:'.$request->ip())->response($prilisMnoho),
@@ -72,10 +103,7 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
-        // Za reverzní proxy Hestie končí odkazy na http, když se schéma nevynutí.
-        if ($this->app->environment('production')) {
-            URL::forceScheme('https');
-        }
+        self::bezNativnichPrvku();
 
         // @sekce('sluzby') … @endsekce – část webu jen u zapnuté sekce (Obsah webu → přepínač).
         Blade::if('sekce', fn (string $klic) => SekceWebu::zapnuta($klic));

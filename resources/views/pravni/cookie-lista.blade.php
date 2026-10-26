@@ -12,7 +12,7 @@
     // Verze souhlasu podle nástrojů – po přidání nástroje se lišta zeptá znovu.
     $verze = crc32(json_encode([array_keys($analytika), array_keys($marketing)]));
     $zasady = \Illuminate\Support\Facades\Route::has('cookies') ? route('cookies') : null;
-    $nazvy = ['ga4' => 'Google Analytics', 'seznam' => 'měření Seznamu', 'google_ads' => 'Google Ads', 'sklik' => 'Sklik od Seznamu'];
+    $nazvy = ['ga4' => 'Google Analytics', 'seznam' => __('pravni.cookie_lista.mereni_seznamu'), 'google_ads' => 'Google Ads', 'sklik' => 'Sklik od Seznamu'];
 @endphp
 
 @if ($analytika || $marketing)
@@ -87,7 +87,12 @@
     .cc-kat { display: block; padding: 14px 0; border-top: 1px solid var(--cc-okraj); }
     .cc-kat p { margin: 6px 0 0; font-size: 13px; color: var(--cc-slabe); }
     .cc-hlava { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-    .cc-kat input { width: 20px; height: 20px; accent-color: var(--cc-akcent); cursor: pointer; }
+    /* Přepínač ve vzhledu webu, ne zaškrtávátko prohlížeče (checkbox zůstává kvůli ovládání). */
+    .cc-kat input { appearance: none; -webkit-appearance: none; flex: none; position: relative; width: 42px; height: 24px; margin: 0; border-radius: 999px; background: var(--cc-okraj); cursor: pointer; transition: background .15s; }
+    .cc-kat input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .15s; }
+    .cc-kat input:checked { background: var(--cc-akcent); }
+    .cc-kat input:checked::after { transform: translateX(18px); }
+    .cc-kat input:focus-visible { outline: 2px solid var(--cc-akcent); outline-offset: 2px; }
     .cc-vzdy { font-size: 12px; color: var(--cc-slabe); }
     .cc-modal .cc-akce { justify-content: flex-end; margin-top: 20px; }
     @media (max-width: 760px) { .cc-in { flex-direction: column; align-items: stretch; gap: 14px; } .cc-akce { flex-direction: column; } .cc-tl { width: 100%; } }
@@ -96,42 +101,41 @@
 <div class="cc" id="cc-lista" hidden role="dialog" aria-modal="false" aria-labelledby="cc-nadpis">
     <div class="cc-in">
         <div class="cc-copy">
-            <h2 id="cc-nadpis">Cookies na tomhle webu</h2>
-            <p>Nezbytné cookies potřebujeme, aby web fungoval – ty nejdou vypnout.
-                {{ collect([$analytika ? 'Analytické' : null, $marketing ? 'marketingové' : null])->filter()->join(' a ') }} nastavíme jen s vaším souhlasem.
-                @if ($zasady) Podrobnosti v <a href="{{ $zasady }}">zásadách používání cookies</a>.@endif</p>
+            <h2 id="cc-nadpis">{{ __('pravni.cookie_lista.cookies_na_tomhle_webu') }}</h2>
+            <p>{{ __('pravni.cookie_lista.nezbytne_cookies_potrebujeme_aby_web', ['filter' => collect([$analytika ? __('pravni.cookie_lista.analyticke') : null, $marketing ? __('pravni.cookie_lista.marketingove') : null])->filter()->join(' a ')]) }}
+                @if ($zasady) {{ __('pravni.cookie_lista.podrobnosti_v') }} <a href="{{ $zasady }}">{{ __('pravni.cookie_lista.zasadach_pouzivani_cookies') }}</a>.@endif</p>
         </div>
         <div class="cc-akce">
-            <button type="button" class="cc-tl cc-plne" data-cc="vse">Přijmout vše</button>
-            <button type="button" class="cc-tl cc-plne" data-cc="nic">Odmítnout vše</button>
-            <button type="button" class="cc-tl cc-obrys" data-cc="open">Nastavení</button>
+            <button type="button" class="cc-tl cc-plne" data-cc="vse">{{ __('pravni.cookie_lista.prijmout_vse') }}</button>
+            <button type="button" class="cc-tl cc-plne" data-cc="nic">{{ __('pravni.cookie_lista.odmitnout_vse') }}</button>
+            <button type="button" class="cc-tl cc-obrys" data-cc="open">{{ __('pravni.cookie_lista.nastaveni') }}</button>
         </div>
     </div>
 </div>
 
 <div class="cc-modal" id="cc-nastaveni" hidden role="dialog" aria-modal="true" aria-labelledby="cc-m-nadpis">
     <div class="cc-panel">
-        <h2 id="cc-m-nadpis">Nastavení cookies</h2>
-        <p style="margin: 0 0 16px; font-size: 14px; color: var(--cc-slabe);">Vyberte, co nám dovolíte. Volbu můžete kdykoli změnit odkazem Nastavení cookies na webu.</p>
+        <h2 id="cc-m-nadpis">{{ __('pravni.cookie_lista.nastaveni_cookies') }}</h2>
+        <p style="margin: 0 0 16px; font-size: 14px; color: var(--cc-slabe);">{{ __('pravni.cookie_lista.vyberte_co_nam_dovolite_volbu_muzete') }}</p>
         <div class="cc-kat">
-            <div class="cc-hlava"><strong>Nezbytné</strong><span class="cc-vzdy">vždy zapnuto</span></div>
-            <p>Stav relace a ochrana formulářů proti zneužití. Bez nich web nefunguje.</p>
+            <div class="cc-hlava"><strong>{{ __('pravni.cookie_lista.nezbytne') }}</strong><span class="cc-vzdy">{{ __('pravni.cookie_lista.vzdy_zapnuto') }}</span></div>
+            <p>{{ __('pravni.cookie_lista.stav_relace_a_ochrana_formularu_proti') }}</p>
         </div>
         @if ($analytika)
             <label class="cc-kat">
-                <div class="cc-hlava"><strong>Analytické</strong><input type="checkbox" data-cc-kat="analytics"></div>
-                <p>Souhrnná statistika návštěvnosti – kolik lidí web navštíví a které stránky si projdou. {{ collect(array_keys($analytika))->map(fn ($n) => $nazvy[$n])->join(', ') }}.</p>
+                <div class="cc-hlava"><strong>{{ __('pravni.cookie_lista.analyticke') }}</strong><input type="checkbox" data-cc-kat="analytics"></div>
+                <p>{{ __('pravni.cookie_lista.souhrnna_statistika_navstevnosti_kolik', ['map' => collect(array_keys($analytika))->map(fn ($n) => $nazvy[$n])->join(', ')]) }}</p>
             </label>
         @endif
         @if ($marketing)
             <label class="cc-kat">
-                <div class="cc-hlava"><strong>Marketingové</strong><input type="checkbox" data-cc-kat="marketing"></div>
-                <p>Umožňují zobrazit vám naši reklamu na jiných webech a změřit její účinnost. {{ collect(array_keys($marketing))->map(fn ($n) => $nazvy[$n])->join(', ') }}.</p>
+                <div class="cc-hlava"><strong>{{ __('pravni.cookie_lista.marketingove_2') }}</strong><input type="checkbox" data-cc-kat="marketing"></div>
+                <p>{{ __('pravni.cookie_lista.umoznuji_zobrazit_vam_nasi_reklamu_na', ['map' => collect(array_keys($marketing))->map(fn ($n) => $nazvy[$n])->join(', ')]) }}</p>
             </label>
         @endif
         <div class="cc-akce">
-            <button type="button" class="cc-tl cc-obrys" data-cc="ulozit">Uložit volbu</button>
-            <button type="button" class="cc-tl cc-plne" data-cc="vse">Přijmout vše</button>
+            <button type="button" class="cc-tl cc-obrys" data-cc="ulozit">{{ __('pravni.cookie_lista.ulozit_volbu') }}</button>
+            <button type="button" class="cc-tl cc-plne" data-cc="vse">{{ __('pravni.cookie_lista.prijmout_vse') }}</button>
         </div>
     </div>
 </div>

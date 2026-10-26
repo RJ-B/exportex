@@ -46,46 +46,46 @@ class Odeslani
         $kanaly = $oznameni->kanalyEnum();
 
         if (blank($oznameni->titulek)) {
-            $chyby[] = 'Chybí titulek.';
+            $chyby[] = __('obecne.odeslani.chybi_titulek');
         }
 
         if (! $druh || ! in_array($druh, $zAdministrace ? NastaveniOznameni::druhyZAdministrace() : NastaveniOznameni::druhy(), true)) {
-            $chyby[] = 'Tenhle druh oznámení se v aplikaci neposílá.';
+            $chyby[] = __('obecne.odeslani.tenhle_druh_oznameni_se_v_aplikaci');
         }
 
         if ($kanaly === []) {
-            $chyby[] = 'Vyberte, kudy oznámení půjde.';
+            $chyby[] = __('obecne.odeslani.vyberte_kudy_oznameni_pujde');
         }
 
         foreach ($kanaly as $kanal) {
             if (! $kanal->dostupny()) {
-                $chyby[] = $kanal->nazev().' zatím aplikace neumí.';
+                $chyby[] = __('obecne.odeslani.zatim_aplikace_neumi', ['nazev' => $kanal->nazev()]);
             }
         }
 
         if ($oznameni->maKanal(KanalOznameni::Pruh)) {
             if ($druh && ! $druh->smiPruh()) {
-                $chyby[] = 'Pruh přes web je jen pro servisní oznámení (odstávky, výpadky).';
+                $chyby[] = __('obecne.odeslani.pruh_pres_web_je_jen_pro');
             }
             if ($oznameni->pruh_od && $oznameni->pruh_do && $oznameni->pruh_do->lte($oznameni->pruh_od)) {
-                $chyby[] = 'Pruh musí končit až po začátku.';
+                $chyby[] = __('obecne.odeslani.pruh_musi_koncit_az_po_zacatku');
             }
         }
 
         if ($oznameni->udalost_od && $oznameni->udalost_do && $oznameni->udalost_do->lte($oznameni->udalost_od)) {
-            $chyby[] = 'Odstávka musí končit až po začátku.';
+            $chyby[] = __('obecne.odeslani.odstavka_musi_koncit_az_po_zacatku');
         }
 
         if (Cileni::prazdne((array) $oznameni->cileni)) {
-            $chyby[] = 'Vyberte, komu oznámení půjde.';
+            $chyby[] = __('obecne.odeslani.vyberte_komu_oznameni_pujde');
         } elseif ($zAdministrace && $chyby === []) {
             $pocet = Cileni::dotaz((array) $oznameni->cileni)->count();
             $max = NastaveniOznameni::limit('max_prijemcu');
 
             if ($pocet === 0 && ! ($oznameni->jeProVsechny() && $oznameni->maKanal(KanalOznameni::Pruh))) {
-                $chyby[] = 'Výběru neodpovídá nikdo.';
+                $chyby[] = __('obecne.odeslani.vyberu_neodpovida_nikdo');
             } elseif ($pocet > $max) {
-                $chyby[] = 'Jedno oznámení smí mít nejvýš '.number_format($max, 0, ',', ' ').' příjemců (vybráno '.number_format($pocet, 0, ',', ' ').'). Větší rozesílku domluvte se Sim&Ren.';
+                $chyby[] = __('obecne.odeslani.jedno_oznameni_smi_mit_nejvys_prijemcu', ['max' => number_format($max, 0, ',', ' '), 'pocet' => number_format($pocet, 0, ',', ' ')]);
             }
         }
 
@@ -100,7 +100,7 @@ class Odeslani
     public function odeslat(Oznameni $oznameni, ?User $kdo = null, bool $zAdministrace = true): void
     {
         if (! $oznameni->stav->upravitelne()) {
-            throw new OznameniNejdeOdeslat(['Oznámení už je odeslané.']);
+            throw new OznameniNejdeOdeslat([__('obecne.odeslani.oznameni_uz_je_odeslane')]);
         }
 
         if ($chyby = $this->chyby($oznameni, $zAdministrace)) {
@@ -221,7 +221,7 @@ class Odeslani
                             blank($user->email) => [OznameniDoruceni::PRESKOCENO, 'Bez e-mailu.'],
                             Predvolby::chce($user, $druh, KanalOznameni::Email) => [OznameniDoruceni::CEKA, null],
                             $druh->vyzadujeSouhlas() => [OznameniDoruceni::PRESKOCENO, 'Bez souhlasu.'],
-                            default => [OznameniDoruceni::PRESKOCENO, 'Vypnuto v předvolbách.'],
+                            default => [OznameniDoruceni::PRESKOCENO, __('obecne.odeslani.vypnuto_v_predvolbach')],
                         };
 
                         return [
@@ -288,7 +288,7 @@ class Odeslani
 
         // Souhlas mohl být mezitím odvolán (dávky jdou po minutách).
         if (! Predvolby::chce($user, $prijemce->oznameni->druh, KanalOznameni::Email)) {
-            $doruceni->update(['stav' => OznameniDoruceni::PRESKOCENO, 'duvod' => 'Mezitím vypnuto.']);
+            $doruceni->update(['stav' => OznameniDoruceni::PRESKOCENO, 'duvod' => __('obecne.odeslani.mezitim_vypnuto')]);
 
             return;
         }

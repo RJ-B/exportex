@@ -12,6 +12,6 @@ class ListUzivatele extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [CreateAction::make()->label('Nový uživatel')];
+        return [CreateAction::make()->label(__('administrace.list_uzivatele.novy_uzivatel'))];
     }
 }

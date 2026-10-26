@@ -4,20 +4,21 @@ namespace App\Filament\Pages;
 
 use App\Filament\Support\CastObsahuWebu;
 use App\Support\NastaveniWebu;
-use App\Support\SekceWebu;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Repeater\TableColumn;
-use Filament\Forms\Components\Toggle;
 use App\Support\ObsahWebu;
+use App\Support\SekceWebu;
 use App\Support\ZakladniUdaje;
 use BackedEnum;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Repeater\TableColumn;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 
 /**
  * Obsah webu → Hlavička a patička: co je na každé stránce nahoře a dole –
@@ -36,9 +37,15 @@ class HlavickaPaticka extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedWindow;
 
-    protected static ?string $navigationLabel = 'Hlavička a patička';
+    public static function getNavigationLabel(): string
+    {
+        return __('administrace.hlavicka_paticka.hlavicka_a_paticka');
+    }
 
-    protected static ?string $title = 'Hlavička a patička';
+    public function getTitle(): string|Htmlable
+    {
+        return __('administrace.hlavicka_paticka.hlavicka_a_paticka');
+    }
 
     protected static ?string $slug = 'hlavicka-a-paticka';
 
@@ -60,8 +67,8 @@ class HlavickaPaticka extends Page
         return $schema
             ->statePath('data')
             ->components([
-                Section::make('Sekce na webu')
-                    ->description('Pořadí (přetažením) platí pro menu webu i pro Obsah webu v administraci. Vypnutá sekce na webu není – zmizí z menu a její stránky vrátí 404. Obsah zůstane a přihlášení ji vidí dál.')
+                Section::make(__('administrace.hlavicka_paticka.sekce_na_webu'))
+                    ->description(__('administrace.hlavicka_paticka.poradi_pretazenim_plati_pro_menu_webu'))
                     ->visible(fn () => SekceWebu::stranky() !== [])
                     ->schema([
                         // Tabulka: řádek na sekci, nic se nerozbaluje. Skryté pole by
@@ -69,8 +76,8 @@ class HlavickaPaticka extends Page
                         Repeater::make('sekce')
                             ->hiddenLabel()
                             ->table([
-                                TableColumn::make('Sekce'),
-                                TableColumn::make('Na webu')->width('7rem'),
+                                TableColumn::make(__('administrace.hlavicka_paticka.sekce')),
+                                TableColumn::make(__('administrace.hlavicka_paticka.na_webu'))->width('7rem'),
                             ])
                             ->schema([
                                 TextInput::make('nazev')->hiddenLabel()->disabled()->dehydrated(),
@@ -83,43 +90,43 @@ class HlavickaPaticka extends Page
                             ->addable(false)
                             ->deletable(false),
                     ]),
-                Section::make('Hlavička')
+                Section::make(__('administrace.hlavicka_paticka.hlavicka'))
                     ->columns(2)
                     ->schema([
-                        TextInput::make('nazev')->label('Název')->required()->maxLength(120)
-                            ->helperText('Na webu, v záložce prohlížeče, v e-mailech i v administraci.'),
-                        TextInput::make('tagline')->label('Podtitulek')->maxLength(160)
-                            ->helperText('Za názvem v záložce prohlížeče, ve vyhledávačích a v náhledu odkazu.'),
+                        TextInput::make('nazev')->label(__('administrace.hlavicka_paticka.nazev'))->required()->maxLength(120)
+                            ->helperText(__('administrace.hlavicka_paticka.na_webu_v_zalozce_prohlizece_v')),
+                        TextInput::make('tagline')->label(__('administrace.hlavicka_paticka.podtitulek'))->maxLength(160)
+                            ->helperText(__('administrace.hlavicka_paticka.za_nazvem_v_zalozce_prohlizece_ve')),
                     ]),
-                Section::make('Kontakty')
+                Section::make(__('administrace.hlavicka_paticka.kontakty'))
                     ->columns(2)
                     ->schema([
-                        TextInput::make('email')->label('Kontaktní e-mail')->email(),
-                        TextInput::make('telefon')->label('Telefon')->tel(),
-                        TextInput::make('provozovna')->label('Adresa provozovny')->columnSpanFull()
-                            ->helperText('Kde vás zákazníci najdou, když se liší od sídla. Exportex ji na webu nemá – v patičce je sídlo.'),
+                        TextInput::make('email')->label(__('administrace.hlavicka_paticka.kontaktni_e_mail'))->email(),
+                        TextInput::make('telefon')->label(__('administrace.hlavicka_paticka.telefon'))->tel(),
+                        TextInput::make('provozovna')->label(__('administrace.hlavicka_paticka.adresa_provozovny'))->columnSpanFull()
+                            ->helperText(__('administrace.hlavicka_paticka.kde_vas_zakaznici_najdou_kdyz_se_2')),
                     ]),
-                Section::make('Provozovatel')
-                    ->description('Do patičky a na doklady.')
+                Section::make(__('administrace.hlavicka_paticka.provozovatel'))
+                    ->description(__('administrace.hlavicka_paticka.do_paticky_a_na_doklady'))
                     ->columns(2)
                     ->schema([
-                        TextInput::make('firma')->label('Firma / jméno'),
-                        TextInput::make('ico')->label('IČO')->regex('/^\d{8}$/')->validationMessages(['regex' => 'IČO je osm číslic.']),
-                        TextInput::make('dic')->label('DIČ')->helperText('Prázdné, když provozovatel není plátce DPH.'),
-                        Textarea::make('adresa')->label('Sídlo')->rows(2),
-                        TextInput::make('rejstrik')->label('Zápis v rejstříku')->columnSpanFull()
-                            ->helperText('U firmy povinný údaj (§ 435 občanského zákoníku) – soud, oddíl a vložka.'),
-                        TextInput::make('paticka.adresa_en')->label('Sídlo – anglicky')->maxLength(160),
-                        TextInput::make('paticka.rejstrik_en')->label('Zápis v rejstříku – anglicky')->maxLength(160),
+                        TextInput::make('firma')->label(__('administrace.hlavicka_paticka.firma_jmeno')),
+                        TextInput::make('ico')->label(__('administrace.hlavicka_paticka.ico'))->regex('/^\d{8}$/')->validationMessages(['regex' => __('administrace.hlavicka_paticka.ico_je_osm_cislic')]),
+                        TextInput::make('dic')->label(__('administrace.hlavicka_paticka.dic'))->helperText(__('administrace.hlavicka_paticka.prazdne_kdyz_provozovatel_neni_platce')),
+                        Textarea::make('adresa')->label(__('administrace.hlavicka_paticka.sidlo'))->rows(2),
+                        TextInput::make('rejstrik')->label(__('administrace.hlavicka_paticka.zapis_v_rejstriku'))->columnSpanFull()
+                            ->helperText(__('administrace.hlavicka_paticka.u_firmy_povinny_udaj_435_obcanskeho')),
+                        TextInput::make('paticka.adresa_en')->label(__('administrace.hlavicka_paticka.sidlo_anglicky'))->maxLength(160),
+                        TextInput::make('paticka.rejstrik_en')->label(__('administrace.hlavicka_paticka.zapis_v_rejstriku_anglicky'))->maxLength(160),
                     ]),
-                Section::make('Patička')
+                Section::make(__('administrace.hlavicka_paticka.paticka'))
                     ->description('Text pod logem a pruh dole za „© rok firma —“.')
                     ->columns(2)
                     ->schema([
-                        Textarea::make('paticka.text')->label('Text pod logem')->rows(3)->maxLength(400),
-                        Textarea::make('paticka.text_en')->label('Text pod logem – anglicky')->rows(3)->maxLength(400),
-                        TextInput::make('paticka.pruh')->label('Text v pruhu dole')->maxLength(120),
-                        TextInput::make('paticka.pruh_en')->label('Text v pruhu dole – anglicky')->maxLength(120),
+                        Textarea::make('paticka.text')->label(__('administrace.hlavicka_paticka.text_pod_logem'))->rows(3)->maxLength(400),
+                        Textarea::make('paticka.text_en')->label(__('administrace.hlavicka_paticka.text_pod_logem_anglicky'))->rows(3)->maxLength(400),
+                        TextInput::make('paticka.pruh')->label(__('administrace.hlavicka_paticka.text_v_pruhu_dole'))->maxLength(120),
+                        TextInput::make('paticka.pruh_en')->label(__('administrace.hlavicka_paticka.text_v_pruhu_dole_anglicky'))->maxLength(120),
                     ]),
             ]);
     }
@@ -153,6 +160,6 @@ class HlavickaPaticka extends Page
 
         SekceWebu::nastavPoradi($poradi);
 
-        Notification::make()->title('Uloženo')->success()->send();
+        Notification::make()->title(__('administrace.hlavicka_paticka.ulozeno'))->success()->send();
     }
 }

@@ -40,10 +40,25 @@ class Prenos
     /** @var array<string, array{disk: string, cesta: string, prepsat: bool}> */
     private array $soubory = [];
 
+    /**
+     * Který řádek cíle už je spárovaný s kterým řádkem zdroje. Řádek cíle se
+     * smí spárovat jen jednou – víc možností klíče (puvodni_id, pak nazev)
+     * by jinak mohlo dva řádky z testu poslat na jeden v produkci.
+     *
+     * @var array<string, array<string, string>> tabulka => [totožnost v cíli => totožnost ve zdroji]
+     */
+    private array $parovani = [];
+
+    /** @var array<string, array<string, int|string|false>> tabulka => [totožnost ve zdroji => id v cíli, false = konflikt] */
+    private array $rozhodnuto = [];
+
+    /** @var array<string, array<string, string>> tabulka => [totožnost ve zdroji => popis konfliktu pro náhled] */
+    private array $konflikty = [];
+
     public static function adresar(string $id): string
     {
         if (! preg_match('/^p[0-9a-f]{32}$/', $id)) {
-            throw new RuntimeException('Neplatný identifikátor přenosu.');
+            throw new RuntimeException(__('obecne.prenos.neplatny_identifikator_prenosu'));
         }
 
         return storage_path('framework/prenos/'.$id);
@@ -57,7 +72,7 @@ class Prenos
     public function export(string $adresar): array
     {
         if (File::exists($adresar)) {
-            throw new RuntimeException('Adresář přenosu už existuje.');
+            throw new RuntimeException(__('obecne.prenos.adresar_prenosu_uz_existuje'));
         }
 
         File::ensureDirectoryExists($adresar.'/soubory', 0700);
@@ -65,6 +80,7 @@ class Prenos
         $soubory = [];
         $pocty = [];
         $vynechane = [];
+        $zapocitane = [];
 
         foreach (Casti::vse() as $klic => $cast) {
             $pocty[$klic] = 0;
@@ -75,12 +91,20 @@ class Prenos
                 }
 
                 // Šifrované hodnoty (APP_KEY) se neposílají – na cíli by byly nečitelné
-                // a čitelně ze serveru ven nesmí. Výsledek řekne, co se vynechalo.
+                // a čitelně ze serveru ven nesmí. Výsledek řekne, co se vynechalo:
+                // jen z řádků, které by se jinak opravdu přenesly (ne Pošta ani jiné
+                // nikdy nepřenášené klíče), a každou hodnotu jednou, i když tabulka
+                // (nastavení) patří do víc částí.
                 $radky = DB::table($tabulka)->get()
-                    ->map(function ($r) use ($tabulka, &$vynechane) {
-                        return Sifrovane::bez($tabulka, Casti::bezTajnych($tabulka, (array) $r), $vynechane);
-                    })
+                    ->map(fn ($r) => Casti::bezTajnych($tabulka, (array) $r))
                     ->filter(fn (array $r) => Casti::patri($tabulka, $def, $r))
+                    ->map(function (array $r) use ($tabulka, &$vynechane, &$zapocitane) {
+                        $otisk = $tabulka.'|'.md5(serialize($r));
+                        $pocitat = ! isset($zapocitane[$otisk]);
+                        $zapocitane[$otisk] = true;
+
+                        return Sifrovane::bez($tabulka, $r, $vynechane, $pocitat);
+                    })
                     ->values()->all();
 
                 foreach ($radky as $r) {
@@ -115,12 +139,15 @@ class Prenos
         $data = json_decode((string) @file_get_contents($adresar.'/data.json'), true);
 
         if (! is_array($data) || ($data['format'] ?? null) !== self::FORMAT) {
-            throw new RuntimeException('Balík přenosu nemá data, nebo je v neznámém formátu.');
+            throw new RuntimeException(__('obecne.prenos.balik_prenosu_nema_data_nebo_je'));
         }
 
         $casti = Casti::vse();
         $this->mapy = [];
         $this->soubory = [];
+        $this->parovani = [];
+        $this->rozhodnuto = [];
+        $this->konflikty = [];
         $vysledek = [];
 
         DB::beginTransaction();
@@ -134,9 +161,7 @@ class Prenos
                         continue;
                     }
 
-                    foreach ($data['casti'][$klic]['tabulky'][$tabulka] ?? [] as $radek) {
-                        $this->sparuj($tabulka, $def, $radek);
-                    }
+                    $this->sparuj($tabulka, $def, $data['casti'][$klic]['tabulky'][$tabulka] ?? []);
                 }
             }
 
@@ -165,7 +190,7 @@ class Prenos
 
         AuditLogger::record(
             event: 'data.prevzata',
-            summary: 'Převzata data z jiného webu ('.collect($vysledek)->map(fn ($v) => $v['nazev'].' – '.$v['rezim'])->implode(', ').')',
+            summary: __('obecne.prenos.prevzata_data_z_jineho_webu', ['map' => collect($vysledek)->map(fn ($v) => $v['nazev'].' – '.$v['rezim'])->implode(', ')]),
             new: ['zdroj' => $data['aplikace'] ?? null, 'export' => $data['vytvoreno'] ?? null, 'casti' => $vysledek, 'soubory' => $soubory, 'sifrovane_vynechane' => (array) ($data['sifrovane_vynechane'] ?? [])],
         );
 
@@ -175,7 +200,8 @@ class Prenos
     /** @return array<string, int> */
     private function cast(array $tabulky, array $zdroj, string $rezim): array
     {
-        $p = ['nove' => 0, 'zmenene' => 0, 'stejne' => 0, 'ponechane' => 0, 'smazane' => 0, 'jen_v_cili' => 0, 'preskocene' => 0];
+        $p = ['nove' => 0, 'zmenene' => 0, 'stejne' => 0, 'ponechane' => 0, 'smazane' => 0, 'jen_v_cili' => 0, 'preskocene' => 0, 'konflikty' => 0];
+        $konflikty = [];
 
         if ($rezim === 'nahradit') {
             foreach (array_reverse($tabulky, true) as $tabulka => $def) {
@@ -204,14 +230,37 @@ class Prenos
                 }
 
                 $radek = Casti::bezTajnych($tabulka, array_intersect_key($radek, array_flip($sloupce)));
-                $cil = $this->najdi($tabulka, $def, $radek);
                 $hodnoty = $pk ? array_diff_key($radek, [$pk => true]) : $radek;
+                $puvod = $this->totoznostZdroje($def, $pk, $radek);
+
+                // Spárováno předem (sparuj) proti cíli před importem; jinak hledat teď.
+                if ($pk && array_key_exists($puvod, $this->rozhodnuto[$tabulka] ?? [])) {
+                    $id = $this->rozhodnuto[$tabulka][$puvod];
+                    $cil = $id === false ? false : ((array) DB::table($tabulka)->where($pk, $id)->first() ?: null);
+                } else {
+                    $cil = $this->najdi($tabulka, $def, $radek);
+
+                    if ($cil !== null && ! $this->zaber($tabulka, $def, $pk, $cil, $radek)) {
+                        $this->konflikty[$tabulka][$puvod] = $this->popisKonfliktu($tabulka, $def, $pk, $cil, $radek);
+                        $cil = false;
+                    }
+                }
+
+                // Řádek cíle už patří jinému řádku zdroje: nic nepřepsat ani nezaložit
+                // (druhý řádek by byl duplikát), jen ukázat v náhledu.
+                if ($cil === false) {
+                    $p['konflikty']++;
+                    $konflikty[] = $this->konflikty[$tabulka][$puvod];
+
+                    continue;
+                }
 
                 if ($cil === null) {
                     $noveId = $this->vloz($tabulka, $pk, $radek, $hodnoty);
 
                     if ($pk) {
                         $this->mapy[$tabulka][$radek[$pk]] = $noveId;
+                        $this->parovani[$tabulka][(string) $noveId] = $this->totoznostZdroje($def, $pk, $radek);
                     }
 
                     $nalezene[] = $pk ? (string) $noveId : $this->identita($def, $radek);
@@ -247,24 +296,96 @@ class Prenos
             }
         }
 
-        return $p;
+        return $konflikty === [] ? $p : $p + ['konflikty_popis' => array_slice($konflikty, 0, 50)];
     }
 
-    /** Spáruje řádek zdroje s cílem podle klíče (bez zápisu) – pro vazby. */
-    private function sparuj(string $tabulka, array $def, array $radek): void
+    /**
+     * Spáruje řádky zdroje s cílem podle klíče (bez zápisu) – pro vazby i pro
+     * import. Rozhoduje se jednou, proti cíli PŘED importem, a po možnostech
+     * klíče: nejdřív všechny řádky podle první (puvodni_id), pak zbylé podle
+     * další (nazev). Silnější shoda tak vyhraje bez ohledu na pořadí řádků
+     * a řádek cíle, který už je spárovaný, se znovu nespáruje – druhý řádek
+     * zdroje je konflikt (import ho přeskočí a náhled ukáže).
+     */
+    private function sparuj(string $tabulka, array $def, array $radky): void
     {
         $pk = $def['pk'];
 
-        if ($pk === null || ! array_key_exists($pk, $radek)) {
+        if ($pk === null) {
             return;
         }
 
-        $radek = $this->premapuj($radek, $def);
-        $cil = $radek === null ? null : $this->najdi($tabulka, $def, $radek);
+        $cekajici = [];
 
-        if ($cil !== null && array_key_exists($pk, $cil)) {
-            $this->mapy[$tabulka][$radek[$pk]] = $cil[$pk];
+        foreach ($radky as $radek) {
+            if (array_key_exists($pk, $radek) && ($radek = $this->premapuj($radek, $def)) !== null) {
+                $cekajici[] = $radek;
+            }
         }
+
+        $posledni = count($def['klic']) - 1;
+
+        foreach ($def['klic'] as $i => $klic) {
+            foreach ($cekajici as $k => $radek) {
+                if ($i < $posledni && collect($klic)->contains(fn ($s) => ($radek[$s] ?? null) === null)) {
+                    continue;
+                }
+
+                $cil = $this->podle($tabulka, $klic, $radek)->first();
+
+                if ($cil === null || ! array_key_exists($pk, (array) $cil)) {
+                    continue;
+                }
+
+                $cil = (array) $cil;
+                unset($cekajici[$k]);
+                $zdroj = $this->totoznostZdroje($def, $pk, $radek);
+
+                if ($this->zaber($tabulka, $def, $pk, $cil, $radek)) {
+                    $this->mapy[$tabulka][$radek[$pk]] = $cil[$pk];
+                    $this->rozhodnuto[$tabulka][$zdroj] = $cil[$pk];
+                } else {
+                    $this->rozhodnuto[$tabulka][$zdroj] = false;
+                    $this->konflikty[$tabulka][$zdroj] = $this->popisKonfliktu($tabulka, $def, $pk, $cil, $radek);
+                }
+            }
+        }
+    }
+
+    /**
+     * Zabere řádek cíle pro řádek zdroje. false = už ho má jiný řádek zdroje
+     * (stejný řádek zdroje podruhé – předpárování, pak import – projde).
+     */
+    private function zaber(string $tabulka, array $def, ?string $pk, array $cil, array $radek): bool
+    {
+        $vCili = $pk ? (string) $cil[$pk] : $this->identita($def, $cil);
+        $zeZdroje = $this->totoznostZdroje($def, $pk, $radek);
+        $drzi = $this->parovani[$tabulka][$vCili] ?? null;
+
+        if ($drzi !== null && $drzi !== $zeZdroje) {
+            return false;
+        }
+
+        $this->parovani[$tabulka][$vCili] = $zeZdroje;
+
+        return true;
+    }
+
+    private function totoznostZdroje(array $def, ?string $pk, array $radek): string
+    {
+        return $pk && array_key_exists($pk, $radek) ? 'id:'.$radek[$pk] : $this->identita($def, $radek);
+    }
+
+    /** Čitelně pro náhled: který řádek zdroje by přepsal řádek cíle, který už patří jinému. */
+    private function popisKonfliktu(string $tabulka, array $def, ?string $pk, array $cil, array $radek): string
+    {
+        $popis = fn (array $r) => collect($def['klic'])->flatten()->unique()
+            ->filter(fn ($s) => ($r[$s] ?? null) !== null)
+            ->map(fn ($s) => $s.' '.json_encode($r[$s], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
+            ->implode(', ');
+        $vCili = $pk ? (string) $cil[$pk] : $this->identita($def, $cil);
+
+        return __('obecne.prenos.radek_ze_zdroje_by_se_sparoval', ['tabulka' => $tabulka, 'popis' => $popis($radek), 'hodnota' => ($pk ? '#'.$cil[$pk].' ' : ''), 'popis2' => $popis($cil), 'hodnota2' => $this->parovani[$tabulka][$vCili]]);
     }
 
     /** Vazby na id ve zdroji → id v cíli; vazba na řádek, který v cíli není, = null (řádek se přeskočí). */
@@ -376,6 +497,8 @@ class Prenos
         }
 
         $this->mapy[$tabulka] = [];
+        $this->parovani[$tabulka] = [];
+        $this->rozhodnuto[$tabulka] = [];
 
         return $smazane;
     }

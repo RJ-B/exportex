@@ -29,7 +29,10 @@ class StavAplikace extends StatsOverviewWidget
     // Stav je to první, co má být na Přehledu vidět – ne až po dalším požadavku.
     protected static bool $isLazy = false;
 
-    protected ?string $heading = 'Stav aplikace';
+    protected function getHeading(): ?string
+    {
+        return __('administrace.stav_aplikace.stav_aplikace');
+    }
 
     protected function getStats(): array
     {
@@ -37,20 +40,20 @@ class StavAplikace extends StatsOverviewWidget
 
         if (auth()->user()?->jeSuperadmin()) {
             $stav = StavWebu::aktualni();
-            $statistiky[] = Stat::make('Stav webu', $stav->nazev())
-                ->description($stav === StavWebu::Online ? 'veřejný' : 'návštěvníci web nevidí')
+            $statistiky[] = Stat::make(__('administrace.stav_aplikace.stav_webu'), $stav->nazev())
+                ->description($stav === StavWebu::Online ? __('administrace.stav_aplikace.verejny') : __('administrace.stav_aplikace.navstevnici_web_nevidi'))
                 ->color($stav->barva())
                 ->url(StavWebuStranka::getUrl());
 
             $chyby = ErrorLog::query()->unresolved()->count();
-            $statistiky[] = Stat::make('Nevyřešené chyby', $chyby)
-                ->description($chyby ? 'Logy → Chyby' : 'žádné')
+            $statistiky[] = Stat::make(__('administrace.stav_aplikace.nevyresene_chyby'), $chyby)
+                ->description($chyby ? 'Logy → Chyby' : __('administrace.stav_aplikace.zadne'))
                 ->color($chyby ? 'danger' : 'success')
                 ->url(ErrorLogResource::getUrl());
 
             $maily = MailLog::query()->failed()->count() + MailLog::query()->stuck()->count();
-            $statistiky[] = Stat::make('Neodeslané e-maily', $maily)
-                ->description($maily ? 'Logy → E-maily' : 'vše odešlo')
+            $statistiky[] = Stat::make(__('administrace.stav_aplikace.neodeslane_e_maily'), $maily)
+                ->description($maily ? 'Logy → E-maily' : __('administrace.stav_aplikace.vse_odeslo'))
                 ->color($maily ? 'danger' : 'success')
                 ->url(MailLogResource::getUrl());
         }
@@ -64,12 +67,12 @@ class StavAplikace extends StatsOverviewWidget
         $fronta = Odchozi::query()->count();
 
         [$hodnota, $popis, $barva] = match (true) {
-            ! Propojeni::propojeno() => ['Nepropojeno', 'propojit s Poštou – e-maily neodcházejí', 'warning'],
-            $stav['ok'] === false => ['Problém', mb_substr((string) $stav['zprava'], 0, 90), 'danger'],
-            $fronta > 0 => ['Čeká '.$fronta, 'Pošta zrovna nepřijímá – předá se samo', 'info'],
-            default => ['V pořádku', 'přes Poštu z '.(Propojeni::odesilatel()['adresa'] ?? '–'), 'success'],
+            ! Propojeni::propojeno() => [__('administrace.stav_aplikace.nepropojeno'), __('administrace.stav_aplikace.propojit_s_postou_e_maily_neodchazeji'), 'warning'],
+            $stav['ok'] === false => [__('administrace.stav_aplikace.problem'), mb_substr((string) $stav['zprava'], 0, 90), 'danger'],
+            $fronta > 0 => [__('administrace.stav_aplikace.ceka', ['fronta' => $fronta]), __('administrace.stav_aplikace.posta_zrovna_neprijima_preda_se_samo'), 'info'],
+            default => [__('administrace.stav_aplikace.v_poradku'), __('administrace.stav_aplikace.pres_postu_z', ['odesilatel' => (Propojeni::odesilatel()['adresa'] ?? '–')]), 'success'],
         };
 
-        return Stat::make('Pošta', $hodnota)->description($popis)->color($barva)->url(PostaStranka::getUrl());
+        return Stat::make(__('administrace.stav_aplikace.posta'), $hodnota)->description($popis)->color($barva)->url(PostaStranka::getUrl());
     }
 }

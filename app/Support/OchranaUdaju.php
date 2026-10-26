@@ -13,28 +13,32 @@ use App\Models\Nastaveni;
  */
 class OchranaUdaju
 {
-    public const VYCHOZI = [
-        'ucinnost_od' => null,
-        'poverenec' => null,
-        'formular_udaje' => 'jméno a příjmení, e-mailová adresa, telefonní číslo, pokud jej uvedete, a obsah zprávy',
-        'formular_doba' => '3 roky od poslední komunikace',
-        'smlouvy' => '0',
-        'smlouvy_doba' => 'po dobu trvání smluvního vztahu a zpravidla ještě 3 roky po jeho skončení',
-        'dalsi_prijemci' => null,
-        'doplnek' => null,
-    ];
+    /** @return array<string, ?string> */
+    public static function vychozi(): array
+    {
+        return [
+            'ucinnost_od' => null,
+            'poverenec' => null,
+            'formular_udaje' => __('pravni.ochrana_udaju.jmeno_a_prijmeni_e_mailova_adresa'),
+            'formular_doba' => __('pravni.ochrana_udaju.t3_roky_od_posledni_komunikace'),
+            'smlouvy' => '0',
+            'smlouvy_doba' => __('pravni.ochrana_udaju.po_dobu_trvani_smluvniho_vztahu_a'),
+            'dalsi_prijemci' => null,
+            'doplnek' => null,
+        ];
+    }
 
     /** @return array<string, ?string> */
     public static function nacti(): array
     {
-        return collect(self::VYCHOZI)
+        return collect(self::vychozi())
             ->map(fn ($vychozi, string $klic) => rescue(fn () => self::cti($klic), null, false) ?? $vychozi)
             ->all();
     }
 
     public static function uloz(array $data): void
     {
-        foreach (array_keys(self::VYCHOZI) as $klic) {
+        foreach (array_keys(self::vychozi()) as $klic) {
             if (array_key_exists($klic, $data)) {
                 $hodnota = is_bool($data[$klic]) ? ($data[$klic] ? '1' : '0') : trim((string) $data[$klic]);
                 self::zapis($klic, $hodnota === '' ? null : $hodnota);
@@ -52,14 +56,14 @@ class OchranaUdaju
         $u = ZakladniUdaje::nacti();
         $chybi = [];
 
-        foreach (['firma' => 'provozovatel (firma / jméno)', 'adresa' => 'sídlo', 'ico' => 'IČO', 'email' => 'kontaktní e-mail'] as $pole => $nazev) {
+        foreach (['firma' => __('pravni.ochrana_udaju.provozovatel_firma_jmeno'), 'adresa' => __('pravni.ochrana_udaju.sidlo'), 'ico' => __('pravni.ochrana_udaju.ico'), 'email' => __('pravni.ochrana_udaju.kontaktni_e_mail')] as $pole => $nazev) {
             if (blank($u[$pole] ?? null)) {
-                $chybi[] = $nazev.' – Hlavička a patička';
+                $chybi[] = __('pravni.ochrana_udaju.hlavicka_a_paticka', ['nazev' => $nazev]);
             }
         }
 
         if (blank(self::nacti()['ucinnost_od'])) {
-            $chybi[] = 'datum účinnosti – tady';
+            $chybi[] = __('pravni.ochrana_udaju.datum_ucinnosti_tady');
         }
 
         return $chybi;

@@ -69,10 +69,13 @@ class Platby
     {
         $brana = NastaveniPlateb::aktivni($pozadavek->brana);
         $klic = $pozadavek->klic();
+        // Předvolba jen tam, kde ji brána i nastavení nabízí – jinak výběr na bráně
+        // (aplikace se starším stavem nesmí platbu shodit).
+        $predvolba = $pozadavek->metoda && NastaveniPlateb::nabizi($pozadavek->metoda, $brana) ? $pozadavek->metoda : null;
 
         return Cache::lock('platby:zalozeni:'.($klic ? hash('sha256', $klic) : Str::uuid()), 60)
-            ->block(15, function () use ($pozadavek, $brana, $klic) {
-                if ($klic && ($rozpracovana = $this->predchozi($klic, $pozadavek, $brana->kod(), $brana->rezim()))) {
+            ->block(15, function () use ($pozadavek, $brana, $klic, $predvolba) {
+                if ($klic && ($rozpracovana = $this->predchozi($klic, $pozadavek, $brana->kod(), $brana->rezim(), $predvolba))) {
                     return $rozpracovana;
                 }
 
@@ -89,15 +92,21 @@ class Platby
                     'klic' => $klic,
                     'brana' => $brana->kod(),
                     'rezim' => $brana->rezim(),
+                    'skutecna' => $brana instanceof MoOne && $brana->rezim() === Rezim::Testovaci && NastaveniPlateb::testovaciBranaOstra(),
                     'stav' => StavPlatby::Zalozena,
                     'castka' => $pozadavek->castka,
                     'mena' => $pozadavek->mena,
+                    'predvolba' => $predvolba,
                 ]);
                 $pozadavek->predmet && $platba->predmet()->associate($pozadavek->predmet);
                 $platba->save();
 
-                $this->zapisUdalost($platba, null, StavPlatby::Zalozena, 'zalozeni', 'Platba založena – '.$brana->nazev().' ('.$brana->rezim()->popis().')');
-                AuditLogger::record('platba.zalozena', $platba, 'Platba '.$this->oznaceni($platba).' založena – '.$platba->castkaKc().' ('.$brana->nazev().', '.mb_strtolower($brana->rezim()->popis()).')');
+                $this->zapisUdalost($platba, null, StavPlatby::Zalozena, 'zalozeni', __('platby.platby.platba_zalozena', ['nazev' => $brana->nazev(), 'rezim' => $brana->rezim()->popis(), 'match' => match (true) {
+                    $predvolba !== null => __('platby.platby.predvoleno', ['popis' => $predvolba->popis()]),
+                    $pozadavek->metoda !== null => __('platby.platby.ted_nejde_vyber_metod_na_brane', ['popis' => $pozadavek->metoda->popis()]),
+                    default => '',
+                }]));
+                AuditLogger::record('platba.zalozena', $platba, __('platby.platby.platba_zalozena_2', ['oznaceni' => $this->oznaceni($platba), 'castka_kc' => $platba->castkaKc(), 'nazev' => $brana->nazev(), 'rezim' => mb_strtolower($brana->rezim()->popis())]));
 
                 try {
                     $zalozena = $brana->zaloz($platba);
@@ -106,11 +115,11 @@ class Platby
                     $this->prejdi($platba, StavPlatby::Chyba, 'zalozeni', $e->getMessage());
                     app(ErrorLogger::class)->capture($e, ['platba' => $platba->verejne_id, 'brana' => $brana->kod()]);
 
-                    throw $e instanceof ChybaBrany ? $e : new ChybaBrany('Platbu se nepodařilo založit.', previous: $e);
+                    throw $e instanceof ChybaBrany ? $e : new ChybaBrany(__('platby.platby.platbu_se_nepodarilo_zalozit'), previous: $e);
                 }
 
                 $platba->forceFill(['externi_id' => $zalozena->externiId, 'presmerovani_url' => $zalozena->presmerovani])->save();
-                $this->prejdi($platba, StavPlatby::Ceka, 'zalozeni', 'Brána platbu přijala ('.$zalozena->externiId.')', $zalozena->data);
+                $this->prejdi($platba, StavPlatby::Ceka, 'zalozeni', __('platby.platby.brana_platbu_prijala', ['externi_id' => $zalozena->externiId]), $zalozena->data);
 
                 return $platba->refresh();
             });
@@ -137,6 +146,7 @@ class Platby
             klic: $platba->klic,
             navratUrl: $platba->navrat_url,
             mena: $platba->mena,
+            metoda: $platba->predvolba,
         ));
     }
 
@@ -158,7 +168,7 @@ class Platby
             $stav = NastaveniPlateb::proPlatbu($platba)->stav($platba);
         } catch (Throwable $e) {
             app(ErrorLogger::class)->capture($e, ['platba' => $platba->verejne_id, 'zdroj' => $zdroj]);
-            $this->zapisUdalost($platba, $platba->stav, $platba->stav, $zdroj, 'Ověření stavu selhalo: '.$e->getMessage(), $podnet);
+            $this->zapisUdalost($platba, $platba->stav, $platba->stav, $zdroj, __('platby.platby.overeni_stavu_selhalo', ['get_message' => $e->getMessage()]), $podnet);
 
             throw $e;
         }
@@ -168,7 +178,7 @@ class Platby
 
         // Zaplaceno, ale jiná částka než naše = nepřijmout, ať rozhodne člověk.
         if ($stav->stav === StavPlatby::Zaplacena && $stav->castka !== null && $stav->castka !== $platba->castka) {
-            $zprava = 'Brána hlásí zaplaceno '.Platba::kc($stav->castka, $platba->mena).', platba je na '.$platba->castkaKc().' – nepřijato.';
+            $zprava = __('platby.platby.brana_hlasi_zaplaceno_platba_je_na', ['kc' => Platba::kc($stav->castka, $platba->mena), 'castka_kc' => $platba->castkaKc()]);
             $this->zapisUdalost($platba, $platba->stav, $platba->stav, $zdroj, $zprava, $data);
             app(ErrorLogger::class)->capture(new RuntimeException('Platba '.$platba->verejne_id.': '.$zprava), ['platba' => $platba->verejne_id]);
 
@@ -186,8 +196,8 @@ class Platby
         // plánovač by historii zahltil.
         if (! $zmeneno && $zdroj !== 'planovac') {
             $this->zapisUdalost($platba, $platba->stav, $platba->stav, $zdroj, $stav->stav === $platba->stav
-                ? 'Stav beze změny: '.$platba->stav->popis()
-                : 'Brána hlásí „'.$stav->stav->popis().'“ – platba zůstává „'.$platba->stav->popis().'“.', $data);
+                ? __('platby.platby.stav_beze_zmeny', ['popis' => $platba->stav->popis()])
+                : __('platby.platby.brana_hlasi_platba_zustava', ['popis' => $stav->stav->popis(), 'popis2' => $platba->stav->popis()]), $data);
         }
 
         return $platba->refresh();
@@ -250,7 +260,7 @@ class Platby
             }
         }
 
-        $this->prejdi($platba, StavPlatby::Zrusena, $zdroj, $duvod ? 'Zrušeno: '.$duvod : 'Zrušeno');
+        $this->prejdi($platba, StavPlatby::Zrusena, $zdroj, $duvod ? __('platby.platby.zruseno', ['duvod' => $duvod]) : __('platby.platby.zruseno_2'));
     }
 
     /**
@@ -281,14 +291,14 @@ class Platby
                 $brana->vrat($platba, $castka);
             } catch (Throwable $e) {
                 app(ErrorLogger::class)->capture($e, ['platba' => $platba->verejne_id, 'vraceni' => $castka]);
-                $this->zapisUdalost($platba, $platba->stav, $platba->stav, 'administrace', 'Vrácení '.Platba::kc($castka, $platba->mena).' selhalo: '.$e->getMessage());
+                $this->zapisUdalost($platba, $platba->stav, $platba->stav, 'administrace', __('platby.platby.vraceni_selhalo', ['kc' => Platba::kc($castka, $platba->mena), 'get_message' => $e->getMessage()]));
 
                 throw $e;
             }
 
             $vraceno = $platba->vraceno + $castka;
             $novy = $vraceno >= $platba->castka ? StavPlatby::Vracena : StavPlatby::CastecneVracena;
-            $poznamka = 'Vráceno '.Platba::kc($castka, $platba->mena).($duvod ? ' – '.$duvod : '');
+            $poznamka = __('platby.platby.vraceno', ['kc' => Platba::kc($castka, $platba->mena), 'hodnota' => ($duvod ? ' – '.$duvod : '')]);
 
             if ($novy === $platba->stav) {
                 // Další částečné vrácení – stav stejný, mění se jen částka.
@@ -301,7 +311,7 @@ class Platby
                 $this->prejdi($platba, $novy, 'administrace', $poznamka, [], ['vraceno' => $vraceno]);
             }
 
-            AuditLogger::record('platba.vracena', $platba, 'Platba '.$this->oznaceni($platba).': '.$poznamka, new: ['vraceno' => $vraceno]);
+            AuditLogger::record('platba.vracena', $platba, __('platby.platby.platba_poznamka', ['oznaceni' => $this->oznaceni($platba), 'poznamka' => $poznamka]), new: ['vraceno' => $vraceno]);
             $this->posli($platba, new PlatbaVracena($platba, $castka));
         });
     }
@@ -362,7 +372,7 @@ class Platby
             ->where('stav', StavPlatby::Zalozena)
             ->whereNull('externi_id')
             ->where('created_at', '<', now()->subHour())
-            ->each(fn (Platba $p) => $this->prejdi($p, StavPlatby::Chyba, 'planovac', 'Založení u brány se nedokončilo.'));
+            ->each(fn (Platba $p) => $this->prejdi($p, StavPlatby::Chyba, 'planovac', __('platby.platby.zalozeni_u_brany_se_nedokoncilo')));
 
         $pocet = 0;
 
@@ -389,11 +399,11 @@ class Platby
     }
 
     /**
-     * Rozpracovaná platba stejného předmětu: stejná částka, brána a režim
+     * Rozpracovaná platba stejného předmětu: stejná částka, brána, režim a předvolba
      * a mladší 30 minut = použije se znovu (dvojklik, návrat zpět). Jinak se
      * ověří a zruší. Zaplacená = UzZaplaceno.
      */
-    private function predchozi(string $klic, PozadavekPlatby $pozadavek, string $brana, Rezim $rezim): ?Platba
+    private function predchozi(string $klic, PozadavekPlatby $pozadavek, string $brana, Rezim $rezim, ?MetodaPlatby $predvolba): ?Platba
     {
         $predchozi = Platba::query()->where('klic', $klic)->orderByDesc('id')->get();
 
@@ -403,8 +413,9 @@ class Platby
 
         foreach ($predchozi->filter(fn (Platba $p) => $p->stav->otevrena()) as $platba) {
             if ($platba->stav === StavPlatby::Ceka && $platba->castka === $pozadavek->castka && $platba->brana === $brana
-                && $platba->rezim === $rezim && filled($platba->presmerovani_url) && $platba->created_at->gt(now()->subMinutes(30))) {
-                $this->zapisUdalost($platba, $platba->stav, $platba->stav, 'zalozeni', 'Znovu použita rozpracovaná platba (opakované odeslání).');
+                && $platba->rezim === $rezim && $platba->predvolba === $predvolba
+                && filled($platba->presmerovani_url) && $platba->created_at->gt(now()->subMinutes(30))) {
+                $this->zapisUdalost($platba, $platba->stav, $platba->stav, 'zalozeni', __('platby.platby.znovu_pouzita_rozpracovana_platba'));
 
                 return $platba;
             }
@@ -422,7 +433,7 @@ class Platby
 
             if ($platba->stav->otevrena()) {
                 try {
-                    $this->zrus($platba, 'zalozeni', 'nahrazena novou platbou');
+                    $this->zrus($platba, 'zalozeni', __('platby.platby.nahrazena_novou_platbou'));
                 } catch (Throwable) {
                     // Zrušit nejde (brána nedostupná) – plánovač ji dořeší.
                 }
@@ -441,18 +452,18 @@ class Platby
         event(new PlatbaZmenilaStav($platba, $puvodni));
 
         if ($platba->stav === StavPlatby::Zaplacena && ! $puvodni?->zaplaceno()) {
-            AuditLogger::record('platba.zaplacena', $platba, 'Platba '.$this->oznaceni($platba).' zaplacena – '.$platba->castkaKc()
-                .' ('.$platba->nazevBrany().', '.mb_strtolower($platba->rezim->popis()).')', new: [
+            AuditLogger::record('platba.zaplacena', $platba, __('platby.platby.platba_zaplacena', ['oznaceni' => $this->oznaceni($platba), 'castka_kc' => $platba->castkaKc(),
+                'brana' => $platba->nazevBrany(), 'rezim' => mb_strtolower($platba->rezim->popis())]), new: [
                     'castka' => $platba->castka, 'brana' => $platba->brana, 'rezim' => $platba->rezim->value, 'externi_id' => $platba->externi_id, 'zdroj' => $zdroj,
                 ]);
 
             if (in_array($puvodni, [StavPlatby::Zrusena, StavPlatby::Zamitnuta], true)) {
-                app(ErrorLogger::class)->capture(new RuntimeException('Platba '.$this->oznaceni($platba).' byla '.mb_strtolower($puvodni->popis()).', ale brána ji potvrdila jako zaplacenou – peníze přišly, zkontroluj objednávku.'), ['platba' => $platba->verejne_id]);
+                app(ErrorLogger::class)->capture(new RuntimeException(__('platby.platby.platba_byla_ale_brana_ji_potvrdila', ['oznaceni' => $this->oznaceni($platba), 'popis' => mb_strtolower($puvodni->popis())])), ['platba' => $platba->verejne_id]);
             }
 
             if ($platba->klic && Platba::query()->where('klic', $platba->klic)->whereKeyNot($platba->id)
                 ->whereIn('stav', [StavPlatby::Zaplacena, StavPlatby::CastecneVracena])->exists()) {
-                app(ErrorLogger::class)->capture(new RuntimeException('Dvojí zaplacení „'.$platba->klic.'“ – vrať jednu z plateb (Platby v administraci).'), ['platba' => $platba->verejne_id]);
+                app(ErrorLogger::class)->capture(new RuntimeException(__('platby.platby.dvoji_zaplaceni_vrat_jednu_z_plateb', ['klic' => $platba->klic])), ['platba' => $platba->verejne_id]);
             }
 
             event(new PlatbaZaplacena($platba));
@@ -462,7 +473,7 @@ class Platby
         }
 
         if (! in_array($platba->stav, [StavPlatby::Ceka, StavPlatby::Vracena, StavPlatby::CastecneVracena], true)) {
-            AuditLogger::record('platba.stav', $platba, 'Platba '.$this->oznaceni($platba).': '.($puvodni?->popis() ?? '–').' → '.$platba->stav->popis(), $puvodni ? ['stav' => $puvodni->value] : null, ['stav' => $platba->stav->value, 'zdroj' => $zdroj]);
+            AuditLogger::record('platba.stav', $platba, __('platby.platby.platba_zmena_stavu', ['oznaceni' => $this->oznaceni($platba), 'puvodni' => $puvodni?->popis() ?? '–', 'novy' => $platba->stav->popis()]), $puvodni ? ['stav' => $puvodni->value] : null, ['stav' => $platba->stav->value, 'zdroj' => $zdroj]);
         }
     }
 
@@ -490,7 +501,7 @@ class Platby
         try {
             Mail::to($platba->email, $platba->celeJmeno() ?: null)->send($mail);
         } catch (Throwable $e) {
-            app(ErrorLogger::class)->capture($e, ['platba' => $platba->verejne_id, 'kdy' => 'e-mail zákazníkovi']);
+            app(ErrorLogger::class)->capture($e, ['platba' => $platba->verejne_id, 'kdy' => __('platby.platby.e_mail_zakaznikovi')]);
         }
     }
 

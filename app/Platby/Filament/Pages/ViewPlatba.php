@@ -44,7 +44,7 @@ class ViewPlatba extends ViewRecord
     {
         return [
             Action::make('overit')
-                ->label('Ověřit stav u brány')
+                ->label(__('platby.view_platba.overit_stav_u_brany'))
                 ->icon('heroicon-o-arrow-path')
                 ->color('gray')
                 ->visible(fn () => filled($this->record->externi_id))
@@ -53,63 +53,63 @@ class ViewPlatba extends ViewRecord
                         $platba = $platby->overStav($this->record, 'administrace');
                         Notification::make()->title('Stav: '.$platba->stav->popis())->success()->send();
                     } catch (Throwable $e) {
-                        Notification::make()->title('Stav nejde ověřit')->body($e->getMessage())->danger()->send();
+                        Notification::make()->title(__('platby.view_platba.stav_nejde_overit'))->body($e->getMessage())->danger()->send();
                     }
 
                     $this->record->refresh();
                 }),
             Action::make('odkaz')
-                ->label('Odkaz k zaplacení')
+                ->label(__('platby.view_platba.odkaz_k_zaplaceni'))
                 ->icon('heroicon-o-link')
                 ->color('gray')
                 ->visible(fn () => $this->record->stav === StavPlatby::Ceka)
-                ->modalHeading('Odkaz k zaplacení')
+                ->modalHeading(__('platby.view_platba.odkaz_k_zaplaceni'))
                 ->modalDescription(fn () => $this->record->odkazKZaplaceni())
                 ->modalSubmitAction(false)
-                ->modalCancelActionLabel('Zavřít'),
+                ->modalCancelActionLabel(__('platby.view_platba.zavrit')),
             Action::make('zrusit')
-                ->label('Zrušit platbu')
+                ->label(__('platby.view_platba.zrusit_platbu'))
                 ->icon('heroicon-o-x-circle')
                 ->color('danger')
                 ->visible(fn () => $this->record->stav->otevrena())
                 ->requiresConfirmation()
-                ->modalHeading('Zrušit platbu?')
-                ->modalDescription('Zákazník ji pak už nezaplatí. Když ji mezitím zaplatil, zůstane zaplacená.')
-                ->modalSubmitActionLabel('Zrušit platbu')
-                ->schema([Textarea::make('duvod')->label('Důvod')->rows(2)->maxLength(300)])
+                ->modalHeading(__('platby.view_platba.zrusit_platbu_2'))
+                ->modalDescription(__('platby.view_platba.zakaznik_ji_pak_uz_nezaplati_kdyz'))
+                ->modalSubmitActionLabel(__('platby.view_platba.zrusit_platbu'))
+                ->schema([Textarea::make('duvod')->label(__('platby.view_platba.duvod'))->rows(2)->maxLength(300)])
                 ->action(function (array $data, Platby $platby) {
                     try {
                         $platby->zrus($this->record, 'administrace', $data['duvod'] ?? null);
-                        Notification::make()->title('Platba je zrušená')->success()->send();
+                        Notification::make()->title(__('platby.view_platba.platba_je_zrusena'))->success()->send();
                     } catch (Throwable $e) {
-                        Notification::make()->title('Zrušit nejde')->body($e->getMessage())->danger()->send();
+                        Notification::make()->title(__('platby.view_platba.zrusit_nejde'))->body($e->getMessage())->danger()->send();
                     }
 
                     $this->record->refresh();
                 }),
             Action::make('vratit')
-                ->label('Vrátit peníze')
+                ->label(__('platby.view_platba.vratit_penize'))
                 ->icon('heroicon-o-arrow-uturn-left')
                 ->color('warning')
                 ->visible(fn () => $this->record->zbyvaVratit() > 0)
                 ->disabled(fn () => ! ($this->brana()?->umiVratit() ?? false))
-                ->tooltip(fn () => ($this->brana()?->umiVratit() ?? false) ? null : 'Tahle brána vrácení přes API neumí – vrať peníze v její aplikaci.')
+                ->tooltip(fn () => ($this->brana()?->umiVratit() ?? false) ? null : __('platby.view_platba.tahle_brana_vraceni_pres_api_neumi'))
                 ->requiresConfirmation()
-                ->modalHeading('Vrátit peníze zákazníkovi?')
-                ->modalDescription(fn () => 'Peníze odejdou zpět stejnou cestou, jakou zákazník platil. Vrátit jde nejvýš '.Platba::kc($this->record->zbyvaVratit(), $this->record->mena).'. Vrácení nejde vzít zpět.')
-                ->modalSubmitActionLabel('Vrátit peníze')
+                ->modalHeading(__('platby.view_platba.vratit_penize_zakaznikovi'))
+                ->modalDescription(fn () => __('platby.view_platba.penize_odejdou_zpet_stejnou_cestou_jakou', ['kc' => Platba::kc($this->record->zbyvaVratit(), $this->record->mena)]))
+                ->modalSubmitActionLabel(__('platby.view_platba.vratit_penize'))
                 ->schema([
-                    TextInput::make('castka')->label('Částka (Kč)')->required()
+                    TextInput::make('castka')->label(__('platby.view_platba.castka_kc'))->required()
                         ->default(fn () => number_format($this->record->zbyvaVratit() / 100, 2, ',', ''))
-                        ->rule('regex:/^\s*\d[\d\s]*([,.]\d{1,2})?\s*$/')->validationMessages(['regex' => 'Částka v korunách, např. 250 nebo 99,50.']),
-                    Textarea::make('duvod')->label('Důvod')->rows(2)->maxLength(300),
+                        ->rule('regex:/^\s*\d[\d\s]*([,.]\d{1,2})?\s*$/')->validationMessages(['regex' => __('platby.view_platba.castka_v_korunach_napr_250_nebo')]),
+                    Textarea::make('duvod')->label(__('platby.view_platba.duvod'))->rows(2)->maxLength(300),
                 ])
                 ->action(function (array $data, Platby $platby) {
                     try {
                         $platby->vrat($this->record, Platby::halere($data['castka']), $data['duvod'] ?? null);
-                        Notification::make()->title('Peníze se vrací')->success()->send();
+                        Notification::make()->title(__('platby.view_platba.penize_se_vraci'))->success()->send();
                     } catch (Throwable $e) {
-                        Notification::make()->title('Vrátit nejde')->body($e->getMessage())->danger()->send();
+                        Notification::make()->title(__('platby.view_platba.vratit_nejde'))->body($e->getMessage())->danger()->send();
                     }
 
                     $this->record->refresh();

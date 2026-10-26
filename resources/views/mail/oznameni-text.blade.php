@@ -1,11 +1,11 @@
-@if ($zkouska)[Zkouška – takhle oznámení uvidí příjemci. Nikomu jinému neodešlo.]
+@if ($zkouska){!! __('maily.oznameni_text.zkouska_takhle_oznameni_uvidi_prijemci') !!}
 
 @endif
 {{ $oznameni->titulek }}
 {{ str_repeat('=', min(60, mb_strlen($oznameni->titulek))) }}
 @if ($oznameni->udalost_od)
 
-Kdy: {{ $oznameni->udalost_od->format('j. n. Y H:i') }}@if ($oznameni->udalost_do) – {{ $oznameni->udalost_do->format('j. n. Y H:i') }}@endif
+{!! __('maily.oznameni_text.kdy', ['format' => $oznameni->udalost_od->format(__('formaty.datum_cas'))]) !!}@if ($oznameni->udalost_do) – {{ $oznameni->udalost_do->format(__('formaty.datum_cas')) }}@endif
 
 @endif
 
@@ -17,11 +17,10 @@ Kdy: {{ $oznameni->udalost_od->format('j. n. Y H:i') }}@if ($oznameni->udalost_d
 
 ---
 @if ($odhlaseni)
-Dostáváte to, protože jste souhlasili se zasíláním novinek od {{ $nazevWebu }}.
-Odhlásit: {{ $odhlaseni }}
+{!! __('maily.oznameni_text.dostavate_to_protoze_jste_souhlasili_se', ['nazev_webu' => $nazevWebu, 'odhlaseni' => $odhlaseni]) !!}
 @else
-Dostáváte to, protože máte účet na {{ $nazevWebu }}.
+{!! __('maily.oznameni_text.dostavate_to_protoze_mate_ucet_na', ['nazev_webu' => $nazevWebu]) !!}
 @endif
 @if ($predvolby)
-Předvolby oznámení: {{ $predvolby }}
+{!! __('maily.oznameni_text.predvolby_oznameni', ['predvolby' => $predvolby]) !!}
 @endif

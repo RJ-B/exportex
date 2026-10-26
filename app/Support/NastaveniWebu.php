@@ -5,13 +5,13 @@ namespace App\Support;
 use App\Models\Nastaveni;
 
 /**
- * Nastavení webu mimo Základní údaje: logo, sociální sítě, patička, SEO
+ * Nastavení webu mimo Základní údaje: logo a ikona v záložce, sociální sítě, patička, SEO
  * a měření, kam chodí zprávy z formuláře. Upravuje se v Obsahu webu.
  */
 class NastaveniWebu
 {
     public const POLE = [
-        'logo', 'tagline',
+        'logo', 'ikona', 'tagline',
         'facebook', 'instagram', 'linkedin', 'youtube', 'tiktok',
         'paticka_poznamka',
         'formular_prijemce',
@@ -71,6 +71,11 @@ class NastaveniWebu
                 $hodnota = is_bool($data[$pole]) ? ($data[$pole] ? '1' : '0') : trim((string) $data[$pole]);
                 self::zapis($pole, $hodnota === '' ? null : $hodnota);
             }
+        }
+
+        // Ikona v záložce prohlížeče vzniká z loga (nebo z vlastní ikony) jen při uložení.
+        if (array_key_exists('logo', $data) || array_key_exists('ikona', $data)) {
+            IkonaWebu::obnov();
         }
     }
 

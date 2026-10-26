@@ -25,7 +25,8 @@ use Illuminate\Support\Facades\Http;
  * 5. GET /payment/api/transactions/{PublicID}/status – jediný autoritativní stav.
  * Zrušení: PUT …/cancel. Vrácení peněz API nemá – dělá se v aplikaci Mo.one.
  *
- * REST je PascalCase, webhook camelCase („transactionPublicID“, „externalID“).
+ * REST dokumentace uvádí PascalCase, ale API vrací camelCase – odpovědi se čtou bez ohledu na
+ * velikost písmen (pole()); odesíláme PascalCase. Webhook je camelCase („transactionPublicID“, „externalID“).
  * Test: https://api-test.znpay.tech, produkce: https://api.znpay.tech.
  */
 class MoOne implements Brana
@@ -68,27 +69,41 @@ class MoOne implements Brana
             $telo['CallbackUrl'] = route('platby.webhook', 'moone');
         }
 
-        $odpoved = $this->volej(fn (PendingRequest $h) => $h->post('payment/api/transactions/initiate', $telo), 'založení platby');
-        $transakce = (array) ($odpoved['Transaction'] ?? []);
+        $odpoved = $this->volej(fn (PendingRequest $h) => $h->post('payment/api/transactions/initiate', $telo), __('platby.mo_one.zalozeni_platby'));
+        $transakce = (array) self::pole($odpoved, 'Transaction');
+        $id = self::pole($transakce, 'PublicID');
+        $adresa = self::pole($transakce, 'RedirectUrl');
 
-        if (blank($transakce['PublicID'] ?? null) || blank($transakce['RedirectUrl'] ?? null)) {
-            throw new ChybaBrany('Mo.one nevrátilo číslo ani adresu platby.');
+        if (blank($id) || blank($adresa)) {
+            throw new ChybaBrany(__('platby.mo_one.mo_one_nevratilo_cislo_ani_adresu'));
         }
 
-        return new ZalozenaPlatba($transakce['PublicID'], $transakce['RedirectUrl'], $transakce);
+        return new ZalozenaPlatba((string) $id, (string) $adresa, $transakce);
     }
 
     public function stav(Platba $platba): StavZBrany
     {
-        $odpoved = $this->volej(fn (PendingRequest $h) => $h->get('payment/api/transactions/'.rawurlencode((string) $platba->externi_id).'/status'), 'ověření stavu');
+        $odpoved = $this->volej(fn (PendingRequest $h) => $h->get('payment/api/transactions/'.rawurlencode((string) $platba->externi_id).'/status'), __('platby.mo_one.overeni_stavu'));
+
+        $stav = self::pole($odpoved, 'Status');
+        $castka = self::pole($odpoved, 'Amount');
 
         return new StavZBrany(
-            stav: self::stavZ($odpoved['Status'] ?? null),
-            castka: is_numeric($odpoved['Amount'] ?? null) ? (int) round(((float) $odpoved['Amount']) * 100) : null,
+            stav: self::stavZ(is_string($stav) ? $stav : null),
+            castka: is_numeric($castka) ? (int) round(((float) $castka) * 100) : null,
             metoda: null,
-            poznamka: ucfirst((string) ($odpoved['Status'] ?? '')) === 'InvestigationNeeded' ? 'Mo.one platbu prověřuje (InvestigationNeeded).' : null,
+            poznamka: $stav === 'InvestigationNeeded' ? __('platby.mo_one.mo_one_platbu_proveruje') : null,
             data: $odpoved,
         );
+    }
+
+    /**
+     * Mo.one metodu předvolit neumí (initiate má jen částku, měnu a adresy) –
+     * co platební stránka nabídne, rozhoduje Mo.one.
+     */
+    public function predvolby(): array
+    {
+        return [];
     }
 
     public function umiZrusit(): bool
@@ -98,7 +113,7 @@ class MoOne implements Brana
 
     public function zrus(Platba $platba): void
     {
-        $this->volej(fn (PendingRequest $h) => $h->put('payment/api/transactions/'.rawurlencode((string) $platba->externi_id).'/cancel'), 'zrušení platby');
+        $this->volej(fn (PendingRequest $h) => $h->put('payment/api/transactions/'.rawurlencode((string) $platba->externi_id).'/cancel'), __('platby.mo_one.zruseni_platby'));
     }
 
     public function umiVratit(): bool
@@ -108,7 +123,7 @@ class MoOne implements Brana
 
     public function vrat(Platba $platba, int $castka): void
     {
-        throw new ChybaBrany('Mo.one vrácení přes API neumí – peníze se vrací v aplikaci Mo.one.');
+        throw new ChybaBrany(__('platby.mo_one.mo_one_vraceni_pres_api_neumi'));
     }
 
     public function overSpojeni(): string
@@ -116,7 +131,7 @@ class MoOne implements Brana
         Cache::forget($this->klicTokenu());
         $this->token();
 
-        return 'Přihlášení k Mo.one funguje ('.parse_url($this->url, PHP_URL_HOST).').';
+        return __('platby.mo_one.prihlaseni_k_mo_one_funguje', ['url' => parse_url($this->url, PHP_URL_HOST)]);
     }
 
     /** Mo.one webhooky nepodepisuje – pravost dává až dotaz na stav. */
@@ -136,12 +151,12 @@ class MoOne implements Brana
 
     public static function stavZ(?string $stav): StavPlatby
     {
-        return match ($stav === null ? null : ucfirst($stav)) {
+        return match ($stav) {
             'Success' => StavPlatby::Zaplacena,
             'Fail' => StavPlatby::Zamitnuta,
             'Cancelled' => StavPlatby::Zrusena,
             'Created', 'Initiated', 'Processing', 'InvestigationNeeded' => StavPlatby::Ceka,
-            default => throw new ChybaBrany('Mo.one vrátilo neznámý stav „'.$stav.'“.'),
+            default => throw new ChybaBrany(__('platby.mo_one.mo_one_vratilo_neznamy_stav', ['stav' => $stav])),
         };
     }
 
@@ -152,7 +167,7 @@ class MoOne implements Brana
             /** @var Response $odpoved */
             $odpoved = $pozadavek($this->http()->withToken($this->token()));
         } catch (ConnectionException $e) {
-            throw new ChybaBrany('Mo.one neodpovídá ('.$co.'): '.$e->getMessage(), previous: $e);
+            throw new ChybaBrany(__('platby.mo_one.mo_one_neodpovida', ['co' => $co, 'get_message' => $e->getMessage()]), previous: $e);
         }
 
         if ($odpoved->status() === 401 && $znovu) {
@@ -165,23 +180,7 @@ class MoOne implements Brana
             throw new ChybaBrany('Mo.one: '.$co.' selhalo (HTTP '.$odpoved->status().')'.self::duvod($odpoved).'.');
         }
 
-        return self::klice((array) $odpoved->json());
-    }
-
-    /**
-     * Klíče odpovědi s velkým prvním písmenem: Mo.one (ASP.NET) posílá camelCase
-     * (`accessToken`, `transaction.publicID`), dokumentace PascalCase – kód čte
-     * PascalCase a platí obojí.
-     */
-    private static function klice(array $data): array
-    {
-        $vysledek = [];
-
-        foreach ($data as $klic => $hodnota) {
-            $vysledek[is_string($klic) ? ucfirst($klic) : $klic] = is_array($hodnota) ? self::klice($hodnota) : $hodnota;
-        }
-
-        return $vysledek;
+        return (array) $odpoved->json();
     }
 
     private function token(): string
@@ -204,26 +203,25 @@ class MoOne implements Brana
                     'ClientSecret' => $this->clientSecret,
                 ]);
             } catch (ConnectionException $e) {
-                throw new ChybaBrany('Mo.one neodpovídá (přihlášení): '.$e->getMessage(), previous: $e);
+                throw new ChybaBrany(__('platby.mo_one.mo_one_neodpovida_prihlaseni', ['get_message' => $e->getMessage()]), previous: $e);
             }
 
             if ($odpoved->status() === 403) {
-                throw new ChybaBrany('Mo.one odmítlo přístupové údaje (Client ID / Client secret) – zkontroluj je, případně vygeneruj nový secret v aplikaci Mo.one.');
+                throw new ChybaBrany(__('platby.mo_one.mo_one_odmitlo_pristupove_udaje_client'));
             }
 
             if ($odpoved->status() === 429) {
-                throw new ChybaBrany('Mo.one: příliš mnoho přihlášení za minutu – zkus to za chvíli.');
+                throw new ChybaBrany(__('platby.mo_one.mo_one_prilis_mnoho_prihlaseni_za'));
             }
 
-            $data = self::klice((array) $odpoved->json());
-            $token = $data['AccessToken'] ?? null;
+            $token = self::pole((array) $odpoved->json(), 'AccessToken');
 
             if (! $odpoved->successful() || blank($token)) {
-                throw new ChybaBrany('Mo.one: přihlášení selhalo (HTTP '.$odpoved->status().')'.self::duvod($odpoved).'.');
+                throw new ChybaBrany(__('platby.mo_one.mo_one_prihlaseni_selhalo_http', ['status' => $odpoved->status(), 'duvod' => self::duvod($odpoved)]));
             }
 
             // Platí hodinu; obnoví se o dvě minuty dřív.
-            Cache::put($klic, $token, max(60, (int) ($data['ExpiresIn'] ?? 3600) - 120));
+            Cache::put($klic, $token, max(60, (int) (self::pole((array) $odpoved->json(), 'ExpiresIn') ?? 3600) - 120));
 
             return $token;
         });
@@ -243,9 +241,36 @@ class MoOne implements Brana
             ->connectTimeout(5);
     }
 
+    /**
+     * Pole z odpovědi BEZ ohledu na velikost písmen (dokumentace píše PascalCase,
+     * skutečné API vrací camelCase); vnořené přes tečku, např. „Transaction.PublicID“.
+     */
+    public static function pole(mixed $data, string $cesta): mixed
+    {
+        foreach (explode('.', $cesta) as $klic) {
+            if (! is_array($data)) {
+                return null;
+            }
+
+            $nalezeno = null;
+
+            foreach ($data as $k => $hodnota) {
+                if (strcasecmp((string) $k, $klic) === 0) {
+                    $nalezeno = $hodnota;
+                    break;
+                }
+            }
+
+            $data = $nalezeno;
+        }
+
+        return $data;
+    }
+
     private static function duvod(Response $odpoved): string
     {
-        $text = $odpoved->json('Message') ?? $odpoved->json('message') ?? $odpoved->json('title') ?? null;
+        $data = (array) $odpoved->json();
+        $text = self::pole($data, 'Message') ?? self::pole($data, 'title');
 
         return is_string($text) && $text !== '' ? ' – '.mb_substr($text, 0, 200) : '';
     }

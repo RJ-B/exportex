@@ -162,8 +162,8 @@ class TestAProdukceTest extends TestCase
 
     public function test_stitek_testovaci_platby_na_webu_a_v_administraci(): void
     {
-        $platba = $this->platby()->zaloz($this->pozadavek());
-        $this->get(route('platby.vysledek', $platba))->assertSee('TESTOVACÍ PLATBY');
+        $this->get('/')->assertSee('TESTOVACÍ PLATBY');
+        $this->get('/zasady-cookies')->assertSee('TESTOVACÍ PLATBY');   // Exportex: /kontakt přesměruje na formulář na úvodu
         $this->actingAs($this->spravce())->get('/admin')->assertSee('TESTOVACÍ PLATBY');
 
         // Ostře – štítek zmizí.
@@ -172,6 +172,35 @@ class TestAProdukceTest extends TestCase
         NastaveniPlateb::oznacOvereno('comgate');
         NastaveniPlateb::uloz(['rezim' => NastaveniPlateb::REZIM_OSTRY]);
 
-        $this->actingAs($this->spravce())->get('https://pekarna.cz/admin')->assertDontSee('TESTOVACÍ PLATBY');
+        $this->get('https://pekarna.cz/')->assertDontSee('TESTOVACÍ PLATBY');
+    }
+
+    public function test_stitek_a_popis_podle_toho_zda_je_testovaci_brana_ostra(): void
+    {
+        // Výchozí api-test: nic se nestrhne.
+        config(['platby.simulace' => false, 'platby.test.moone.url' => 'https://api-test.znpay.tech']);
+        $this->testovaciUdaje();
+        NastaveniPlateb::zapomen();
+
+        $this->assertFalse(NastaveniPlateb::testovaciBranaOstra());
+        $this->assertSame('TESTOVACÍ PLATBY', NastaveniPlateb::stitekText());
+        $this->assertStringContainsString('nic se nestrhne', NastaveniPlateb::prehled()['popis']);
+        $stitek = view('platby.stitek')->render();
+        $this->assertStringContainsString('TESTOVACÍ PLATBY', $stitek);
+        $this->assertStringNotContainsString('SKUTEČNÁ PLATBA', $stitek);
+
+        // Ostrý PayPoint Sim&Ren: skutečné peníze.
+        config(['platby.test.moone.url' => 'https://api.znpay.tech']);
+        NastaveniPlateb::zapomen();
+
+        $this->assertTrue(NastaveniPlateb::testovaciBranaOstra());
+        $this->assertSame('SKUTEČNÁ PLATBA – TESTOVACÍ BRÁNA', NastaveniPlateb::stitekText());
+        $this->assertSame(
+            'Platby přes testovací bránu Sim&Ren (Mo.one) jsou skutečné – peníze se strhnou a vrací se ručně v aplikaci Mo.one.',
+            NastaveniPlateb::prehled()['popis'],
+        );
+        $stitek = view('platby.stitek')->render();
+        $this->assertStringContainsString('SKUTEČNÁ PLATBA – TESTOVACÍ BRÁNA', $stitek);
+        $this->assertStringNotContainsString('TESTOVACÍ PLATBY', $stitek);
     }
 }

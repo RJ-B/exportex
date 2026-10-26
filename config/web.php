@@ -48,7 +48,4 @@ return [
     'autor' => 'codeing.cz',
     'autor_web' => 'https://codeing.cz',
 
-    // Domény, které se trvale přesměrují na kanonickou adresu (dřív to dělal GitHub Pages).
-    'alternativni_domeny' => ['www.exportex.cz'],
-
 ];

@@ -30,12 +30,12 @@
 </style>
 
 @if (session('predvolby_ulozeny'))
-    <div class="ozn-toast" role="status" data-ozn-toast>Předvolby jsou uložené.</div>
+    <div class="ozn-toast" role="status" data-ozn-toast>{{ __('web.stranka.predvolby_jsou_ulozene') }}</div>
     <script>setTimeout(function () { var t = document.querySelector('[data-ozn-toast]'); if (t) { t.remove(); } }, 5000);</script>
 @endif
 
 <nav class="ozn-filtry" aria-label="Zobrazit">
-    @foreach (['' => 'Vše', 'neprectene' => 'Nepřečtené', 'archiv' => 'Archiv'] as $klic => $popis)
+    @foreach (['' => __('web.stranka.vse'), 'neprectene' => __('web.stranka.neprectene'), 'archiv' => 'Archiv'] as $klic => $popis)
         <a href="{{ route('oznameni.stranka', array_filter(['zobrazit' => $klic])) }}" @if ($zobrazit === $klic) aria-current="page" @endif>{{ $popis }}</a>
     @endforeach
 </nav>
@@ -43,7 +43,7 @@
 @if ($neprectenych > 0)
     <div class="ozn-akce-hlava">
         <form method="post" action="{{ route('oznameni.precteno-vse') }}">@csrf
-            <button type="submit" class="ozn-tlacitko-odkaz">Označit vše jako přečtené</button>
+            <button type="submit" class="ozn-tlacitko-odkaz">{{ __('web.stranka.oznacit_vse_jako_prectene') }}</button>
         </form>
     </div>
 @endif
@@ -51,10 +51,10 @@
 @forelse ($polozky as $p)
     @php($o = $p->oznameni)
     <article class="ozn-karta {{ $p->precteno_at ? '' : 'ozn-karta--neprectene' }}">
-        <div class="ozn-karta-meta">{{ $o->druh->nazev() }} · {{ $o->odeslano_at?->format('j. n. Y H:i') }}{{ $p->archivovano_at ? ' · v archivu' : '' }}</div>
+        <div class="ozn-karta-meta">{{ $o->druh->nazev() }} · {{ $o->odeslano_at?->format(__('formaty.datum_cas')) }}{{ $p->archivovano_at ? ' · v archivu' : '' }}</div>
         <h2>{{ $o->titulek }}</h2>
         @if ($o->udalost_od)
-            <p class="ozn-karta-meta"><strong>Kdy:</strong> {{ $o->udalost_od->format('j. n. Y H:i') }}@if ($o->udalost_do) – {{ $o->udalost_do->format('j. n. Y H:i') }}@endif</p>
+            <p class="ozn-karta-meta"><strong>{{ __('web.stranka.kdy') }}</strong> {{ $o->udalost_od->format(__('formaty.datum_cas')) }}@if ($o->udalost_do) – {{ $o->udalost_do->format(__('formaty.datum_cas')) }}@endif</p>
         @endif
         <div class="ozn-karta-text">{{ $o->textHtml() }}</div>
         <div class="ozn-karta-akce">
@@ -63,28 +63,28 @@
             @endif
             @unless ($p->precteno_at)
                 <form method="post" action="{{ route('oznameni.precteno', $p) }}">@csrf
-                    <button type="submit" class="ozn-tlacitko-odkaz">Označit jako přečtené</button>
+                    <button type="submit" class="ozn-tlacitko-odkaz">{{ __('web.stranka.oznacit_jako_prectene') }}</button>
                 </form>
             @endunless
             <form method="post" action="{{ route('oznameni.archiv', $p) }}">@csrf
-                <button type="submit" class="ozn-tlacitko-odkaz">{{ $p->archivovano_at ? 'Vrátit z archivu' : 'Do archivu' }}</button>
+                <button type="submit" class="ozn-tlacitko-odkaz">{{ $p->archivovano_at ? __('web.stranka.vratit_z_archivu') : 'Do archivu' }}</button>
             </form>
         </div>
     </article>
 @empty
-    <p class="poznamka">{{ match ($zobrazit) { 'archiv' => 'Archiv je prázdný.', 'neprectene' => 'Všechno máte přečtené.', default => 'Zatím vám nepřišlo žádné oznámení.' } }}</p>
+    <p class="poznamka">{{ match ($zobrazit) { 'archiv' => __('web.stranka.archiv_je_prazdny'), 'neprectene' => __('web.stranka.vsechno_mate_prectene'), default => __('web.stranka.zatim_vam_neprislo_zadne_oznameni') } }}</p>
 @endforelse
 
 @if ($polozky->hasPages())
     <div class="ozn-stranky">
-        <span>@if ($polozky->previousPageUrl())<a href="{{ $polozky->previousPageUrl() }}">← Novější</a>@endif</span>
-        <span>@if ($polozky->nextPageUrl())<a href="{{ $polozky->nextPageUrl() }}">Starší →</a>@endif</span>
+        <span>@if ($polozky->previousPageUrl())<a href="{{ $polozky->previousPageUrl() }}">{{ __('web.stranka.novejsi') }}</a>@endif</span>
+        <span>@if ($polozky->nextPageUrl())<a href="{{ $polozky->nextPageUrl() }}">{{ __('web.stranka.starsi') }}</a>@endif</span>
     </div>
 @endif
 
 <section class="ozn-predvolby" id="predvolby">
-    <h2>Předvolby</h2>
-    <p class="poznamka" style="margin-top: 0;">Co a kudy vám chodí. Provozní a servisní oznámení (vaše objednávky, odstávky) uvidíte v oznámeních vždy; e-mailem si je můžete vypnout. Novinky a nabídky e-mailem jen s vaším souhlasem – odvolat ho jde tady nebo odkazem v každém e-mailu.</p>
+    <h2>{{ __('web.stranka.predvolby') }}</h2>
+    <p class="poznamka" style="margin-top: 0;">{{ __('web.stranka.co_a_kudy_vam_chodi_provozni') }}</p>
     <form method="post" action="{{ route('oznameni.predvolby') }}">
         @csrf
         @foreach ($druhy as $druh)
@@ -96,16 +96,16 @@
                         @php($v = $matice[$druh->value][$kanal->value])
                         <label class="ozn-volba">
                             <input type="checkbox" name="predvolby[{{ $druh->value }}][{{ $kanal->value }}]" value="1" @checked($v['zapnuto']) @disabled($v['zamceno'])>
-                            {{ $kanal === \App\Enums\KanalOznameni::Centrum ? 'V oznámeních' : $kanal->nazev() }}
-                            @if ($v['zamceno'])<small>(vždy)</small>@endif
+                            {{ $kanal === \App\Enums\KanalOznameni::Centrum ? __('web.stranka.v_oznamenich') : $kanal->nazev() }}
+                            @if ($v['zamceno'])<small>{{ __('web.stranka.vzdy') }}</small>@endif
                         </label>
                     @endforeach
                 </div>
                 @if ($druh->vyzadujeSouhlas())
-                    <p class="ozn-souhlas">Zaškrtnutím e-mailu: „{{ \App\Support\Oznameni\Predvolby::textSouhlasu($druh, \App\Enums\KanalOznameni::Email) }}“</p>
+                    <p class="ozn-souhlas">{{ __('web.stranka.zaskrtnutim_e_mailu', ['text_souhlasu' => \App\Support\Oznameni\Predvolby::textSouhlasu($druh, \App\Enums\KanalOznameni::Email)]) }}</p>
                 @endif
             </div>
         @endforeach
-        <button type="submit" class="tlacitko">Uložit předvolby</button>
+        <button type="submit" class="tlacitko">{{ __('web.stranka.ulozit_predvolby') }}</button>
     </form>
 </section>

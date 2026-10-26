@@ -82,7 +82,7 @@ class PlatbyController
         } catch (UzZaplaceno $e) {
             return redirect()->route('platby.vysledek', $e->platba);
         } catch (PlatbyNedostupne|ChybaBrany $e) {
-            return redirect()->route('platby.vysledek', $platba)->with('chyba', 'Platbu teď nejde založit. Zkuste to prosím za chvíli.');
+            return redirect()->route('platby.vysledek', $platba)->with('chyba', __('platby.platby_controller.platbu_ted_nejde_zalozit_zkuste_to'));
         } catch (Throwable) {
             return redirect()->route('platby.vysledek', $platba);
         }
@@ -99,17 +99,17 @@ class PlatbyController
         $platba = $this->platby->najdiZWebhooku($brana, $request);
 
         if (! $platba) {
-            return response('Neznámá platba', 404);
+            return response(__('platby.platby_controller.neznama_platba'), 404);
         }
 
         try {
             if (! NastaveniPlateb::proPlatbu($platba)->webhookPravy($request)) {
-                return response('Neplatné tajemství', 403);
+                return response(__('platby.platby_controller.neplatne_tajemstvi'), 403);
             }
 
             $this->platby->overStav($platba, 'webhook', Arr::except($request->all(), ['secret', 'merchant']));
         } catch (ChybaBrany|PlatbyNedostupne) {
-            return response('Stav platby teď nejde ověřit', 503);
+            return response(__('platby.platby_controller.stav_platby_ted_nejde_overit'), 503);
         }
 
         // Comgate čeká odpověď ve tvaru code=0&message=OK.

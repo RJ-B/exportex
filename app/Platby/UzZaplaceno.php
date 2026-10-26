@@ -9,6 +9,6 @@ class UzZaplaceno extends RuntimeException
 {
     public function __construct(public readonly Platba $platba)
     {
-        parent::__construct('Už je zaplaceno (platba '.$platba->verejne_id.').');
+        parent::__construct(__('platby.uz_zaplaceno.uz_je_zaplaceno_platba', ['verejne_id' => $platba->verejne_id]));
     }
 }

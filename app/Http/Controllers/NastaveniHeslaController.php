@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Bezpecnost\DruhyKrok;
 use App\Models\User;
 use Filament\Facades\Filament;
+use Filament\Notifications\Notification;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,6 +23,9 @@ use Illuminate\View\View;
  * Po uložení hesla rovnou přihlásí a pošle do aplikace (config
  * sablona.po_nastaveni_hesla, výchozí administrace). Odkaz platí jen jednou:
  * token se po použití smaže (Password broker).
+ *
+ * Kdo má zapnutý druhý krok (passkey, Authenticator), se rovnou nepřihlásí –
+ * odkaz z e-mailu by jinak druhý krok obešel. Jde na přihlášení.
  */
 class NastaveniHeslaController extends Controller
 {
@@ -47,8 +52,8 @@ class NastaveniHeslaController extends Controller
             'email' => ['required', 'email'],
             'password' => ['required', 'confirmed', PravidlaHesla::min(10)],
         ], [
-            'password.confirmed' => 'Hesla se neshodují.',
-            'password.min' => 'Heslo musí mít aspoň :min znaků.',
+            'password.confirmed' => __('web.nastaveni_hesla_controller.hesla_se_neshoduji'),
+            'password.min' => __('web.nastaveni_hesla_controller.heslo_musi_mit_aspon_znaku'),
         ]);
 
         $prihlasit = null;
@@ -60,7 +65,13 @@ class NastaveniHeslaController extends Controller
         });
 
         if ($stav !== Password::PASSWORD_RESET || ! $prihlasit) {
-            return back()->withErrors(['password' => 'Odkaz už neplatí. V CRM klikni znovu na Můj účet správce.']);
+            return back()->withErrors(['password' => __('web.nastaveni_hesla_controller.odkaz_uz_neplati_v_crm_klikni')]);
+        }
+
+        if (DruhyKrok::zapnuty($prihlasit)) {
+            Notification::make()->title(__('web.nastaveni_hesla_controller.heslo_je_nastavene'))->body(__('web.nastaveni_hesla_controller.prihlaste_se_a_potvrdte_druhym_krokem'))->success()->send();
+
+            return redirect()->to(Filament::getPanel('admin')->getLoginUrl());
         }
 
         Auth::login($prihlasit, remember: true);

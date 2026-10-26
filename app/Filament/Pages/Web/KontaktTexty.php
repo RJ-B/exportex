@@ -20,9 +20,15 @@ class KontaktTexty extends StrankaSekceWebu
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChatBubbleLeftRight;
 
-    protected static ?string $navigationLabel = 'Kontakt – texty';
+    public static function getNavigationLabel(): string
+    {
+        return __('administrace.kontakt_texty.kontakt_texty');
+    }
 
-    protected static ?string $title = 'Kontakt – texty';
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return __('administrace.kontakt_texty.kontakt_texty');
+    }
 
     protected static ?string $slug = 'web/kontakt-texty';
 
@@ -49,20 +55,20 @@ class KontaktTexty extends StrankaSekceWebu
             ->statePath('data')
             ->components([
                 self::nadpisSekce(),
-                Section::make('Kontakt vedle formuláře')
-                    ->description('E-mail a telefon se berou z Hlavičky a patičky. WhatsApp a Telegram vedou na stejné telefonní číslo.')
+                Section::make(__('administrace.kontakt_texty.kontakt_vedle_formulare'))
+                    ->description(__('administrace.kontakt_texty.e_mail_a_telefon_se_berou'))
                     ->columns(2)
                     ->schema([
-                        TextInput::make('osoba')->label('Kontaktní osoba')->maxLength(80)->columnSpanFull()
-                            ->helperText('I v patičce a ve strukturovaných datech pro vyhledávače.'),
-                        Toggle::make('whatsapp')->label('Tlačítko WhatsApp'),
-                        Toggle::make('telegram')->label('Tlačítko Telegram'),
+                        TextInput::make('osoba')->label(__('administrace.kontakt_texty.kontaktni_osoba'))->maxLength(80)->columnSpanFull()
+                            ->helperText(__('administrace.kontakt_texty.i_v_paticce_a_ve_strukturovanych')),
+                        Toggle::make('whatsapp')->label(__('administrace.kontakt_texty.tlacitko_whatsapp')),
+                        Toggle::make('telegram')->label(__('administrace.kontakt_texty.tlacitko_telegram')),
                     ]),
-                Section::make('Formulář')
+                Section::make(__('administrace.kontakt_texty.formular'))
                     ->columns(2)
                     ->schema([
-                        ...self::text('poznamka', 'Poznámka pod tlačítkem', 80),
-                        ...self::text('odeslano', 'Text po odeslání', 200),
+                        ...self::text('poznamka', __('administrace.kontakt_texty.poznamka_pod_tlacitkem'), 80),
+                        ...self::text('odeslano', __('administrace.kontakt_texty.text_po_odeslani'), 200),
                     ]),
             ]);
     }

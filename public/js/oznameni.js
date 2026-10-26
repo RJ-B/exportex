@@ -9,6 +9,9 @@
 (function () {
     'use strict';
 
+    // Texty z lang/<jazyk>/js.php (resources/views/jazyky/texty-js.blade.php), docs/jazyky.md.
+    var T = function (klic) { return window.simrenText ? window.simrenText(klic) : klic; };
+
     function el(tag, trida, text) {
         var e = document.createElement(tag);
         if (trida) { e.className = trida; }
@@ -39,7 +42,7 @@
             pocet.hidden = !n;
             pocet.textContent = n > 99 ? '99+' : String(n);
             vsePrecteno.hidden = !n;
-            tlacitko.setAttribute('aria-label', 'Oznámení' + (n ? ', nepřečtených ' + n : ''));
+            tlacitko.setAttribute('aria-label', T('oznameni.oznameni') + (n ? T('oznameni.neprectenych') + n : ''));
         }
 
         function vykresli(data) {
@@ -48,7 +51,7 @@
             seznam.textContent = '';
 
             if (!data.polozky.length) {
-                seznam.appendChild(el('p', 'ozn-prazdno', 'Zatím tu nic není.'));
+                seznam.appendChild(el('p', 'ozn-prazdno', T('oznameni.zatim_tu_nic_neni')));
                 return;
             }
 
@@ -66,8 +69,8 @@
 
                 var archiv = el('button', 'ozn-archivovat');
                 archiv.type = 'button';
-                archiv.title = 'Do archivu';
-                archiv.setAttribute('aria-label', 'Do archivu');
+                archiv.title = T('oznameni.do_archivu');
+                archiv.setAttribute('aria-label', T('oznameni.do_archivu'));
                 archiv.innerHTML = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" d="M5 5l10 10M15 5L5 15"/></svg>';
                 archiv.addEventListener('click', function (e) {
                     e.stopPropagation();
@@ -95,7 +98,7 @@
             fetch(koren.dataset.oznCentrum, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
                 .then(function (r) { return r.ok ? r.json() : null; })
                 .then(vykresli)
-                .catch(function () { seznam.textContent = ''; seznam.appendChild(el('p', 'ozn-prazdno', 'Oznámení se nepodařilo načíst.')); });
+                .catch(function () { seznam.textContent = ''; seznam.appendChild(el('p', 'ozn-prazdno', T('oznameni.oznameni_se_nepodarilo_nacist'))); });
         }
 
         function zavri() {
@@ -131,9 +134,9 @@
 
         function obnov() {
             var zbyva = Math.floor((od.getTime() - Date.now()) / 1000);
-            if (zbyva <= 0) { prvek.textContent = 'právě probíhá'; return; }
+            if (zbyva <= 0) { prvek.textContent = T('oznameni.prave_probiha'); return; }
             var d = Math.floor(zbyva / 86400), h = Math.floor(zbyva % 86400 / 3600), m = Math.floor(zbyva % 3600 / 60);
-            prvek.textContent = 'začne za ' + (d ? d + ' d ' : '') + (d || h ? h + ' h ' : '') + (d ? '' : m + ' min');
+            prvek.textContent = T('oznameni.zacne_za') + (d ? d + ' d ' : '') + (d || h ? h + ' h ' : '') + (d ? '' : m + ' min');
             setTimeout(obnov, 30000);
         }
         obnov();

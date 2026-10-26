@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Support\NastaveniWebu;
+use App\Support\MapaWebu;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -61,8 +62,10 @@ class BezpecnostniHlavicky
         }
 
         // Testovací web (*.test.simren.cz) do vyhledávačů nepatří – klientský web by
-        // tam byl dvakrát. Administrace a nastavení hesla nikde.
-        if (! app()->isProduction() || $request->is('admin', 'admin/*', 'nastaveni-hesla*')) {
+        // tam byl dvakrát; stejně tak web ve stavu Připravujeme a Údržba. Jedno
+        // pravidlo pro hlavičku, meta robots (Seo) i robots.txt: MapaWebu::indexovat().
+        // Administrace, nastavení hesla a platby nikde.
+        if (! MapaWebu::indexovat() || $request->is('admin', 'admin/*', 'nastaveni-hesla*', 'prihlaseni-spravce*', 'oznameni*', 'platby/*')) {
             $h->set('X-Robots-Tag', 'noindex, nofollow', false);
         }
 

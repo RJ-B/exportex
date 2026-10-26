@@ -5,6 +5,8 @@ namespace App\Mail;
 use App\Models\MailLog;
 use App\Models\User;
 use App\Support\Posta\PostaTransport;
+use Illuminate\Mail\Transport\ArrayTransport;
+use Illuminate\Mail\Transport\LogTransport;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\SentMessage;
@@ -49,9 +51,17 @@ class LoggingTransport implements TransportInterface
 
             // Přes Poštu: předáno, výsledek (odesláno / nedoručeno) přijde později
             // webhookem nebo dotazem na stav – záznam nese id zprávy v Poště.
-            $this->finish($log, fn (MailLog $l) => $this->inner instanceof PostaTransport && $sent
-                ? PostaTransport::poOdeslani($l, $sent)
-                : $l->update(['status' => MailLog::STATUS_SENT, 'sent_at' => now()]));
+            // Na produkci s mailerem log/array e-mail nikam neodešel – „Odesláno“
+            // by lhalo (simren:zdravi to hlásí portálu).
+            $this->finish($log, fn (MailLog $l) => match (true) {
+                $this->inner instanceof PostaTransport && $sent => PostaTransport::poOdeslani($l, $sent),
+                app()->isProduction() && ($this->inner instanceof LogTransport || $this->inner instanceof ArrayTransport) => $l->update([
+                    'status' => MailLog::STATUS_FAILED,
+                    'failed_at' => now(),
+                    'error' => __('maily.logging_transport.neodeslano_na_produkci_se_e_maily'),
+                ]),
+                default => $l->update(['status' => MailLog::STATUS_SENT, 'sent_at' => now()]),
+            });
 
             return $sent;
         } catch (Throwable $e) {
@@ -82,7 +92,7 @@ class LoggingTransport implements TransportInterface
                 'status' => MailLog::STATUS_SENDING,
                 // `to_email` drží prvního — váže se na něj `user_id` a řadí se
                 // podle něj přehled. Celý seznam je v `recipients`.
-                'to_email' => $to['email'] ?? '(neznámý)',
+                'to_email' => $to['email'] ?? __('maily.logging_transport.neznamy'),
                 'to_name' => $to['name'] ?? null,
                 'recipients' => array_values(array_filter(array_column($prijemci, 'email'))),
                 'subject' => $message instanceof Email ? $message->getSubject() : null,

@@ -16,7 +16,7 @@ class PlatbaPrijata extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: ($this->platba->testovaci() ? '[TEST] ' : '').'Platba přijata – '.$this->platba->popis.' – '.ZakladniUdaje::get('nazev'),
+            subject: __('platby.platba_prijata.platba_prijata', ['testovaci' => ($this->platba->testovaci() ? '[TEST] ' : ''), 'popis' => $this->platba->popis, 'get' => ZakladniUdaje::get('nazev')]),
         );
     }
 

@@ -108,18 +108,17 @@ class Predvolby
     public static function textSouhlasu(DruhOznameni $druh, KanalOznameni $kanal): string
     {
         $co = match ($druh) {
-            DruhOznameni::Marketing => 'nabídek, akcí a slev',
-            default => 'novinek (nové funkce a změny v nabídce)',
+            DruhOznameni::Marketing => __('obecne.predvolby.nabidek_akci_a_slev'),
+            default => __('obecne.predvolby.novinek_nove_funkce_a_zmeny_v'),
         };
         $kudy = match ($kanal) {
             KanalOznameni::Email => 'e-mailem',
-            KanalOznameni::WebPush => 'upozorněním v prohlížeči',
-            KanalOznameni::MobilPush => 'upozorněním v mobilní aplikaci',
-            default => 'v centru oznámení',
+            KanalOznameni::WebPush => __('obecne.predvolby.upozornenim_v_prohlizeci'),
+            KanalOznameni::MobilPush => __('obecne.predvolby.upozornenim_v_mobilni_aplikaci'),
+            default => __('obecne.predvolby.v_centru_oznameni'),
         };
 
-        return 'Souhlasím se zasíláním '.$co.' od '.(ZakladniUdaje::get('nazev') ?: config('app.name')).' '.$kudy
-            .'. Souhlas můžu kdykoli odvolat v předvolbách nebo odkazem v každé zprávě.';
+        return __('obecne.predvolby.souhlasim_se_zasilanim_od_souhlas_muzu', ['co' => $co, 'get' => (ZakladniUdaje::get('nazev') ?: config('app.name')), 'kudy' => $kudy]);
     }
 
     /** @param  array<string, array<string, bool>>  $zmeny */

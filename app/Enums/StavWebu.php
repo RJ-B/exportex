@@ -5,7 +5,8 @@ namespace App\Enums;
 use App\Models\Nastaveni;
 
 /**
- * V jakém stavu je veřejný web. Přepíná jen superadmin (Provoz → Stav webu).
+ * V jakém stavu je veřejný web. Přepíná jen superadmin (Správa aplikace → Stav webu)
+ * a portál Sim&Ren tlačítkem údržby u instalace (`simren:udrzba`, jen Online ↔ Údržba).
  *
  * Přihlášený člověk vidí web vždycky celý – klient i vývojáři si ho tak
  * prohlédnou dřív, než ho pustí ven. Administrace, /zdravi a /up běží
@@ -39,8 +40,8 @@ enum StavWebu: string
         $stary = self::tryFrom((string) $pred);
 
         return 'Stav webu: '.match (true) {
-            $novy === self::Udrzba => 'Údržba zapnuta',
-            $stary === self::Udrzba => 'Údržba vypnuta → '.$novy->nazev(),
+            $novy === self::Udrzba => __('modely.stav_webu.udrzba_zapnuta'),
+            $stary === self::Udrzba => __('modely.stav_webu.udrzba_vypnuta', ['nazev' => $novy->nazev()]),
             default => $novy->nazev(),
         };
     }
@@ -48,18 +49,18 @@ enum StavWebu: string
     public function nazev(): string
     {
         return match ($this) {
-            self::Online => 'Online',
-            self::Pripravujeme => 'Připravujeme',
-            self::Udrzba => 'Údržba',
+            self::Online => __('modely.stav_webu.online'),
+            self::Pripravujeme => __('modely.stav_webu.pripravujeme'),
+            self::Udrzba => __('modely.stav_webu.udrzba'),
         };
     }
 
     public function popis(): string
     {
         return match ($this) {
-            self::Online => 'Web je veřejný a funguje celý.',
-            self::Pripravujeme => 'Návštěvníci vidí „Připravujeme“. Pro web, který ještě nebyl spuštěný.',
-            self::Udrzba => 'Návštěvníci vidí „Web se právě upravuje“ (HTTP 503 – vyhledávače ho z indexu nevyhodí). Na chvíli, když se něco opravuje.',
+            self::Online => __('modely.stav_webu.web_je_verejny_a_funguje_cely'),
+            self::Pripravujeme => __('modely.stav_webu.navstevnici_vidi_pripravujeme_pro_web'),
+            self::Udrzba => __('modely.stav_webu.navstevnici_vidi_web_se_prave_upravuje'),
         };
     }
 

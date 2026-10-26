@@ -12,9 +12,15 @@ class Trasa extends StrankaSekceWebu
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMap;
 
-    protected static ?string $navigationLabel = 'Trasa';
+    public static function getNavigationLabel(): string
+    {
+        return __('administrace.trasa.trasa');
+    }
 
-    protected static ?string $title = 'Trasa';
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return __('administrace.trasa.trasa');
+    }
 
     protected static ?string $slug = 'web/trasa';
 
@@ -41,8 +47,8 @@ class Trasa extends StrankaSekceWebu
             ->statePath('data')
             ->components([
                 self::nadpisSekce(popis: true),
-                Section::make('Popisky v mapě')
-                    ->description('Oblouk vede z Uzbekistánu do Evropy; šipka míří do Česka uprostřed kontinentu. Mění se jen texty u značek.')
+                Section::make(__('administrace.trasa.popisky_v_mape'))
+                    ->description(__('administrace.trasa.oblouk_vede_z_uzbekistanu_do_evropy'))
                     ->columns(2)
                     ->schema([
                         ...self::text('odkud', 'Odkud', 30),

@@ -13,7 +13,7 @@ class ErrorLog extends Model
     protected $fillable = [
         'fingerprint', 'level', 'exception', 'message', 'file', 'line', 'trace',
         'url', 'method', 'user_id', 'ip', 'occurrences', 'first_seen_at', 'last_seen_at',
-        'resolved_at', 'resolved_by',
+        'resolved_at', 'resolved_by', 'resolved_by_name', 'resolution_note',
     ];
 
     protected function casts(): array
@@ -44,6 +44,15 @@ class ErrorLog extends Model
     public function resolvedBy()
     {
         return $this->belongsTo(User::class, 'resolved_by');
+    }
+
+    /**
+     * Kdo chybu vyřešil, pro rozhraní: účet v aplikaci, jinak jméno z portálu
+     * („Jana Nováková (portál)“, „Claude – rutina incidentů (portál)“).
+     */
+    public function resolvedByLabel(): ?string
+    {
+        return $this->resolvedBy?->getFilamentName() ?? $this->resolved_by_name;
     }
 
     public function shortException(): string

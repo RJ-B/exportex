@@ -17,7 +17,9 @@ use Symfony\Component\Mime\Part\DataPart;
  *  - odesílatel: jen přidělená adresa; jiný From (výchozí z .env, adresa
  *    z kódu) se nahradí výchozím odesílatelem z Pošty, jméno zůstane,
  *  - hlavičky jen ty, které Pošta pustí (List-Unsubscribe…), štítek
- *    z ->tag() a metadata z ->metadata() Laravelu.
+ *    z ->tag() a metadata z ->metadata() Laravelu,
+ *  - účel (UcelZpravy, hlavička X-Posta-Ucel) jako pole `ucel` – s ním
+ *    odesílatele vybere Pošta podle Nastavení → E-mail.
  */
 class Zprava
 {
@@ -74,13 +76,17 @@ class Zprava
             'kopie' => $kopie,
             'skryta_kopie' => $skryta,
             'odpovedet_na' => self::adresy($email->getReplyTo()),
-            'predmet' => (string) ($email->getSubject() ?: '(bez předmětu)'),
+            'predmet' => (string) ($email->getSubject() ?: __('posta.zprava.bez_predmetu')),
             'html' => self::telo($email->getHtmlBody()),
             'text' => self::telo($email->getTextBody()),
             'prilohy' => $prilohy,
             'hlavicky' => $hlavicky,
             'stitek' => $stitek,
             'metadata' => $metadata,
+            // Účel (formuláře, účty, doklady…) – s ním vybírá odesílatele Pošta podle firmy (UcelZpravy).
+            // Bez vlastního „pro všechno“: platí, co firma nastavila v Nastavení → E-mail; bez nastavení
+            // (a na testovacím webu) Pošta pošle jako dřív z adresy `od`.
+            'ucel' => UcelZpravy::zeZpravy($email) ?? 'obecne',
         ], fn ($v) => $v !== null && $v !== []);
     }
 

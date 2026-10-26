@@ -4,7 +4,7 @@
      a popisky kreslí assets/js/main.js (renderRoute) podle Obsahu webu → Trasa. --}}
       <div class="map">
         <svg class="map__svg" viewBox="20 138 612 314" role="img"
-             aria-label="Mapa trasy ze Střední Asie do EU">
+             aria-label="{{ __('web.mapa.mapa_trasy_ze_stredni_asie_do') }}">
           <defs>
             <marker id="routeArrow" viewBox="0 0 10 10" refX="8" refY="5"
                     markerWidth="4" markerHeight="4" orient="auto-start-reverse">

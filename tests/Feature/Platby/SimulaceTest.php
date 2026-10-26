@@ -176,10 +176,6 @@ class SimulaceTest extends TestCase
 
     public function test_ukazkova_data_maji_zaplacenou_cekajici_a_zamitnutou_platbu(): void
     {
-        if (! class_exists(UkazkovaDataSeeder::class) || ! str_contains((string) file_get_contents(database_path('seeders/UkazkovaDataSeeder.php')), 'Platb')) {
-            $this->markTestSkipped('Ukázková data projektu platby nezakládají.');
-        }
-
         $this->seed(UkazkovaDataSeeder::class);
         $this->seed(UkazkovaDataSeeder::class);   // opakovatelný
 

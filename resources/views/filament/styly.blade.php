@@ -14,12 +14,7 @@
     .fi-sidebar-group-btn { padding: 2px 8px 4px !important; }
     .fi-sidebar-group-label { font-size: 11px !important; font-weight: 600 !important; text-transform: uppercase; letter-spacing: .04em; }
     .fi-sidebar-group-collapse-btn .fi-icon { width: 14px !important; height: 14px !important; }
-    .fi-sidebar-header { height: 52px !important; }
-    /* Na počítači je menu jen tak široké, jak je nejdelší položka (Filament: pevných 20rem).
-       Obsah stránky se posune za ním; na mobilu zůstává výsuvné menu Filamentu. */
-    @media (min-width: 1024px) {
-        .fi-main-sidebar { width: max-content !important; min-width: 11rem; max-width: 18rem; }
-    }
+    /* Šířka a umístění menu (na celou výšku vlevo, na mobilu zprava) – public/css/rozlozeni.css. */
 
     /* Cesty k souborům a názvy tříd nemají mezeru – jen tam smí zlom uprostřed. */
     .simren-zlom { overflow-wrap: anywhere; }
@@ -45,5 +40,11 @@
     .simren-pred { color: var(--gray-500); text-decoration: line-through; }
     /* Jediné místo, kde je vodorovný posuv v pořádku: zásobník volání. */
     .simren-trace { margin-top: .5rem; overflow-x: auto; border-radius: .5rem; background: var(--gray-900); color: var(--gray-200); padding: .75rem; font-size: .75rem; }
+    /* Zabezpečení (druhý krok přihlášení). */
+    .simren-zabezpeceni { display: flex; flex-direction: column; gap: 1.5rem; max-width: 48rem; }
+    .simren-zarizeni { list-style: none; margin: 0; padding: 0; font-size: .875rem; }
+    .simren-zarizeni li { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .6rem 0; border-top: 1px solid var(--gray-100); }
+    .simren-zarizeni li:first-child { border-top: 0; padding-top: 0; }
+    .dark .simren-zarizeni li { border-color: rgb(255 255 255 / .1); }
     .simren-pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: .25rem 0 0; }
 </style>

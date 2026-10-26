@@ -17,7 +17,7 @@ class EditOznameni extends EditRecord
 
     public function getTitle(): string
     {
-        return 'Koncept oznámení';
+        return __('administrace.edit_oznameni.koncept_oznameni');
     }
 
     protected function getHeaderActions(): array
@@ -26,17 +26,17 @@ class EditOznameni extends EditRecord
             $this->nahledAction(),
             $this->testSobeAction(),
             $this->odeslatAction(),
-            DeleteAction::make()->label('Smazat koncept'),
+            DeleteAction::make()->label(__('administrace.edit_oznameni.smazat_koncept')),
         ];
     }
 
     protected function getSaveFormAction(): Action
     {
-        return parent::getSaveFormAction()->label('Uložit koncept');
+        return parent::getSaveFormAction()->label(__('administrace.edit_oznameni.ulozit_koncept'));
     }
 
     protected function getSavedNotificationTitle(): ?string
     {
-        return 'Koncept uložen';
+        return __('administrace.edit_oznameni.koncept_ulozen');
     }
 }

@@ -14,11 +14,11 @@
     $seznam = isset($nastroje['analytics']['seznam']) || isset($nastroje['marketing']['sklik']);
     $analytika = $nastroje['analytics'] !== [] || $nastroje['marketing'] !== [];
     $nazvyNastroju = collect([...array_keys($nastroje['analytics']), ...array_keys($nastroje['marketing'])])
-        ->map(fn ($n) => ['ga4' => 'Google Analytics', 'seznam' => 'měření Seznam.cz', 'google_ads' => 'Google Ads', 'sklik' => 'Sklik'][$n])->join(', ');
+        ->map(fn ($n) => ['ga4' => 'Google Analytics', 'seznam' => __('pravni.ochrana_obsah.mereni_seznam_cz'), 'google_ads' => 'Google Ads', 'sklik' => 'Sklik'][$n])->join(', ');
     $smlouvy = $g['smlouvy'] === '1';
     $cookies = \Illuminate\Support\Facades\Route::has('cookies') ? route('cookies') : null;
-    $ucinnost = $g['ucinnost_od'] ? \Illuminate\Support\Carbon::parse($g['ucinnost_od'])->format('j. n. Y') : null;
-    $kontakt = fn () => $email ? '<a href="mailto:'.e($email).'">'.e($email).'</a>' : 'kontaktech uvedených výše';
+    $ucinnost = $g['ucinnost_od'] ? \Illuminate\Support\Carbon::parse($g['ucinnost_od'])->format(__('formaty.datum')) : null;
+    $kontakt = fn () => $email ? '<a href="mailto:'.e($email).'">'.e($email).'</a>' : __('pravni.ochrana_obsah.kontaktech_uvedenych_vyse');
     // Oznámení (docs/oznameni.md) – část jen, když je aplikace opravdu posílá.
     $oznameni = (bool) rescue(fn () => \App\Models\Oznameni::query()->exists() || \App\Models\OznameniSouhlas::query()->exists(), false, false);
     // Doplněk Platby (docs/platby.md) – část jen se zapnutým doplňkem; brána podle Nastavení → Platební brána.
@@ -27,74 +27,75 @@
     $n = 0;
 @endphp
 
-<p>Tento dokument popisuje, jaké osobní údaje zpracováváme, za jakým účelem a jaká práva vám v souvislosti se zpracováním osobních údajů náleží. Při zpracování osobních údajů se řídíme zejména nařízením Evropského parlamentu a Rady (EU) 2016/679 (GDPR) a zákonem č. 110/2019 Sb., o zpracování osobních údajů.</p>
+<p>{{ __('pravni.ochrana_obsah.tento_dokument_popisuje_jake_osobni') }}</p>
 @if ($ucinnost)
-    <p><em>Účinné od {{ $ucinnost }}.</em></p>
+    <p><em>{{ __('pravni.ochrana_obsah.ucinne_od', ['ucinnost' => $ucinnost]) }}</em></p>
 @endif
 
-<h2>{{ ++$n }}. Kdo je správce</h2>
+<h2>{{ __('pravni.ochrana_obsah.kdo_je_spravce', ['hodnota' => ++$n]) }}</h2>
 <p>
     {{ $u['firma'] ?: $u['nazev'] }}<br>
     @if ($u['adresa']){!! nl2br(e($u['adresa'])) !!}<br>@endif
-    @if ($u['ico'])IČO: {{ $u['ico'] }}<br>@endif
+    @if ($u['ico']){{ __('pravni.ochrana_obsah.ico', ['ico' => $u['ico']]) }}<br>@endif
     @if ($u['rejstrik']){{ $u['rejstrik'] }}<br>@endif
-    @if ($email)E-mail: <a href="mailto:{{ $email }}">{{ $email }}</a><br>@endif
-    @if ($u['telefon'])Telefon: {{ $u['telefon'] }}@endif
+    @if ($email){{ __('pravni.ochrana_obsah.e_mail') }} <a href="mailto:{{ $email }}">{{ $email }}</a><br>@endif
+    @if ($u['telefon']){{ __('pravni.ochrana_obsah.telefon', ['telefon' => $u['telefon']]) }}@endif
 </p>
 @if ($g['poverenec'])
-    <p>Pověřencem pro ochranu osobních údajů je {{ $g['poverenec'] }}.</p>
+    <p>{{ __('pravni.ochrana_obsah.poverencem_pro_ochranu_osobnich_udaju_je', ['poverenec' => $g['poverenec']]) }}</p>
 @else
-    <p>Pověřence pro ochranu osobních údajů jsme nejmenovali. Ve věcech ochrany osobních údajů nás můžete kontaktovat na {!! $kontakt() !!}.</p>
+    <p>{{ __('pravni.ochrana_obsah.poverence_pro_ochranu_osobnich_udaju') }} {!! $kontakt() !!}.</p>
 @endif
 
-<h2>{{ ++$n }}. Jaké údaje zpracováváme a proč</h2>
+<h2>{{ __('pravni.ochrana_obsah.jake_udaje_zpracovavame_a_proc', ['hodnota' => ++$n]) }}</h2>
 @php($m = 0)
 
 @if ($formular)
-    <h3>{{ $n }}.{{ ++$m }}. Zpráva z kontaktního formuláře</h3>
-    <p><strong>Zpracovávané údaje:</strong> {{ $g['formular_udaje'] }}, dále IP adresa a čas odeslání formuláře.</p>
-    <p><strong>Účel:</strong> vyřízení vaší zprávy nebo poptávky a komunikace s vámi.</p>
-    <p><strong>Právní základ:</strong> provedení opatření před uzavřením smlouvy na vaši žádost podle čl. 6 odst. 1 písm. b) GDPR, případně náš oprávněný zájem odpovědět na váš dotaz podle čl. 6 odst. 1 písm. f) GDPR. IP adresu a čas odeslání zpracováváme na základě oprávněného zájmu na ochraně formuláře před zneužitím a spamem.</p>
-    <p><strong>Doba uložení:</strong> {{ $g['formular_doba'] }}, není-li další uchování nezbytné z jiného zákonného důvodu nebo pro ochranu našich práv.</p>
+    <h3>{{ __('pravni.ochrana_obsah.zprava_z_kontaktniho_formulare', ['n' => $n, 'hodnota' => ++$m]) }}</h3>
+    <p><strong>{{ __('pravni.ochrana_obsah.zpracovavane_udaje') }}</strong> {{ __('pravni.ochrana_obsah.dale_ip_adresa_a_cas_odeslani', ['formular_udaje' => $g['formular_udaje']]) }}</p>
+    <p><strong>{{ __('pravni.ochrana_obsah.ucel') }}</strong> {{ __('pravni.ochrana_obsah.vyrizeni_vasi_zpravy_nebo_poptavky_a') }}</p>
+    <p><strong>{{ __('pravni.ochrana_obsah.pravni_zaklad') }}</strong> {{ __('pravni.ochrana_obsah.provedeni_opatreni_pred_uzavrenim') }}</p>
+    <p><strong>{{ __('pravni.ochrana_obsah.doba_ulozeni') }}</strong> {{ __('pravni.ochrana_obsah.neni_li_dalsi_uchovani_nezbytne_z', ['formular_doba' => $g['formular_doba']]) }}</p>
 @endif
 
 @if ($smlouvy)
-    <h3>{{ $n }}.{{ ++$m }}. Uzavření a plnění smlouvy</h3>
-    <p><strong>Zpracovávané údaje:</strong> identifikační, fakturační a kontaktní údaje, údaje kontaktních osob a komunikace související se smlouvou.</p>
-    <p><strong>Účel:</strong> uzavření a plnění smlouvy, komunikace se zákazníkem, fakturace a plnění souvisejících právních povinností.</p>
-    <p><strong>Právní základ:</strong> plnění smlouvy podle čl. 6 odst. 1 písm. b) GDPR, plnění zákonných povinností (zejména účetních a daňových) podle čl. 6 odst. 1 písm. c) GDPR a u kontaktních osob obchodních partnerů náš oprávněný zájem podle čl. 6 odst. 1 písm. f) GDPR.</p>
-    <p><strong>Doba uložení:</strong> {{ $g['smlouvy_doba'] }}. Účetní a daňové doklady uchováváme po dobu stanovenou právními předpisy.</p>
+    <h3>{{ __('pravni.ochrana_obsah.uzavreni_a_plneni_smlouvy', ['n' => $n, 'hodnota' => ++$m]) }}</h3>
+    <p><strong>{{ __('pravni.ochrana_obsah.zpracovavane_udaje') }}</strong> {{ __('pravni.ochrana_obsah.identifikacni_fakturacni_a_kontaktni') }}</p>
+    <p><strong>{{ __('pravni.ochrana_obsah.ucel') }}</strong> {{ __('pravni.ochrana_obsah.uzavreni_a_plneni_smlouvy_komunikace_se') }}</p>
+    <p><strong>{{ __('pravni.ochrana_obsah.pravni_zaklad') }}</strong> {{ __('pravni.ochrana_obsah.plneni_smlouvy_podle_cl_6_odst') }}</p>
+    <p><strong>{{ __('pravni.ochrana_obsah.doba_ulozeni') }}</strong> {{ __('pravni.ochrana_obsah.ucetni_a_danove_doklady_uchovavame_po', ['smlouvy_doba' => $g['smlouvy_doba']]) }}</p>
 @endif
 
-<h3>{{ $n }}.{{ ++$m }}. Provoz a zabezpečení webu</h3>
 @if ($platby)
-    <h3>{{ $n }}.{{ ++$m }}. Platby</h3>
-    <p><strong>Zpracovávané údaje:</strong> jméno a příjmení, e-mailová adresa, částka, za co platíte, čas a výsledek platby, číslo platby u platební brány, IP adresa. Údaje o platební kartě ani přihlašovací údaje do banky nezpracováváme – zadáváte je přímo platební bráně{{ $branaPlateb ? ' '.$branaPlateb : '' }}.</p>
-    <p><strong>Účel:</strong> přijetí platby, potvrzení o zaplacení, případné vrácení peněz a řešení reklamací plateb.</p>
-    <p><strong>Právní základ:</strong> plnění smlouvy podle čl. 6 odst. 1 písm. b) GDPR a plnění zákonných povinností (účetních a daňových) podle čl. 6 odst. 1 písm. c) GDPR.</p>
-    <p><strong>Doba uložení:</strong> po dobu stanovenou účetními a daňovými předpisy, jinak po dobu trvání smluvního vztahu a promlčecí lhůty.</p>
+    <h3>{{ __('pravni.ochrana_obsah.platby', ['n' => $n, 'hodnota' => ++$m]) }}</h3>
+    <p><strong>{{ __('pravni.ochrana_obsah.zpracovavane_udaje') }}</strong> {{ __('pravni.ochrana_obsah.jmeno_a_prijmeni_e_mailova_adresa', ['brana_plateb' => $branaPlateb ? ' '.$branaPlateb : '']) }}</p>
+    <p><strong>{{ __('pravni.ochrana_obsah.ucel') }}</strong> {{ __('pravni.ochrana_obsah.prijeti_platby_potvrzeni_o_zaplaceni') }}</p>
+    @include('platby._o-brane')
+    <p><strong>{{ __('pravni.ochrana_obsah.pravni_zaklad') }}</strong> {{ __('pravni.ochrana_obsah.plneni_smlouvy_podle_cl_6_odst_2') }}</p>
+    <p><strong>{{ __('pravni.ochrana_obsah.doba_ulozeni') }}</strong> {{ __('pravni.ochrana_obsah.po_dobu_stanovenou_ucetnimi_a_danovymi') }}</p>
 @endif
 
-<p><strong>Zpracovávané údaje:</strong> IP adresa, typ prohlížeče, čas přístupu, navštívené adresy a další technické informace v serverových protokolech.</p>
-<p><strong>Účel:</strong> bezpečný a spolehlivý provoz webu, diagnostika problémů a odhalování útoků a zneužití.</p>
-<p><strong>Právní základ:</strong> náš oprávněný zájem podle čl. 6 odst. 1 písm. f) GDPR.</p>
-<p><strong>Doba uložení:</strong> zpravidla nejdéle 6 měsíců, pokud není delší uchování nezbytné k řešení bezpečnostního incidentu nebo ochraně našich práv.</p>
+<h3>{{ __('pravni.ochrana_obsah.provoz_a_zabezpeceni_webu', ['n' => $n, 'hodnota' => ++$m]) }}</h3>
+<p><strong>{{ __('pravni.ochrana_obsah.zpracovavane_udaje') }}</strong> {{ __('pravni.ochrana_obsah.ip_adresa_typ_prohlizece_cas_pristupu') }}</p>
+<p><strong>{{ __('pravni.ochrana_obsah.ucel') }}</strong> {{ __('pravni.ochrana_obsah.bezpecny_a_spolehlivy_provoz_webu') }}</p>
+<p><strong>{{ __('pravni.ochrana_obsah.pravni_zaklad') }}</strong> {{ __('pravni.ochrana_obsah.nas_opravneny_zajem_podle_cl_6') }}</p>
+<p><strong>{{ __('pravni.ochrana_obsah.doba_ulozeni') }}</strong> {{ __('pravni.ochrana_obsah.zpravidla_nejdele_6_mesicu_pokud_neni') }}</p>
 
 @if ($oznameni)
-    <h3>{{ $n }}.{{ ++$m }}. Oznámení a novinky</h3>
-    <p><strong>Zpracovávané údaje:</strong> jméno a příjmení, e-mailová adresa, která oznámení jsme vám poslali, zda jste je přečetli nebo otevřeli odkaz v nich (zjišťujeme to jen v naší aplikaci – bez měřicích pixelů a bez sledování na jiných webech), vaše předvolby oznámení a u souhlasu s novinkami záznam o jeho udělení či odvolání (čas, znění souhlasu, IP adresa a prohlížeč).</p>
-    <p><strong>Účel:</strong> informovat vás o vašem účtu, objednávkách a provozu služby (odstávky, výpadky, důležité změny) a s vaším souhlasem také o novinkách@if (\App\Support\Oznameni\NastaveniOznameni::marketing()) a nabídkách@endif.</p>
-    <p><strong>Právní základ:</strong> provozní a servisní oznámení zasíláme na základě plnění smlouvy podle čl. 6 odst. 1 písm. b) GDPR a našeho oprávněného zájmu na řádném provozu služby podle čl. 6 odst. 1 písm. f) GDPR. Novinky@if (\App\Support\Oznameni\NastaveniOznameni::marketing()) a nabídky@endif e-mailem posíláme jen s vaším souhlasem podle čl. 6 odst. 1 písm. a) GDPR a zákona č. 480/2004 Sb.; souhlas můžete kdykoli odvolat odkazem v každém e-mailu nebo v předvolbách oznámení, odvolání nemá vliv na zákonnost zasílání před ním.</p>
-    <p><strong>Doba uložení:</strong> po dobu trvání vašeho účtu.</p>
+    <h3>{{ __('pravni.ochrana_obsah.oznameni_a_novinky', ['n' => $n, 'hodnota' => ++$m]) }}</h3>
+    <p><strong>{{ __('pravni.ochrana_obsah.zpracovavane_udaje') }}</strong> {{ __('pravni.ochrana_obsah.jmeno_a_prijmeni_e_mailova_adresa_2') }}</p>
+    <p><strong>{{ __('pravni.ochrana_obsah.ucel') }}</strong> {{ __('pravni.ochrana_obsah.informovat_vas_o_vasem_uctu_objednavkach') }}@if (\App\Support\Oznameni\NastaveniOznameni::marketing()) {{ __('pravni.ochrana_obsah.a_nabidkach') }}@endif.</p>
+    <p><strong>{{ __('pravni.ochrana_obsah.pravni_zaklad') }}</strong> {{ __('pravni.ochrana_obsah.provozni_a_servisni_oznameni_zasilame_na') }}@if (\App\Support\Oznameni\NastaveniOznameni::marketing()) {{ __('pravni.ochrana_obsah.a_nabidky') }}@endif {{ __('pravni.ochrana_obsah.e_mailem_posilame_jen_s_vasim') }}</p>
+    <p><strong>{{ __('pravni.ochrana_obsah.doba_ulozeni') }}</strong> {{ __('pravni.ochrana_obsah.po_dobu_trvani_vaseho_uctu') }}</p>
 @endif
 
 @if ($analytika)
-    <h3>{{ $n }}.{{ ++$m }}. Analytika a marketing</h3>
-    <p><strong>Zpracovávané údaje:</strong> údaje o vašem chování na webu v rozsahu nastavení použitých nástrojů ({{ $nazvyNastroju }}), například navštívené stránky, zařízení a zdroj návštěvy.</p>
-    <p><strong>Účel:</strong> analýza návštěvnosti a používání webu@if ($nastroje['marketing']), vyhodnocování reklamy a zobrazování relevantní reklamy@endif.</p>
-    <p><strong>Právní základ:</strong> váš souhlas podle čl. 6 odst. 1 písm. a) GDPR. Bez souhlasu se nástroje, které ho vyžadují, nespustí. Souhlas můžete kdykoli změnit nebo odvolat v nastavení cookies na webu; odvolání nemá vliv na zákonnost zpracování před ním.</p>
+    <h3>{{ __('pravni.ochrana_obsah.analytika_a_marketing', ['n' => $n, 'hodnota' => ++$m]) }}</h3>
+    <p><strong>{{ __('pravni.ochrana_obsah.zpracovavane_udaje') }}</strong> {{ __('pravni.ochrana_obsah.udaje_o_vasem_chovani_na_webu', ['nazvy_nastroju' => $nazvyNastroju]) }}</p>
+    <p><strong>{{ __('pravni.ochrana_obsah.ucel') }}</strong> {{ __('pravni.ochrana_obsah.analyza_navstevnosti_a_pouzivani_webu') }}@if ($nastroje['marketing']){{ __('pravni.ochrana_obsah.vyhodnocovani_reklamy_a_zobrazovani') }}@endif.</p>
+    <p><strong>{{ __('pravni.ochrana_obsah.pravni_zaklad') }}</strong> {{ __('pravni.ochrana_obsah.vas_souhlas_podle_cl_6_odst') }}</p>
     @if ($cookies)
-        <p>Podrobnosti o cookies jsou v <a href="{{ $cookies }}">Zásadách používání cookies</a>.</p>
+        <p>{{ __('pravni.ochrana_obsah.podrobnosti_o_cookies_jsou_v') }} <a href="{{ $cookies }}">{{ __('pravni.ochrana_obsah.zasadach_pouzivani_cookies') }}</a>.</p>
     @endif
 @endif
 
@@ -102,50 +103,50 @@
     {!! str($g['doplnek'])->sanitizeHtml() !!}
 @endif
 
-<h2>{{ ++$n }}. Odkud osobní údaje získáváme</h2>
-<p>Osobní údaje získáváme především přímo od vás – z formuláře na webu, e-mailem, telefonicky nebo při jednání. Kontaktní údaje můžeme výjimečně získat od vašeho zaměstnavatele, obchodního partnera nebo z veřejných rejstříků. Databáze osobních údajů pro marketing nekupujeme.</p>
+<h2>{{ __('pravni.ochrana_obsah.odkud_osobni_udaje_ziskavame', ['hodnota' => ++$n]) }}</h2>
+<p>{{ __('pravni.ochrana_obsah.osobni_udaje_ziskavame_predevsim_primo') }}</p>
 
-<h2>{{ ++$n }}. Komu osobní údaje předáváme</h2>
-<p>Vaše osobní údaje neprodáváme. V nezbytném rozsahu je mohou zpracovávat poskytovatelé služeb, kteří nám pomáhají s provozem, zejména:</p>
+<h2>{{ __('pravni.ochrana_obsah.komu_osobni_udaje_predavame', ['hodnota' => ++$n]) }}</h2>
+<p>{{ __('pravni.ochrana_obsah.vase_osobni_udaje_neprodavame_v') }}</p>
 <ul>
-    <li>poskytovatelé serverů a hostingu;</li>
-    <li>poskytovatelé e-mailových služeb;</li>
-    <li>poskytovatelé IT služeb a správy webu;</li>
-    @if ($platby)<li>provozovatel platební brány{{ $branaPlateb ? ' '.$branaPlateb : '' }} (zpracování plateb);</li>@endif
-    @if ($smlouvy)<li>účetní, daňoví a právní poradci;</li>@endif
-    @if ($google)<li>Google Ireland Limited (analytika a reklama), pokud jste udělili souhlas;</li>@endif
-    @if ($seznam)<li>Seznam.cz, a.s. (měření a reklama), pokud jste udělili souhlas;</li>@endif
+    <li>{{ __('pravni.ochrana_obsah.poskytovatele_serveru_a_hostingu') }}</li>
+    <li>{{ __('pravni.ochrana_obsah.poskytovatele_e_mailovych_sluzeb') }}</li>
+    <li>{{ __('pravni.ochrana_obsah.poskytovatele_it_sluzeb_a_spravy_webu') }}</li>
+    @if ($smlouvy)<li>{{ __('pravni.ochrana_obsah.ucetni_danovi_a_pravni_poradci') }}</li>@endif
+    @if ($platby)<li>{{ __('pravni.ochrana_obsah.provozovatel_platebni_brany_zpracovani', ['brana_plateb' => $branaPlateb ? ' '.$branaPlateb : '']) }}</li>@endif
+    @if ($google)<li>{{ __('pravni.ochrana_obsah.google_ireland_limited_analytika_a') }}</li>@endif
+    @if ($seznam)<li>{{ __('pravni.ochrana_obsah.seznam_cz_a_s_mereni_a') }}</li>@endif
     @foreach (\App\Support\OchranaUdaju::dalsiPrijemci() as $prijemce)
         <li>{{ $prijemce }};</li>
     @endforeach
 </ul>
-<p>S poskytovateli, kteří pro nás vystupují jako zpracovatelé, máme zajištěny smluvní podmínky podle čl. 28 GDPR. Údaje můžeme předat také orgánům veřejné moci, pokud nám to ukládá právní předpis nebo je to nezbytné k ochraně našich práv.</p>
+<p>{{ __('pravni.ochrana_obsah.s_poskytovateli_kteri_pro_nas_vystupuji') }}</p>
 
 @if ($google)
-    <h2>{{ ++$n }}. Předávání mimo Evropský hospodářský prostor</h2>
-    <p>U služeb společnosti Google může docházet k předávání údajů do Spojených států amerických. Děje se tak jen za podmínek kapitoly V GDPR – na základě rámce EU–US Data Privacy Framework, standardních smluvních doložek nebo jiného mechanismu podle GDPR – a jen s vaším souhlasem s měřením návštěvnosti.</p>
+    <h2>{{ __('pravni.ochrana_obsah.predavani_mimo_evropsky_hospodarsky', ['hodnota' => ++$n]) }}</h2>
+    <p>{{ __('pravni.ochrana_obsah.u_sluzeb_spolecnosti_google_muze') }}</p>
 @endif
 
-<h2>{{ ++$n }}. Automatizované rozhodování a profilování</h2>
-<p>Nepoužíváme automatizované individuální rozhodování ani profilování, které by pro vás mělo právní účinky nebo se vás obdobně významně dotýkalo ve smyslu čl. 22 GDPR.</p>
+<h2>{{ __('pravni.ochrana_obsah.automatizovane_rozhodovani_a_profilovani', ['hodnota' => ++$n]) }}</h2>
+<p>{{ __('pravni.ochrana_obsah.nepouzivame_automatizovane_individualni') }}</p>
 
-<h2>{{ ++$n }}. Jak osobní údaje chráníme</h2>
-<p>Web používá šifrované spojení HTTPS. K údajům mají přístup jen osoby, které je potřebují ke své práci a jsou vázány mlčenlivostí. Používáme přiměřená technická a organizační opatření proti neoprávněnému přístupu, ztrátě nebo zneužití, systémy pravidelně aktualizujeme a data zálohujeme.</p>
+<h2>{{ __('pravni.ochrana_obsah.jak_osobni_udaje_chranime', ['hodnota' => ++$n]) }}</h2>
+<p>{{ __('pravni.ochrana_obsah.web_pouziva_sifrovane_spojeni_https_k') }}</p>
 
-<h2>{{ ++$n }}. Vaše práva</h2>
+<h2>{{ __('pravni.ochrana_obsah.vase_prava', ['hodnota' => ++$n]) }}</h2>
 <ul>
-    <li>právo na přístup k osobním údajům a na jejich kopii;</li>
-    <li>právo na opravu nepřesných nebo doplnění neúplných údajů;</li>
-    <li>právo na výmaz za podmínek stanovených GDPR;</li>
-    <li>právo na omezení zpracování;</li>
-    <li>právo na přenositelnost údajů za podmínek čl. 20 GDPR;</li>
-    <li>právo vznést námitku proti zpracování založenému na oprávněném zájmu;</li>
-    <li>právo kdykoli odvolat souhlas, je-li zpracování založeno na souhlasu.</li>
+    <li>{{ __('pravni.ochrana_obsah.pravo_na_pristup_k_osobnim_udajum') }}</li>
+    <li>{{ __('pravni.ochrana_obsah.pravo_na_opravu_nepresnych_nebo_doplneni') }}</li>
+    <li>{{ __('pravni.ochrana_obsah.pravo_na_vymaz_za_podminek_stanovenych') }}</li>
+    <li>{{ __('pravni.ochrana_obsah.pravo_na_omezeni_zpracovani') }}</li>
+    <li>{{ __('pravni.ochrana_obsah.pravo_na_prenositelnost_udaju_za') }}</li>
+    <li>{{ __('pravni.ochrana_obsah.pravo_vznest_namitku_proti_zpracovani') }}</li>
+    <li>{{ __('pravni.ochrana_obsah.pravo_kdykoli_odvolat_souhlas_je_li') }}</li>
 </ul>
-<p>Žádost můžete poslat na {!! $kontakt() !!}. Vyřídíme ji bez zbytečného odkladu, zpravidla do jednoho měsíce; ve složitějších případech můžeme lhůtu prodloužit až o dva měsíce, o čemž vás budeme informovat. Vyřízení je zpravidla bezplatné. Při důvodných pochybnostech o totožnosti žadatele můžeme požádat o její ověření.</p>
+<p>{{ __('pravni.ochrana_obsah.zadost_muzete_poslat_na') }} {!! $kontakt() !!}{{ __('pravni.ochrana_obsah.vyridime_ji_bez_zbytecneho_odkladu') }}</p>
 
-<h2>{{ ++$n }}. Stížnost u dozorového úřadu</h2>
-<p>Pokud se domníváte, že při zpracování vašich osobních údajů porušujeme právní předpisy, můžete podat stížnost u Úřadu pro ochranu osobních údajů, Pplk. Sochora 27, 170 00 Praha 7, <a href="https://uoou.gov.cz/" target="_blank" rel="noopener">uoou.gov.cz</a>. Budeme rádi, když se nejdřív obrátíte na nás – vaše právo obrátit se přímo na úřad tím není dotčeno.</p>
+<h2>{{ __('pravni.ochrana_obsah.stiznost_u_dozoroveho_uradu', ['hodnota' => ++$n]) }}</h2>
+<p>{{ __('pravni.ochrana_obsah.pokud_se_domnivate_ze_pri_zpracovani') }} <a href="https://uoou.gov.cz/" target="_blank" rel="noopener">uoou.gov.cz</a>{{ __('pravni.ochrana_obsah.budeme_radi_kdyz_se_nejdriv_obratite') }}</p>
 
-<h2>{{ ++$n }}. Změny tohoto dokumentu</h2>
-<p>Dokument průběžně aktualizujeme, zejména když se změní způsob zpracování, používané služby nebo právní předpisy. Aktuální verze je vždy na této stránce@if ($ucinnost) spolu s datem účinnosti@endif.</p>
+<h2>{{ __('pravni.ochrana_obsah.zmeny_tohoto_dokumentu', ['hodnota' => ++$n]) }}</h2>
+<p>{{ __('pravni.ochrana_obsah.dokument_prubezne_aktualizujeme_zejmena_2') }}@if ($ucinnost) {{ __('pravni.ochrana_obsah.spolu_s_datem_ucinnosti') }}@endif.</p>

@@ -1,0 +1,5 @@
+{
+    "The given data was invalid.": "Zadané údaje nejsou platné.",
+    "(and :count more error)": "(a ještě :count chyba)",
+    "(and :count more errors)": "{2,3,4} (a ještě :count chyby)|[5,*] (a ještě :count chyb)"
+}

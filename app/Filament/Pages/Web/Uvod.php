@@ -15,9 +15,15 @@ class Uvod extends StrankaSekceWebu
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHome;
 
-    protected static ?string $navigationLabel = 'Úvod';
+    public static function getNavigationLabel(): string
+    {
+        return __('administrace.uvod.uvod');
+    }
 
-    protected static ?string $title = 'Úvod';
+    public function getTitle(): string|\Illuminate\Contracts\Support\Htmlable
+    {
+        return __('administrace.uvod.uvod');
+    }
 
     protected static ?string $slug = 'web/uvod';
 
@@ -34,34 +40,34 @@ class Uvod extends StrankaSekceWebu
         return $schema
             ->statePath('data')
             ->components([
-                Section::make('Nadpis')
-                    ->description('Druhá část nadpisu je zvýrazněná firemní červenou.')
+                Section::make(__('administrace.uvod.nadpis'))
+                    ->description(__('administrace.uvod.druha_cast_nadpisu_je_zvyraznena_firemni'))
                     ->columns(2)
                     ->schema([
-                        ...self::text('stitek', 'Štítek nad nadpisem', 80),
-                        TextInput::make('trasa')->label('Trasa vpravo nad nadpisem')->maxLength(40)->columnSpanFull()
-                            ->helperText('Stejná v obou jazycích, píše se velkými písmeny.'),
+                        ...self::text('stitek', __('administrace.uvod.stitek_nad_nadpisem'), 80),
+                        TextInput::make('trasa')->label(__('administrace.uvod.trasa_vpravo_nad_nadpisem'))->maxLength(40)->columnSpanFull()
+                            ->helperText(__('administrace.uvod.stejna_v_obou_jazycich_pise_se')),
                         ...self::text('nadpis', 'Nadpis', 120),
-                        ...self::text('nadpis_zvyrazneny', 'Zvýrazněné pokračování', 120),
+                        ...self::text('nadpis_zvyrazneny', __('administrace.uvod.zvyraznene_pokracovani'), 120),
                         ...self::odstavec('text', 'Text pod nadpisem', 400),
                     ]),
-                Section::make('Tlačítka')
+                Section::make(__('administrace.uvod.tlacitka'))
                     ->columns(2)
                     ->schema([
-                        ...self::text('tlacitko', 'Hlavní tlačítko (na poptávku)', 40),
-                        ...self::text('tlacitko_druhe', 'Druhé tlačítko (na sortiment)', 40),
+                        ...self::text('tlacitko', __('administrace.uvod.hlavni_tlacitko_na_poptavku'), 40),
+                        ...self::text('tlacitko_druhe', __('administrace.uvod.druhe_tlacitko_na_sortiment'), 40),
                     ]),
-                Section::make('Dlaždice')
-                    ->description('Čtyři čísla pod nadpisem. Značka ® se na webu zobrazí jako horní index.')
+                Section::make(__('administrace.uvod.dlazdice'))
+                    ->description(__('administrace.uvod.ctyri_cisla_pod_nadpisem_znacka_se'))
                     ->schema([
                         Repeater::make('cisla')->hiddenLabel()
                             ->table([
-                                Repeater\TableColumn::make('Popis'),
-                                Repeater\TableColumn::make('Hodnota'),
-                                Repeater\TableColumn::make('Pod hodnotou'),
-                                Repeater\TableColumn::make('Popis – EN'),
-                                Repeater\TableColumn::make('Hodnota – EN'),
-                                Repeater\TableColumn::make('Pod hodnotou – EN'),
+                                Repeater\TableColumn::make(__('administrace.uvod.popis')),
+                                Repeater\TableColumn::make(__('administrace.uvod.hodnota')),
+                                Repeater\TableColumn::make(__('administrace.uvod.pod_hodnotou')),
+                                Repeater\TableColumn::make(__('administrace.uvod.popis_en')),
+                                Repeater\TableColumn::make(__('administrace.uvod.hodnota_en')),
+                                Repeater\TableColumn::make(__('administrace.uvod.pod_hodnotou_en')),
                             ])
                             ->schema([
                                 TextInput::make('nazev')->hiddenLabel()->required()->maxLength(40),
@@ -73,14 +79,14 @@ class Uvod extends StrankaSekceWebu
                             ])
                             ->reorderableWithDragAndDrop()
                             ->maxItems(4)
-                            ->addActionLabel('Přidat dlaždici'),
+                            ->addActionLabel(__('administrace.uvod.pridat_dlazdici')),
                     ]),
-                Section::make('Fotka')
+                Section::make(__('administrace.uvod.fotka'))
                     ->columns(2)
                     ->schema([
-                        self::fotka(FileUpload::make('foto')->label('Fotka v pozadí')->required(), 'uvod')
-                            ->helperText('Na šířku, nejlépe 16 : 9. Fotka se sama zmenší a uloží jako WebP.'),
-                        TextInput::make('foto_popis')->label('Popis fotky (pro nevidomé a vyhledávače)')->maxLength(160),
+                        self::fotka(FileUpload::make('foto')->label(__('administrace.uvod.fotka_v_pozadi'))->required(), 'uvod')
+                            ->helperText(__('administrace.uvod.na_sirku_nejlepe_16_9_fotka')),
+                        TextInput::make('foto_popis')->label(__('administrace.uvod.popis_fotky_pro_nevidome_a_vyhledavace'))->maxLength(160),
                     ]),
             ]);
     }
