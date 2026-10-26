@@ -149,7 +149,7 @@
           @if ($u['email'])<li><a href="mailto:{{ $u['email'] }}">{{ $u['email'] }}</a></li>@endif
           @if ($telefon)<li><a href="tel:{{ Preklad::tel($telefon) }}">{{ $telefon }}</a></li>@endif
           @if ($telefon && $kontakt['whatsapp'])<li><a href="https://wa.me/{{ $cislice }}" target="_blank" rel="noopener noreferrer">WhatsApp</a></li>@endif
-          @if ($telefon && $kontakt['telegram'])<li><a href="tg://resolve?phone={{ $cislice }}" target="_blank" rel="noopener noreferrer">Telegram</a></li>@endif
+          @if ($telefon && $kontakt['telegram'])<li><a href="https://t.me/+{{ $cislice }}" target="_blank" rel="noopener noreferrer">Telegram</a></li>@endif
         </ul>
       </div>
 

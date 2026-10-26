@@ -56,7 +56,7 @@ class WebExportexTest extends TestCase
             '<span class="num">05</span>', 'Most mezi středoasijskou výrobou a Evropou.', 'TAŠKENT · 2026',
             '<span class="num">06</span>', 'Příklady toho, co pro Vás zvládneme.',
             '<span class="num">07</span>', 'Řekněte nám, co potřebujete.', 'Tomáš Mikyska', 'mikyska@exportex.cz', '+420 734 479 684',
-            'https://wa.me/420734479684', 'tg://resolve?phone=420734479684',
+            'https://wa.me/420734479684', 'https://t.me/+420734479684',
             'exportex s.r.o.', 'Na Poříčí 1070/19, Nové Město, 110 00 Praha 1', 'IČO 17671833',
             'Zapsaná u Městského soudu v Praze, oddíl C, vložka 374806',
             '© '.now()->year.' exportex s.r.o. — Textil z Uzbekistánu a Střední Asie do EU.', 'codeing.cz',
@@ -274,7 +274,7 @@ class WebExportexTest extends TestCase
         auth()->logout();
 
         $this->get('/')->assertSee('+420 777 000 111')->assertSee('tel:+420777000111', false)
-            ->assertSee('https://wa.me/420777000111', false)->assertDontSee('tg://resolve', false)
+            ->assertSee('https://wa.me/420777000111', false)->assertDontSee('https://t.me/', false)
             ->assertSee('poptavky@exportex.cz')->assertSee('Jana Nováková')->assertDontSee('Tomáš Mikyska')
             ->assertDontSee('734 479 684');
     }
