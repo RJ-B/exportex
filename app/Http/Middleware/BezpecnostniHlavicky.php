@@ -70,7 +70,8 @@ class BezpecnostniHlavicky
         }
 
         // HSTS jen na produkci přes HTTPS – lokálně by prohlížeč zablokoval http.
-        if ($request->isSecure() && app()->isProduction()) {
+        // Podle APP_URL: za proxy Hestie nemusí aplikace o https vědět.
+        if (app()->isProduction() && ($request->isSecure() || str_starts_with((string) config('app.url'), 'https://'))) {
             $h->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains', false);
         }
 
