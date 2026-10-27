@@ -73,8 +73,6 @@ return [
         'nastavte_vlastni' => 'Set up your own mailbox – customers will see your address and can reply to it directly.',
         'overeno' => 'verified :kdy',
         'opravte_heslo' => 'Correct the password and click Save and verify.',
-        'zvlast_podle_ucelu' => 'Want to send forms, documents and other e-mails from different mailboxes?',
-        'e_mail_podle_ucelu' => 'E-mail by purpose',
     ],
     'dns' => [
         'v_poradku' => 'OK',

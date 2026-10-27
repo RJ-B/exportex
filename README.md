@@ -121,7 +121,7 @@ Přehled · Zobrazit web · Oznámení (+ Skupiny příjemců)
 <sekce projektu>     s čím se pracuje denně (poptávky, rezervace, objednávky, blog…) – PŘED 'Obsah webu'
 Obsah webu           co se nastaví jednou: Hlavička a patička · <sekce webu projektu> · Kontakt a formulář
                      · Ochrana osobních údajů · SEO a měření
-Nastavení (sbalené)  Uživatelé · E-mail (schránky firmy a účely) (u aplikace bez webu i Pošta – propojení s posta.simren.cz)
+Nastavení (sbalené)  Uživatelé · E-mailová schránka (u aplikace bez webu i Pošta – propojení s posta.simren.cz)
 ──────────────────── (dole v menu, za čarou)
 Správa aplikace      Logy · Stav webu – jen superadmin (ostatní skupinu nevidí)
 ```
@@ -304,11 +304,9 @@ testy všech klientů – v testu vypnout.
 - Role `users.role`: superadmin (vývojáři Sim&Ren) > admin (majitel) > klient; Administrace → Uživatelé.
 - Správa aplikace → Logy (jen superadmin): Aktivita (kdo co změnil, `AuditableObserver`), E-maily (každý odchozí mail; stav a chyby doplňuje Pošta, „Poslat znovu“ zařadí nedoručený mail v Poště znovu), Chyby (agregované podle otisku). Retence v Logy → Aktivita.
 - **Pošta** (posta.simren.cz): aplikace neposílá přes vlastní SMTP, ale přes Poštu – mail transport `posta` (`App\Support\Posta`, `PostaServiceProvider`), `Mail::` beze změny. Administrace → Pošta (správce): **Propojit s poštou** (autorizační kód + PKCE, klíče šifrovaně), výchozí odesílatel z adres, které přidělil správce Pošty, zkušební e-mail. Schránky, DNS domén (SPF, DKIM, DMARC), opakování a kopii do Odeslaných řeší Pošta. E-mail jde do Pošty hned při odeslání (jedno volání API). Jen když Pošta neodpovídá, mail čeká v odchozí frontě (`posta_odchozi`, stejný Idempotency-Key – Pošta ho nepošle dvakrát) a předá ho plánovač uvnitř `schedule:run` (`OdchoziFronta`, jen když ve frontě něco je; ručně `posta:fronta`). Výsledek přijde webhookem (`/posta/webhook`, podpis V2), záložně dotazem. `simren:zdravi --json` (`posta`): nepropojeno / Pošta nedostupná / nedoručené → portál otevře incident „Neodchází pošta“. Stará schránka aplikace (nastavení nebo `.env`) se při prvním propojení převezme do Pošty i s heslem (`StaraSchranka`, správce Pošty to povolí na souhlasu) a po zkušebním e-mailu se z aplikace smaže. Web vytvořený portálem propojí s Poštou portál sám (`posta:z-portalu`, klíče na stdin přes shim); `.env` (`POSTA_TOKEN`, `POSTA_WEBHOOK_TAJEMSTVI`, `POSTA_OD`) je záloha, když v nastavení nic není. Převod starší aplikace: [docs/prevod-na-postu.md](docs/prevod-na-postu.md).
-- **E-mail firmy** (Nastavení → E-mail, jen správce): schránky firmy z Pošty, odkud se posílá k jakému účelu
-  (jedna schránka pro všechno, nebo zvlášť formuláře, účty, doklady, objednávky, hromadné) a přidání schránky
-  heslem nebo přihlášením přes Google / Microsoft (API Pošty `/api/v1/vlastnik`, `SchrankyFirmy`). Firmu webu
-  přiřazuje správce Sim&Ren v portálu; web spravuje jen schránky své firmy. Testovací web jen čte. Účel zprávy
-  (`UcelZpravy`, `config/posta.php` → `ucely`) jde do Pošty jako pole `ucel` – odesílatele pak vybere Pošta.
+- **Účel zprávy** (`UcelZpravy`, `config/posta.php` → `ucely`): web posílá jednou schránkou (Nastavení → E-mailová schránka)
+  a s každým mailem pošle Poště účel (formuláře, účty, doklady, objednávky, hromadné). Víc schránek firmy podle účelu
+  nastavuje Sim&Ren ručně v portálu / Poště – v administraci webu se nenastavují.
 - **Oznámení** ([docs/oznameni.md](docs/oznameni.md)): zpráva žije jednou na serveru a k lidem dojde kanály –
   **centrum** (zvoneček na webu `@include('oznameni.zvonecek')` i v administraci, stránka `/oznameni`, Moje oznámení),
   **pruh** přes web a administraci (`@include('oznameni.pruh')` hned za `<body>` – odstávky s odpočtem, výpadky; pro

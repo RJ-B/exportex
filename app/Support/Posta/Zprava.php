@@ -19,7 +19,7 @@ use Symfony\Component\Mime\Part\DataPart;
  *  - hlavičky jen ty, které Pošta pustí (List-Unsubscribe…), štítek
  *    z ->tag() a metadata z ->metadata() Laravelu,
  *  - účel (UcelZpravy, hlavička X-Posta-Ucel) jako pole `ucel` – s ním
- *    odesílatele vybere Pošta podle Nastavení → E-mail.
+ *    odesílatele vybere Pošta podle schránek firmy (nastavuje Sim&Ren).
  */
 class Zprava
 {
@@ -84,7 +84,7 @@ class Zprava
             'stitek' => $stitek,
             'metadata' => $metadata,
             // Účel (formuláře, účty, doklady…) – s ním vybírá odesílatele Pošta podle firmy (UcelZpravy).
-            // Bez vlastního „pro všechno“: platí, co firma nastavila v Nastavení → E-mail; bez nastavení
+            // Bez vlastního „pro všechno“: platí, co má firma nastavené v Poště; bez nastavení
             // (a na testovacím webu) Pošta pošle jako dřív z adresy `od`.
             'ucel' => UcelZpravy::zeZpravy($email) ?? 'obecne',
         ], fn ($v) => $v !== null && $v !== []);

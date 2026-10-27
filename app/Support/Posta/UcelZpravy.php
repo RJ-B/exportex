@@ -7,7 +7,7 @@ use Symfony\Component\Mime\Email;
 
 /**
  * Účel zprávy pro Poštu (formuláře, účty, doklady…): podle něj Pošta vybere
- * schránku firmy (Nastavení → E-mail). Mailable nebo notifikace dostane účel
+ * schránku firmy (víc schránek nastavuje Sim&Ren v portálu / Poště). Mailable nebo notifikace dostane účel
  * z config/posta.php (`ucely`: třída → účel), obnova hesla a ověření e-mailu
  * vždy „ucty“. Do Pošty jde jako pole `ucel` (Zprava), ne jako hlavička.
  *

@@ -131,13 +131,12 @@ vidí, co ještě zbývá nastavit. **Upravená je jen šablona** – do projekt
 | Nastavení → **E-mailová schránka**: poskytovatel (Forpsi, Seznam / Email Profi, Gmail / Google Workspace, Microsoft 365, jiný SMTP) s krátkým návodem a předvyplněným serverem, adresa, jméno odesílatele, heslo, Uložit a ověřit, Přihlásit přes Google / Microsoft (když to Pošta umí), zkušební e-mail, DNS domény (SPF / DKIM / DMARC – co doplnit; u gmail.com, seznam.cz… jen informace), **Vrátit na systémovou schránku**. Jen správce. | `App\Filament\Pages\EmailovaSchranka`, `resources/views/filament/pruvodce/dns.blade.php` |
 | API Pošty `/api/v1/schranka` (kontrakt „E-mailová schránka z webu“, side-session-notes `schranka-z-webu-kontrakt.md`): PUT nejdřív ověří přihlášení, nepovedené nic neuloží; DELETE = zpět na systémovou; testovací web jen čte (409 / `smi_menit: false`). Heslo jen server → Pošta, web ho neukládá (DB, log ani cache), v cache 10 min jen stav. Pole `kdo` = jméno a příjmení správce. | `App\Support\Posta\SchrankaWebu` |
 | Poskytovatelé v configu (klíče = předvolby Pošty), texty v `lang/*/pruvodce.php` → `poskytovatele` (`<klic>_nazev`, `<klic>_navod`) | `config/posta.php` → `poskytovatele`, `App\Support\Posta\Poskytovatele` |
-| Stará stránka Nastavení → E-mail (účely, víc schránek firmy) zůstává, jen není v menu – odkaz „E-mail podle účelu“ dole na E-mailové schránce | `App\Filament\Pages\Email` |
 | Přehled → **Dokončete nastavení**: kroky se zaškrtnutím (údaje firmy, e-mailová schránka, právní texty, ikona a logo, SEO / Google, druhý krok přihlášení, platby jen s doplňkem). Zmizí sám, když je vše hotovo; Skrýt (pro celý web, `pruvodce.skryty`), na Přehledu zase tlačítko Průvodce nastavením. Jen správce. Krok, který nejde zjistit, není hotový. | `config/pruvodce.php`, `App\Support\Pruvodce\{Pruvodce,Krok,Kroky\*}`, `App\Filament\Widgets\DokonceteNastaveni` |
 | Testy | `EmailovaSchrankaTest`, `PruvodceNastaveniTest` |
 
 ### Převzetí do projektů
 
-1. Sloučit šablonu (nové soubory výše, `config/posta.php` → `poskytovatele`, `lang/cs|en/pruvodce.php`, `Email` mimo menu, `Prehled` s tlačítkem průvodce).
+1. Sloučit šablonu (nové soubory výše, `config/posta.php` → `poskytovatele`, `lang/cs|en/pruvodce.php`, `Prehled` s tlačítkem průvodce).
 2. Kroky průvodce projekt upraví jen v `config/pruvodce.php` (vlastní krok = třída nad `Krok`: `nazev`, `popis`, `url`, `hotovo`, případně `zobrazit`).
    Projekt bez některé stránky (např. bez SEO) krok jen vyškrtne.
 3. API `/api/v1/schranka` musí být v Poště nasazené (kontrakt → „NASAZENO“), jinak stránka ukáže, že nastavení teď nejde načíst.
@@ -154,3 +153,17 @@ skončilo 422. Kód je v pořádku (na IP adrese passkey opravdu nejde), chyba b
 | `<env name="APP_URL" value="http://localhost" force="true"/>` – testy mají vždy stejnou adresu | `phpunit.xml` |
 
 **Převzetí do projektů:** stejný řádek do `phpunit.xml` (projekty ho zdědily). Kód se nemění.
+
+## Odebrána stránka „E-mail podle účelu“ (27. 10. 2026)
+
+Web má jen jednu schránku (Nastavení → E-mailová schránka). Víc schránek firmy a co z které chodí nastaví Sim&Ren
+ručně v portálu nebo v Poště – účely v Poště zůstávají a web je s maily dál posílá (`UcelZpravy`, `config/posta.php` → `ucely`).
+
+| Co | Kde |
+|---|---|
+| Smazaná stránka Nastavení → E-mail (účely, víc schránek firmy) a její texty (`administrace.email`) | `App\Filament\Pages\Email`, její pohled, `App\Support\Posta\SchrankyFirmy` |
+| Z E-mailové schránky zmizel odkaz „E-mail podle účelu“ (texty `pruvodce.emailova_schranka.zvlast_podle_ucelu`, `e_mail_podle_ucelu`) | pohled E-mailové schránky |
+| Test jen na účel zprávy | `EmailFirmyTest` |
+
+**Převzetí do projektů:** smazat stejné soubory a texty, odebrat odkaz. Projekt, který stránku sám upravoval, ji smaže
+taky – nastavení schránek firmy zůstává v Poště. Nic se nemigruje, `.env` se nemění.

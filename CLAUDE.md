@@ -169,11 +169,10 @@ a nevypínat; při nové funkci, která zpracovává osobní údaje, doplnit jej
   (ten žádnou nemá). Maily posílat normálně přes `Mail::`. Schránky a DNS domén řeší Pošta;
   vlastní opakování, kontrolu schránky ani `mail:retry-failed` aplikace nemá.
   Testy se ke skutečné Poště nepřipojují (`Http::fake`).
-- **E-mail firmy a účely** (Nastavení → E-mail, `App\Filament\Pages\Email`, `SchrankyFirmy`): schránky firmy
-  a odkud se k jakému účelu posílá – drží je Pošta, web nic neukládá (heslo jen server → Pošta). Nový mail
-  s jiným účelem než „pro všechno“ zapsat do `config/posta.php` → `ucely` (třída → `formulare`, `ucty`,
-  `doklady`, `objednavky`, `hromadne`; obnova hesla a ověření e-mailu jsou `ucty` samy, `UcelZpravy`).
-  S účelem vybírá odesílatele Pošta. Testovací web jen čte (posílá testovací adresou).
+- **Účel zprávy** (`UcelZpravy`, `config/posta.php` → `ucely`): web posílá jednu schránkou (E-mailová schránka). Víc schránek
+  firmy a co z které chodí nastavuje Sim&Ren ručně v portálu / Poště – web jen pošle s mailem účel. Nový mail s jiným
+  účelem než „pro všechno“ zapsat do `ucely` (třída → `formulare`, `ucty`, `doklady`, `objednavky`, `hromadne`; obnova
+  hesla a ověření e-mailu jsou `ucty` samy). Stránku „E-mail podle účelu“ šablona nemá (odebrána 27. 10. 2026).
 - **E-mailová schránka** (Nastavení → E-mailová schránka, `App\Support\Posta\SchrankaWebu`, API Pošty `/schranka`): ze které
   schránky web posílá – jakákoli adresa; heslo jen server → Pošta, nikdy do DB, logu ani cache. Poskytovatelé v `config/posta.php`.
 - **Průvodce nastavením** (Přehled → Dokončete nastavení): kroky jen v `config/pruvodce.php` (třídy nad `App\Support\Pruvodce\Krok`);

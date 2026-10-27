@@ -85,7 +85,7 @@ class Klient
     }
 
     /**
-     * Správa e-mailu firmy (Nastavení → E-mail, /api/v1/vlastnik…). Chyba = RuntimeException
+     * Správa e-mailu přes API Pošty (např. /api/v1/schranka). Chyba = RuntimeException
      * s hláškou Pošty pro člověka (kód = HTTP stav), ne PostaOdmitla – nejde o zprávu.
      *
      * @return array<string, mixed>

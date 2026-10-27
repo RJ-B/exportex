@@ -74,8 +74,6 @@ return [
         'nastavte_vlastni' => 'Nastavte vlastní schránku – zákazníci uvidí vaši adresu a mohou na ni rovnou odpovědět.',
         'overeno' => 'ověřeno :kdy',
         'opravte_heslo' => 'Opravte heslo a dejte Uložit a ověřit.',
-        'zvlast_podle_ucelu' => 'Chcete posílat formuláře, doklady a další e-maily z různých schránek?',
-        'e_mail_podle_ucelu' => 'E-mail podle účelu',
     ],
     'dns' => [
         'v_poradku' => 'v pořádku',

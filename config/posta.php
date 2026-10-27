@@ -51,7 +51,7 @@ return [
 
     /*
      * Účel zprávy podle třídy mailable / notifikace (UcelZpravy): Pošta podle něj
-     * vybere schránku firmy (Nastavení → E-mail). Obnova hesla a ověření e-mailu
+     * vybere schránku firmy (víc schránek nastavuje Sim&Ren v portálu / Poště). Obnova hesla a ověření e-mailu
      * jsou „ucty“ vždy. Bez účelu = „pro všechno“. Účely: obecne, formulare,
      * ucty, doklady, objednavky, hromadne. Projekt sem přidá své maily.
      */
