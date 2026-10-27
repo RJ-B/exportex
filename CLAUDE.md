@@ -57,7 +57,8 @@ skryté pole a podepsaný čas z atributů formuláře (`data-past`, `data-cas`)
 s poštou (`App\Support\Posta`, transport `posta`, `Mail::` beze změny). Schránka exportex.cz
 zůstává u Forpsi (`smtp.forpsi.com:465` SSL, mikyska@exportex.cz) – v Poště ji zadá správce
 Pošty i s heslem (v aplikaci heslo nikdy nebylo, převzít není co). DNS domény (SPF, DKIM,
-DMARC) hlídá Pošta. Řádky `posta.host/port/sifrovani/uzivatel` (výchozí v `config/nastaveni.php`)
+DMARC) hlídá Pošta. Schránku si klient (nebo Sim&Ren) nastaví sám v **Nastavení → E-mailová schránka**
+(šablona, Forpsi je první mezi poskytovateli – server se předvyplní); heslo jde jen do Pošty. Řádky `posta.host/port/sifrovani/uzivatel` (výchozí v `config/nastaveni.php`)
 zůstávají – migrací se nemažou (docs prevodu, smaže je až převzetí schránky).
 Web z portálu propojí s Poštou portál sám (`posta:z-portalu`, `app/Support/Posta/PrikazZPortalu.php`, klíče na stdin); `.env` (`POSTA_TOKEN`, `POSTA_WEBHOOK_TAJEMSTVI`, `POSTA_OD`) je jen záloha, když v nastavení nic není.
 
@@ -147,6 +148,9 @@ a nevypínat; při nové funkci, která zpracovává osobní údaje, doplnit jej
   (`Sifrovane`) – tajemství nikdy neposílat čitelně mimo server.
 - **Na produkci nikdy mailer `log` ani `array`** – e-mail by se tvářil jako odeslaný. `simren:zdravi` to hlásí
   portálu (blok `posta`) a záznam v Logy → E-maily je „neodesláno“.
+- **Testovací schránka** (docs/testovaci-schranka.md): na testu jde každý e-mail jen na test@simren.cz
+  (`TestovaciSchranka`, obal transportu v `LoggingMailManager` – nerušit), produkce nikdy; produkce
+  s odesílatelem test@simren.cz = chyba v `/zdravi`. Testovací adresu nikdy do databáze ani do přenosu dat.
 - `/zdravi` odpovídá i v údržbě (`artisan down`, výjimka v `bootstrap/app.php`) – nasazení během údržby
   ho čte; výjimku nerušit.
 - Převod dat ze staré aplikace jen přes `App\Console\PrevodDat` a spojení `stara`
@@ -170,6 +174,10 @@ a nevypínat; při nové funkci, která zpracovává osobní údaje, doplnit jej
   s jiným účelem než „pro všechno“ zapsat do `config/posta.php` → `ucely` (třída → `formulare`, `ucty`,
   `doklady`, `objednavky`, `hromadne`; obnova hesla a ověření e-mailu jsou `ucty` samy, `UcelZpravy`).
   S účelem vybírá odesílatele Pošta. Testovací web jen čte (posílá testovací adresou).
+- **E-mailová schránka** (Nastavení → E-mailová schránka, `App\Support\Posta\SchrankaWebu`, API Pošty `/schranka`): ze které
+  schránky web posílá – jakákoli adresa; heslo jen server → Pošta, nikdy do DB, logu ani cache. Poskytovatelé v `config/posta.php`.
+- **Průvodce nastavením** (Přehled → Dokončete nastavení): kroky jen v `config/pruvodce.php` (třídy nad `App\Support\Pruvodce\Krok`);
+  nová věc, bez které web plně nefunguje, dostane krok. `hotovo()` musí být levné (bez volání API bez cache).
 - **Oznámení lidem aplikace jen přes modul Oznámení** (docs/oznameni.md): z kódu `App\Support\Oznameni\Oznam`,
   odesílá jen `Odeslani` (stav ručně neměnit, do `oznameni_*` nezapisovat mimo něj). Novinky a nabídky e-mailem/pushem
   jen se souhlasem (`Predvolby`), každá změna souhlasu do `oznameni_souhlasy`. Nový layout webu: `@include('oznameni.pruh')`

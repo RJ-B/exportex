@@ -2,6 +2,7 @@
 
 namespace App\Support\Prenos;
 
+use App\Support\Posta\TestovaciSchranka;
 use InvalidArgumentException;
 
 /**
@@ -152,6 +153,11 @@ class Casti
     public static function patri(string $tabulka, array $definice, array $radek): bool
     {
         if ($tabulka === 'nastaveni' && self::odpovida((string) ($radek['klic'] ?? ''), self::NIKDY_NASTAVENI)) {
+            return false;
+        }
+
+        // Testovací schránka (test@simren.cz) do produkce nikdy – ani jako kontaktní e-mail.
+        if ($tabulka === 'nastaveni' && TestovaciSchranka::jeTestovaci(is_string($radek['hodnota'] ?? null) ? $radek['hodnota'] : null)) {
             return false;
         }
 

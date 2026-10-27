@@ -51,6 +51,11 @@ class StaraSchranka
 
         $udaje['adresa'] = strtolower(trim($udaje['adresa']));
 
+        // Testovací schránku Pošta přiděluje sama a jen testům – převzetím by ji dostala produkce.
+        if (TestovaciSchranka::jeTestovaci($udaje['adresa']) || TestovaciSchranka::jeTestovaci($udaje['uzivatel'] ?? null)) {
+            return null;
+        }
+
         return $udaje + ['imap_zapnuto' => false, 'imap_host' => null, 'imap_port' => null, 'imap_sifrovani' => null, 'imap_slozka' => null];
     }
 

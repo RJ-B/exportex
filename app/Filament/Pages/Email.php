@@ -38,6 +38,9 @@ class Email extends Page
 
     protected static ?string $slug = 'email';
 
+    // V menu je E-mailová schránka (EmailovaSchranka) – sem vede odkaz z ní („zvlášť podle účelu“).
+    protected static bool $shouldRegisterNavigation = false;
+
     public static function getNavigationLabel(): string
     {
         return __('administrace.email.e_mail');

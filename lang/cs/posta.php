@@ -144,4 +144,11 @@ toto je zkušební e-mail ze schránky :adresa. Pokud ho čtete, odesílání fu
     'zprava' => [
         'bez_predmetu' => '(bez předmětu)',
     ],
+    'test_schranka' => [
+        'jmeno' => ':aplikace (test)',
+        'predmet' => '[TEST → :prijemci] :predmet',
+        'syrovou_zpravu_nejde_presmerovat' => 'Testovací web: zprávu bez hlaviček nejde přesměrovat na testovací schránku, proto se neodeslala.',
+        'produkce_posila_z_testovaci' => 'Produkce posílá z testovací schránky :adresa – odesílatele změňte v Poště (nebo MAIL_FROM_ADDRESS / POSTA_OD v .env).',
+        'odesilatel_neni_testovaci' => 'odesílatel není testovací schránka',
+    ],
 ];

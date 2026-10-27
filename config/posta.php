@@ -63,6 +63,20 @@ return [
         PlatbaVracena::class => 'doklady',
     ],
 
+    /*
+     * Poskytovatelé schránek pro stránku E-mailová schránka (App\Support\Posta\Poskytovatele):
+     * předvyplněný server, port a šifrování a krátký návod (lang/cs|en/pruvodce.php → poskytovatele).
+     * Klíče jsou stejné jako předvolby Pošty – od ní se bere jen, jestli jde přihlášení přes
+     * Google / Microsoft (`oauth`). Projekt může poskytovatele přidat nebo ubrat; `jiny` nechat poslední.
+     */
+    'poskytovatele' => [
+        'forpsi' => ['smtp_host' => 'smtp.forpsi.com', 'smtp_port' => 465, 'smtp_sifrovani' => 'smtps'],
+        'seznam' => ['smtp_host' => 'smtp.seznam.cz', 'smtp_port' => 465, 'smtp_sifrovani' => 'smtps'],
+        'google' => ['smtp_host' => 'smtp.gmail.com', 'smtp_port' => 465, 'smtp_sifrovani' => 'smtps', 'oauth' => 'google'],
+        'microsoft' => ['smtp_host' => 'smtp.office365.com', 'smtp_port' => 587, 'smtp_sifrovani' => 'starttls', 'oauth' => 'microsoft'],
+        'jiny' => ['smtp_host' => null, 'smtp_port' => 465, 'smtp_sifrovani' => 'smtps'],
+    ],
+
     // Stav zprávy se z Pošty dotáže, když webhook nepřišel do tolika minut.
     'dotaz_na_stav_po_minutach' => 15,
 ];

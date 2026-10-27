@@ -22,6 +22,8 @@
              přeleze výchozích 128 MB (zapisnik, nabidky, rootklima-nabidky). -->
         <ini name="memory_limit" value="512M"/>
         <env name="APP_ENV" value="testing"/>
+        <!-- Adresa testů nezávisle na místním .env (passkey na IP adrese nejde – DruhyKrokTest). -->
+        <env name="APP_URL" value="http://localhost" force="true"/>
         <env name="APP_TIMEZONE" value="Europe/Prague"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>

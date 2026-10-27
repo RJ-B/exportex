@@ -6,6 +6,7 @@ use App\Enums\StavWebu;
 use App\Models\Nastaveni;
 use App\Platby\StavPlateb;
 use App\Support\Posta\StavPosty;
+use App\Support\Posta\TestovaciSchranka;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -97,6 +98,8 @@ final class Zdravi
 
                 return __('obecne.zdravi.zapisovatelny');
             }),
+            // Produkce nesmí posílat z testovací schránky test@simren.cz (portál hlásí).
+            ...(app()->isProduction() ? ['posta_test' => self::zkus(fn () => TestovaciSchranka::overProdukci())] : []),
         ];
     }
 

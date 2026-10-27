@@ -98,3 +98,59 @@ sloučit šablonu, převzít beze změny jazykovou část (`config/jazyky.php`, 
 `docs/jazyky.md`, `JazykyTest`), vlastní kód převést `php artisan jazyky:prevod` a vypsaná místa opravit ručně
 (konstanty, porovnání, JS), volání změněných konstant (`User::ROLE_POPISKY` → `User::popiskyRoli()`…) přepsat.
 Kdo angličtinu nepotřebuje, nechá v `config/jazyky.php` jen `cs` – `JazykyTest` pak kontroluje jen češtinu.
+
+## Testovací schránka test@simren.cz a pojistka pošty na testu (26. 10. 2026)
+
+Testovací weby posílají z test@simren.cz (přiděluje Pošta, heslo jen v Poště – portál) a nic z nich
+neodejde ven. **Upravená je jen šablona** – do projektů se zatím nic nepřenáší (doslučování podle
+hlídání šablon). Návod: `docs/testovaci-schranka.md`, kontrakt s portálem: žádné nové proměnné `.env`.
+
+| Co | Kde |
+|---|---|
+| Na testu (`staging`; lokálně jen s testovacím odesílatelem) každý e-mail jen na test@simren.cz od test@simren.cz, bez kopií a Reply-To; původní příjemci v předmětu `[TEST → …]` a hlavičkách `X-Simren-Puvodni-*`. Platí pro každý mailer, frontu, notifikace i Poštu. Produkce nikdy. | `App\Support\Posta\TestovaciSchranka`, `PresmerovaniNaTest`, `App\Mail\LoggingMailManager` |
+| `/zdravi` v produkci: odesílatel test@simren.cz (Pošta, `MAIL_FROM_ADDRESS`, `POSTA_OD`) = tvrdá chyba `posta_test` (503) | `App\Support\Zdravi` |
+| `simren:zdravi --json` → `posta.od` a `posta.smtp_uzivatel` (jen adresy) pro pojistku portálu | `App\Support\Posta\StavPosty` |
+| Přenos částí nepřenese nastavení s hodnotou test@simren.cz; po importu celé DB se stará schránka test@simren.cz a takové nastavení smaže (`testovaci_schranka`: `zapomenuta` / `zadna`) | `App\Support\Prenos\Casti`, `PoImportu` |
+| Stará schránka test@simren.cz se Poště k převzetí nenabízí | `App\Support\Posta\StaraSchranka` |
+| Texty `lang/*/posta.php` → `test_schranka`, test `TestovaciSchrankaTest` | lang, tests |
+
+### Co z toho převezmou projekty
+
+Sloučit šablonu: dvě nové třídy v `app/Support/Posta`, úpravy `LoggingMailManager`, `Zdravi`, `StavPosty`,
+`Casti`, `PoImportu`, `StaraSchranka`, texty `posta.test_schranka`, `docs/testovaci-schranka.md`, test.
+Projekt s vlastním `LoggingMailManager` nebo vlastním transportem musí obal `TestovaciSchranka::obal()`
+zachovat navrchu. Nic se nemigruje, `.env` se nemění.
+
+## E-mailová schránka a průvodce nastavením na Přehledu (27. 10. 2026)
+
+Klient si sám nastaví schránku, ze které web posílá (jakoukoli – nemusí být na doméně webu), a na Přehledu
+vidí, co ještě zbývá nastavit. **Upravená je jen šablona** – do projektů přenese MAIN samostatně.
+
+| Co | Kde |
+|---|---|
+| Nastavení → **E-mailová schránka**: poskytovatel (Forpsi, Seznam / Email Profi, Gmail / Google Workspace, Microsoft 365, jiný SMTP) s krátkým návodem a předvyplněným serverem, adresa, jméno odesílatele, heslo, Uložit a ověřit, Přihlásit přes Google / Microsoft (když to Pošta umí), zkušební e-mail, DNS domény (SPF / DKIM / DMARC – co doplnit; u gmail.com, seznam.cz… jen informace), **Vrátit na systémovou schránku**. Jen správce. | `App\Filament\Pages\EmailovaSchranka`, `resources/views/filament/pruvodce/dns.blade.php` |
+| API Pošty `/api/v1/schranka` (kontrakt „E-mailová schránka z webu“, side-session-notes `schranka-z-webu-kontrakt.md`): PUT nejdřív ověří přihlášení, nepovedené nic neuloží; DELETE = zpět na systémovou; testovací web jen čte (409 / `smi_menit: false`). Heslo jen server → Pošta, web ho neukládá (DB, log ani cache), v cache 10 min jen stav. Pole `kdo` = jméno a příjmení správce. | `App\Support\Posta\SchrankaWebu` |
+| Poskytovatelé v configu (klíče = předvolby Pošty), texty v `lang/*/pruvodce.php` → `poskytovatele` (`<klic>_nazev`, `<klic>_navod`) | `config/posta.php` → `poskytovatele`, `App\Support\Posta\Poskytovatele` |
+| Stará stránka Nastavení → E-mail (účely, víc schránek firmy) zůstává, jen není v menu – odkaz „E-mail podle účelu“ dole na E-mailové schránce | `App\Filament\Pages\Email` |
+| Přehled → **Dokončete nastavení**: kroky se zaškrtnutím (údaje firmy, e-mailová schránka, právní texty, ikona a logo, SEO / Google, druhý krok přihlášení, platby jen s doplňkem). Zmizí sám, když je vše hotovo; Skrýt (pro celý web, `pruvodce.skryty`), na Přehledu zase tlačítko Průvodce nastavením. Jen správce. Krok, který nejde zjistit, není hotový. | `config/pruvodce.php`, `App\Support\Pruvodce\{Pruvodce,Krok,Kroky\*}`, `App\Filament\Widgets\DokonceteNastaveni` |
+| Testy | `EmailovaSchrankaTest`, `PruvodceNastaveniTest` |
+
+### Převzetí do projektů
+
+1. Sloučit šablonu (nové soubory výše, `config/posta.php` → `poskytovatele`, `lang/cs|en/pruvodce.php`, `Email` mimo menu, `Prehled` s tlačítkem průvodce).
+2. Kroky průvodce projekt upraví jen v `config/pruvodce.php` (vlastní krok = třída nad `Krok`: `nazev`, `popis`, `url`, `hotovo`, případně `zobrazit`).
+   Projekt bez některé stránky (např. bez SEO) krok jen vyškrtne.
+3. API `/api/v1/schranka` musí být v Poště nasazené (kontrakt → „NASAZENO“), jinak stránka ukáže, že nastavení teď nejde načíst.
+4. Nic se nemigruje, `.env` se nemění.
+
+## Oprava: DruhyKrokTest nezávisle na místním .env (27. 10. 2026)
+
+Testy druhého kroku padaly na počítači, kde má `.env` adresu s IP (`APP_URL=http://127.0.0.1:8360`): požadavek testu
+vznikl s touto adresou a passkey na IP adrese nejde (`DruhyKrok::passkeyNaTetoAdrese`) – passkey se nenabídl a ověření
+skončilo 422. Kód je v pořádku (na IP adrese passkey opravdu nejde), chyba byla v testech: braly adresu z `.env`.
+
+| Co | Kde |
+|---|---|
+| `<env name="APP_URL" value="http://localhost" force="true"/>` – testy mají vždy stejnou adresu | `phpunit.xml` |
+
+**Převzetí do projektů:** stejný řádek do `phpunit.xml` (projekty ho zdědily). Kód se nemění.

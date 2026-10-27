@@ -4,6 +4,7 @@ namespace App\Support\Prenos;
 
 use App\Support\Posta\Odchozi;
 use App\Support\Posta\Propojeni;
+use App\Support\Posta\TestovaciSchranka;
 use Throwable;
 
 /**
@@ -16,6 +17,7 @@ use Throwable;
  *    Odchozí fronta zdroje se zahodí – zprávy testu nemají odejít z produkce.
  *  - Šifrované hodnoty, které tenhle APP_KEY nepřečte (klíče brány, Authenticator),
  *    se vymažou a výsledek je vyjmenuje – zadají se znovu (Sifrovane).
+ *  - Testovací schránka test@simren.cz (stará schránka, nastavení s ní) se smaže.
  *  - Fakturace: klíče jsou v .env webu (zapisuje je portál), ten se nepřenáší.
  *    Projekt se sekcí Faktury (docs/sablona-sekce-faktury ve fakturaci) sem
  *    přidá úklid zrcadla dokladů: testovací doklady (řada TEST-…) z testu
@@ -32,6 +34,8 @@ class PoImportu
 
         app(Propojeni::class)->zapomen();
         $vysledek['posta'] = __('obecne.po_importu.zapomenuto_portal_web_propoji_znovu');
+        // Testovací schránka test@simren.cz (stará schránka, kontaktní e-mail…) do produkce nesmí.
+        $vysledek['testovaci_schranka'] = rescue(fn () => TestovaciSchranka::poImportu()['schranka'], __('obecne.po_importu.neslo_smazat'), false);
         $vysledek['posta_fronta'] = rescue(fn () => Odchozi::query()->delete(), __('obecne.po_importu.neslo_smazat'), false);
 
         try {

@@ -44,7 +44,30 @@ class StavPosty
             'mailer' => $mailer,
             'fronta' => $fronta,
             'nedorucene_24h' => $nedorucene,
+            // Pojistka portálu „Produkce posílá z testovací schránky“ (jen adresy, nikdy heslo).
+            'od' => self::od(),
+            'smtp_uzivatel' => self::smtpUzivatel(),
         ];
+    }
+
+    /** Adresa, ze které aplikace opravdu posílá: přidělená Poštou, bez propojení MAIL_FROM_ADDRESS. */
+    public static function od(): ?string
+    {
+        $adresa = Propojeni::propojeno() ? (Propojeni::odesilatel()['adresa'] ?? null) : config('mail.from.address');
+
+        return filled($adresa) ? strtolower(trim((string) $adresa)) : null;
+    }
+
+    /** Přihlašovací jméno SMTP – jen bez propojení s Poštou a jen u maileru smtp. */
+    public static function smtpUzivatel(): ?string
+    {
+        if (Propojeni::propojeno() || self::mailer() !== 'smtp') {
+            return null;
+        }
+
+        $uzivatel = config('mail.mailers.smtp.username');
+
+        return filled($uzivatel) ? strtolower(trim((string) $uzivatel)) : null;
     }
 
     /** Mailer, kterým e-maily skutečně jdou: po propojení vždy Pošta, jinak z .env. */

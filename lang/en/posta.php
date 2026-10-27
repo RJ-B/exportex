@@ -144,4 +144,11 @@ this is a test e-mail from the mailbox :adresa. If you are reading it, sending w
     'zprava' => [
         'bez_predmetu' => '(no subject)',
     ],
+    'test_schranka' => [
+        'jmeno' => ':aplikace (test)',
+        'predmet' => '[TEST → :prijemci] :predmet',
+        'syrovou_zpravu_nejde_presmerovat' => 'Test site: a message without headers cannot be redirected to the test mailbox, so it was not sent.',
+        'produkce_posila_z_testovaci' => 'Production sends from the test mailbox :adresa – change the sender in Pošta (or MAIL_FROM_ADDRESS / POSTA_OD in .env).',
+        'odesilatel_neni_testovaci' => 'sender is not the test mailbox',
+    ],
 ];
