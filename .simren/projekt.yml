@@ -11,7 +11,7 @@
 
 verze: 1
 sablona: SimRen-sro/simren-laravel-starter
-sablona_verze: b0820ef     # v1.0.1 + E-mailová schránka, průvodce nastavením, testovací schránka (27. 10.); jazyky šablony jen cs, obsah webu CZ/EN vlastní
+sablona_verze: 841b44e12a620e2717b3285fc1af0da7726d1c29     # + logo a ikona jedno pro web i administraci (31. 10.); jazyky šablony jen cs, obsah webu CZ/EN vlastní; logo pevně ve vzhledu (sablona.vzhled)
 typ: laravel
 php: "8.5"                 # 8.5 | 8.4
 databaze: mariadb          # mariadb | sqlite | zadna

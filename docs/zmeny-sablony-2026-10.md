@@ -167,3 +167,22 @@ ručně v portálu nebo v Poště – účely v Poště zůstávají a web je s 
 
 **Převzetí do projektů:** smazat stejné soubory a texty, odebrat odkaz. Projekt, který stránku sám upravoval, ji smaže
 taky – nastavení schránek firmy zůstává v Poště. Nic se nemigruje, `.env` se nemění.
+
+## Logo a ikona: jedno pro web i administraci (31. 10. 2026)
+
+Krok průvodce „Ikona a logo“ vedl na Hlavičku a patičku, ale na webech s logem pevně ve vzhledu (exportex) tam
+nahrávání nebylo, a administrace ukazovala výchozí ikonu místo loga webu. Teď je logo jedno (`App\Support\LogoWebu`)
+a administrace ho bere sama – nic se pro ni nenastavuje zvlášť.
+
+| Co | Kde |
+|---|---|
+| Logo webu odkudkoli: pevné ve vzhledu webu (`config/sablona.php` → `vzhled.logo`, `vzhled.ikona`, soubory v `public/`), jinak nahrané v Hlavičce a patičce | `App\Support\LogoWebu`, `config/sablona.php` |
+| Administrace (levé menu, přihlášení): stejné logo jako web – široké (nápis) samo, užší značka s názvem vedle; bez loga výchozí ikona a název | `resources/views/filament/rozlozeni/znacka.blade.php`, `public/css/rozlozeni.css` |
+| Favicon webu i administrace z ikony, jinak z loga (pevná ikona se neořezává – je to hotový čtverec); z pevného loga vznikne sám při prvním zobrazení a znovu, když je soubor novější (SVG GD nepřečte → další zdroj) | `App\Support\IkonaWebu` |
+| Hlavička a patička: samostatná sekce **Logo a ikona** s kotvou `#logo` (krok průvodce vede přesně sem), nahrané logo a ikona se ukládají jako WebP (`Fotky::pole`); s pevným logem se sekce neukazuje | `App\Filament\Pages\HlavickaPaticka` |
+| Krok „Ikona a logo“: odkaz na `#logo`, hotovo = nahrané logo, s pevným logem se neukazuje (`zobrazit()`) | `App\Support\Pruvodce\Kroky\IkonaALogo` |
+| Testy | `IkonaWebuTest` |
+
+**Převzetí do projektů:** soubory výše a texty `administrace.hlavicka_paticka.logo_a_ikona`, `logo_plati_pro_web_i_administraci`.
+Projekt s logem pevně ve vzhledu webu vyplní `vzhled.logo` (a čtvercovou `vzhled.ikona`, má-li ji); jeho layout webu může
+dál mít vlastní ikony. Nic se nemigruje, `.env` se nemění.

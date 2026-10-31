@@ -41,6 +41,8 @@ return [
         'na_webu_v_zalozce_prohlizece_v' => 'Na webu, v záložce prohlížeče, v e-mailech i v administraci.',
         'podtitulek' => 'Podtitulek',
         'logo' => 'Logo',
+        'logo_a_ikona' => 'Logo a ikona',
+        'logo_plati_pro_web_i_administraci' => 'Stejné logo a ikona platí pro web i administraci (levé menu, přihlášení, záložka prohlížeče).',
         'png_nebo_webp_s_pruhlednosti_svg' => 'PNG nebo WebP s průhledností. SVG ne – může obsahovat skript. Z loga se sama vytvoří i ikona v záložce prohlížeče.',
         'ikona_v_zalozce' => 'Ikona v záložce',
         'nepovinne_jen_kdyz_je_logo_siroke' => 'Nepovinné – jen když je logo široké a v záložce prohlížeče by se nedalo přečíst. Čtverec aspoň 192 × 192 px (značka bez textu), PNG nebo WebP s průhledností.',

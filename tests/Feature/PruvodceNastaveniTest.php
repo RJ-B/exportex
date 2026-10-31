@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Filament\Pages\Prehled;
 use App\Filament\Widgets\DokonceteNastaveni;
 use App\Models\User;
+use App\Support\NastaveniWebu;
 use App\Support\Pruvodce\Krok;
 use App\Support\Pruvodce\Kroky;
 use App\Support\Pruvodce\Pruvodce;
@@ -38,14 +39,15 @@ class PruvodceNastaveniTest extends TestCase
         $this->actingAs($this->spravce());
 
         $kroky = Pruvodce::stav();
-        $this->assertSame(['UdajeFirmy', 'EmailovaSchranka', 'PravniTexty', 'IkonaALogo', 'SeoGoogle', 'DruhyKrokPrihlaseni'], $kroky->pluck('klic')->all());
+        // Bez Ikony a loga – exportex má logo pevně ve vzhledu webu (config sablona.vzhled).
+        $this->assertSame(['UdajeFirmy', 'EmailovaSchranka', 'PravniTexty', 'SeoGoogle', 'DruhyKrokPrihlaseni'], $kroky->pluck('klic')->all());
         $this->assertTrue($kroky->every(fn ($k) => $k['hotovo'] === false && filled($k['url'])));
 
         $this->assertTrue(DokonceteNastaveni::canView());
         Livewire::test(DokonceteNastaveni::class)
             ->assertSee(__('pruvodce.pruvodce_nastaveni.dokoncete_nastaveni'))
             ->assertSee(__('pruvodce.kroky.emailova_schranka'))
-            ->assertSee(__('pruvodce.pruvodce_nastaveni.hotovo_z', ['hotovo' => 0, 'celkem' => 6]));
+            ->assertSee(__('pruvodce.pruvodce_nastaveni.hotovo_z', ['hotovo' => 0, 'celkem' => 5]));
         $this->get(Prehled::getUrl())->assertOk()->assertSee(__('pruvodce.pruvodce_nastaveni.dokoncete_nastaveni'));
 
         // Platby jen se zapnutým doplňkem.
@@ -60,7 +62,7 @@ class PruvodceNastaveniTest extends TestCase
         $this->assertSame([true, false], Pruvodce::stav()->pluck('hotovo')->all());
         $this->assertTrue(DokonceteNastaveni::canView());
 
-        \App\Support\NastaveniWebu::uloz(['meta_popis' => 'Pekárna v Brně.']);
+        NastaveniWebu::uloz(['meta_popis' => 'Pekárna v Brně.']);
         $this->assertTrue(Pruvodce::hotovo());
         $this->assertFalse(DokonceteNastaveni::canView());
     }

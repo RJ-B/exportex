@@ -34,6 +34,21 @@ return [
     'po_nastaveni_hesla' => null,
 
     /*
+     * Logo a ikona pevně ve vzhledu webu (cesta v public/, např.
+     * 'assets/img/logo.webp' a 'assets/img/ikona-192.png') – web s vlastním
+     * designem, kde je logo součást vzhledu. Administrace (levé menu, přihlášení,
+     * ikona v záložce) pak bere tyhle soubory sama, v Hlavičce a patičce se logo
+     * nenahrává a krok průvodce „Ikona a logo“ se neukazuje. Ikona je čtverec
+     * (PNG/WebP aspoň 192 px); bez ní vznikne z loga. null = logo se nahrává
+     * v administraci (App\Support\LogoWebu).
+     */
+    // Exportex: logo i ikona („e“ z loga) jsou součást vzhledu webu.
+    'vzhled' => [
+        'logo' => 'assets/img/logo.webp',
+        'ikona' => 'assets/img/icon-192.png',
+    ],
+
+    /*
      * Další domény webu (stará doména, překlep, jiná koncovka), které se trvale
      * přesměrují na doménu z APP_URL. `www.` se přesměruje vždy samo.
      * Příklad: ['rootklima.eu', 'samsungklima.cz'].

@@ -202,6 +202,9 @@ hreflang šablona nemá (web je jen česky).
 (iPhone, bílé pozadí) a 192 px v `storage/app/public/web/ikona`. Bez loga platí výchozí neutrální ikona
 z `public/` (`ikona-*.png`, `favicon.ico`). Do `<head>` každého layoutu webu patří
 `{{ \App\Support\IkonaWebu::html() }}` (šablona ho má ve všech svých stránkách i v administraci).
+Logo je jedno pro web i administraci (`App\Support\LogoWebu`): administrace ho v levém menu a na přihlášení
+ukazuje sama. Web s logem pevně ve vzhledu ho zapíše do `config/sablona.php` → `vzhled` (`logo`, čtvercová
+`ikona`) – pak se v administraci nenahrává a krok průvodce „Ikona a logo“ se neukazuje.
 
 **Bezpečnost**: `BezpecnostniHlavicky` na webu i v administraci (X-Frame-Options, nosniff,
 Referrer-Policy, Permissions-Policy, HSTS na produkci podle `APP_URL`), session cookie na produkci jen přes HTTPS,

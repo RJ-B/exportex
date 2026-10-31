@@ -41,6 +41,8 @@ return [
         'na_webu_v_zalozce_prohlizece_v' => 'On the website, in the browser tab, in e-mails and in the administration.',
         'podtitulek' => 'Subtitle',
         'logo' => 'Logo',
+        'logo_a_ikona' => 'Logo and icon',
+        'logo_plati_pro_web_i_administraci' => 'The same logo and icon are used on the website and in the administration (side menu, sign-in, browser tab).',
         'png_nebo_webp_s_pruhlednosti_svg' => 'PNG or WebP with transparency. Not SVG – it can contain a script. The browser tab icon is created from the logo automatically.',
         'ikona_v_zalozce' => 'Tab icon',
         'nepovinne_jen_kdyz_je_logo_siroke' => 'Optional – only when the logo is wide and would be unreadable in the browser tab. A square of at least 192 × 192 px (mark without text), PNG or WebP with transparency.',

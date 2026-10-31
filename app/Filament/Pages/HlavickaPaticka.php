@@ -3,11 +3,14 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Support\CastObsahuWebu;
+use App\Support\Fotky;
+use App\Support\LogoWebu;
 use App\Support\NastaveniWebu;
 use App\Support\ObsahWebu;
 use App\Support\SekceWebu;
 use App\Support\ZakladniUdaje;
 use BackedEnum;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Repeater\TableColumn;
 use Filament\Forms\Components\Textarea;
@@ -24,7 +27,8 @@ use Illuminate\Contracts\Support\Htmlable;
  * Obsah webu → Hlavička a patička: co je na každé stránce nahoře a dole –
  * název, kontakty, provozovatel (Základní údaje) a texty patičky.
  *
- * Exportex: logo je pevně ve vzhledu webu a sociální sítě web nemá (WhatsApp
+ * Exportex: logo je pevně ve vzhledu webu (config sablona.vzhled – administrace ho bere
+ * sama, sekce Logo a ikona se neukazuje) a sociální sítě web nemá (WhatsApp
  * a Telegram vedou na telefon z Kontaktů) – pole šablony pro ně tu proto nejsou.
  * Web je dvojjazyčný: anglické podoby sídla, rejstříku a textů patičky ukládá
  * App\Support\ObsahWebu (klíč obsah.paticka).
@@ -48,6 +52,9 @@ class HlavickaPaticka extends Page
     }
 
     protected static ?string $slug = 'hlavicka-a-paticka';
+
+    /** Kotva sekce s logem – sem vede krok průvodce „Ikona a logo“. */
+    public const KOTVA_LOGA = 'logo';
 
     protected static ?int $navigationSort = 1;
 
@@ -97,6 +104,23 @@ class HlavickaPaticka extends Page
                             ->helperText(__('administrace.hlavicka_paticka.na_webu_v_zalozce_prohlizece_v')),
                         TextInput::make('tagline')->label(__('administrace.hlavicka_paticka.podtitulek'))->maxLength(160)
                             ->helperText(__('administrace.hlavicka_paticka.za_nazvem_v_zalozce_prohlizece_ve')),
+                    ]),
+                // Kotva pro krok průvodce „Ikona a logo“ (#logo). Exportex má logo pevně ve vzhledu
+                // webu (config sablona.vzhled) – sekce se neukazuje, administrace ho bere sama.
+                Section::make(__('administrace.hlavicka_paticka.logo_a_ikona'))
+                    ->id(self::KOTVA_LOGA)->extraAttributes(['style' => 'scroll-margin-top: 5rem'])
+                    ->description(__('administrace.hlavicka_paticka.logo_plati_pro_web_i_administraci'))
+                    ->visible(fn () => ! LogoWebu::pevne())
+                    ->columns(2)
+                    ->schema([
+                        Fotky::pole(FileUpload::make('logo'))->label(__('administrace.hlavicka_paticka.logo'))
+                            ->image()->acceptedFileTypes(['image/png', 'image/webp', 'image/jpeg'])
+                            ->disk('public')->directory('web')->maxSize(4096)
+                            ->helperText(__('administrace.hlavicka_paticka.png_nebo_webp_s_pruhlednosti_svg')),
+                        Fotky::pole(FileUpload::make('ikona'))->label(__('administrace.hlavicka_paticka.ikona_v_zalozce'))
+                            ->image()->acceptedFileTypes(['image/png', 'image/webp', 'image/jpeg'])
+                            ->disk('public')->directory('web')->maxSize(4096)
+                            ->helperText(__('administrace.hlavicka_paticka.nepovinne_jen_kdyz_je_logo_siroke')),
                     ]),
                 Section::make(__('administrace.hlavicka_paticka.kontakty'))
                     ->columns(2)
