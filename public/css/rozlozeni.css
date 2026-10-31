@@ -15,6 +15,8 @@
 .simren-znacka { display: inline-flex; align-items: center; gap: .6rem; min-width: 0; max-width: 100%; height: 100%; }
 .simren-znacka img { width: 28px; height: 28px; border-radius: 6px; flex: none; object-fit: contain; }
 .simren-znacka img.simren-znacka-logo { width: auto; height: auto; max-width: min(11rem, 100%); max-height: 2rem; border-radius: 0; }
+/* Logo je kreslené pro světlý web – v tmavém režimu na světlém podkladu, ať tmavý nápis nesplyne. */
+.dark .simren-znacka img.simren-znacka-logo { background: #fff; padding: 3px 6px; border-radius: 6px; box-sizing: content-box; max-height: calc(2rem - 6px); }
 .simren-znacka-nazev { font-weight: 600; font-size: 1rem; color: var(--gray-950); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dark .simren-znacka-nazev { color: white; }
 .fi-logo { min-width: 0; max-width: 100%; }
